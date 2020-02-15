@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-<<<<<<< HEAD
-      <module fileurl="file://$PROJECT_DIR$/.idea/bezierlib.iml" filepath="$PROJECT_DIR$/.idea/bezierlib.iml" />
-=======
       <module fileurl="file://$PROJECT_DIR$/.idea/BezierLibrary.iml" filepath="$PROJECT_DIR$/.idea/BezierLibrary.iml" />
->>>>>>> first commit
     </modules>
   </component>
 </project>
