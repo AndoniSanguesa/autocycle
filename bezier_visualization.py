@@ -6,15 +6,15 @@ from Assistant import CurveAssistant
 # Distance to the end of the graph (our max viewing distance)
 end_dist = 10
 # Distances from the bike to the objects
-dist_to_edge = [4,10]
+dist_to_edge = [4, 10]
 # Derivatives of velocity
-vel_div = [0,0]
+vel_div = [0, 0]
 # Shortest distance from the edges of the objects to the global path
-edge_to_path = [2,2]
+edge_to_path = [2, 2]
 # Sides that the variables above are based on. 1 is above global path, -1 is below.
-side_small_edge = [-1,1]
+side_small_edge = [-1, 1]
 # Lengths of the objects
-edge_len = [2,4]
+edge_len = [2, 4]
 
 # Creates a CurveAssistant that will allow us to access our data
 curveas = CurveAssistant(end_dist)
