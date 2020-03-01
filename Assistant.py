@@ -17,8 +17,8 @@ class CurveAssistant:
             self.coordinates[1].append(coord[1])
         return self.coordinates
 
-    def create_obstacle(self, dist_to_edge, vel_dir, edge_to_path, edge_len, end_dist, side):
-        self.obstacles.append(Obstacle(dist_to_edge, vel_dir, edge_to_path, edge_len, end_dist, side))
+    def create_obstacle(self, dist_to_edge, vel_dir, edge_to_path, edge_len, side):
+        self.obstacles.append(Obstacle(dist_to_edge, vel_dir, edge_to_path, edge_len, side))
 
     def get_control_point(self, index):
         return self.control_points[index]

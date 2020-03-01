@@ -2,12 +2,11 @@ import numpy as np
 import math
 
 class Obstacle:
-    def __init__(self, dist_to_edge, vel_dir, edge_to_path, edge_len, end_dist, side):
+    def __init__(self, dist_to_edge, vel_dir, edge_to_path, edge_len, side):
         self.dist_to_edge = dist_to_edge
         self.vel_dir = vel_dir
         self.edge_to_path = edge_to_path
         self.edge_len = edge_len
-        self.end_dist = end_dist
         self.side = side
 
     def get_obst_points(self):

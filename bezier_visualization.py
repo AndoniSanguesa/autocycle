@@ -21,7 +21,7 @@ curveas = CurveAssistant(end_dist)
 
 # Creates objects
 for x in range(len(edge_len)):
-    curveas.create_obstacle(dist_to_edge[x], vel_div[x], edge_to_path[x], edge_len[x], end_dist, side_small_edge[x])
+    curveas.create_obstacle(dist_to_edge[x], vel_div[x], edge_to_path[x], edge_len[x], side_small_edge[x])
 
 # The coordinate of the final control point at the end of the graph
 lastpoint = curveas.get_last_control_point()
