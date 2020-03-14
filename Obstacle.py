@@ -16,16 +16,20 @@ class Obstacle:
         self.calculate_obst_points()
         self.calculate_control_point()
 
+    # Calculates the end points of the obstacle
     def calculate_obst_points(self):
         x = self.dist_to_edge
         y1 = self.side*self.edge_to_path
         y2 = self.side*(self.edge_to_path-self.edge_len)
         self.edge_points.append([x, x])
+
+        # This is structured this way so that the top point is always the first in the list
         if self.side == 1:
             self.edge_points.append([y1, y2])
         else:
             self.edge_points.append([y2, y1])
 
+    # Calculates the control points associated with this obstacle
     def calculate_control_point(self):
         self.control_points.clear()
         angle_rad = np.deg2rad(self.gamma*self.side)
@@ -37,6 +41,7 @@ class Obstacle:
         self.control_points.append([x+(0.5*self.side), y - (0.5*self.side)])
         #self.control_points.append([self.edge_points[0][ref_point], self.edge_points[1][ref_point]])
 
+    # Determines if a set of x and y coordinates at any point intersect with the obstacle
     def intersect(self, xs, ys):
         close_x = xs[0]
         for x in xs:
@@ -50,6 +55,7 @@ class Obstacle:
             return True
         return False
 
+    # Determines which end point of the obstacle is closest to the provided x and y value
     def next_side(self, x, y):
         diff_s1 = (self.edge_points[0][0]-x)**2 + (self.edge_points[1][0]-y)**2
         diff_s2 = (self.edge_points[0][1]-x)**2 + (self.edge_points[1][1]-y)**2
