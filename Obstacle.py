@@ -11,37 +11,53 @@ class Obstacle:
         self.edge_points = []
         self.control_points = []
         self.gamma = gamma
+        self.shown = False
 
         self.calculate_obst_points()
         self.calculate_control_point()
 
     def calculate_obst_points(self):
-        ep = np.sqrt(2)*np.sqrt(self.dist_to_edge**2)
-
-        new_ang_rad = (math.pi/4) + np.tan([self.edge_to_path/self.dist_to_edge])*self.side
-        x1 = ep/((np.tan([new_ang_rad])[0])+1)
-        y1 = -x1 + ep
-        diff = np.sqrt((self.edge_len**2)/2)
-
-        x2 = x1 + diff*self.side
-        y2 = y1 - diff*self.side
-
-        self.edge_points.append([x1[0], x2[0]])
-        self.edge_points.append([y1[0], y2[0]])
+        x = self.dist_to_edge
+        y1 = self.side*self.edge_to_path
+        y2 = self.side*(self.edge_to_path-self.edge_len)
+        self.edge_points.append([x, x])
+        if self.side == 1:
+            self.edge_points.append([y1, y2])
+        else:
+            self.edge_points.append([y2, y1])
 
     def calculate_control_point(self):
-        angle_rad = np.deg2rad(45 + self.gamma*self.side)
-        print(self.side)
-        ref_point = 0
-        b = self.edge_points[0][ref_point] + self.edge_points[1][ref_point]
-
-        x = b/(np.tan(angle_rad)+1)
-        y = -x + b
+        self.control_points.clear()
+        angle_rad = np.deg2rad(self.gamma*self.side)
+        x = self.dist_to_edge
+        y = np.tan(angle_rad)*x
 
         self.control_points.append([x, y])
-        self.control_points.append([x+1, y])
-        self.control_points.append([x, y - 1])
+        self.control_points.append([x-(0.5*self.side), y-(0.5*self.side)])
+        self.control_points.append([x+(0.5*self.side), y - (0.5*self.side)])
         #self.control_points.append([self.edge_points[0][ref_point], self.edge_points[1][ref_point]])
+
+    def intersect(self, xs, ys):
+        close_x = xs[0]
+        for x in xs:
+            if abs(self.dist_to_edge - x) < abs(self.dist_to_edge - close_x):
+                close_x = x
+        close_index = xs.index(close_x)
+        close_y = ys[close_index]
+        thisys = self.edge_points[1]
+        if thisys[0] < close_y < thisys[1] or thisys[1] < close_y < thisys[0]:
+            self.shown = True
+            return True
+        return False
+
+    def next_side(self, x, y):
+        diff_s1 = (self.edge_points[0][0]-x)**2 + (self.edge_points[1][0]-y)**2
+        diff_s2 = (self.edge_points[0][1]-x)**2 + (self.edge_points[1][1]-y)**2
+        if diff_s1 <= diff_s2:
+            self.side = 1
+        else:
+            self.side = -1
+        self.calculate_control_point()
 
     def get_obst_points(self):
         return self.edge_points
