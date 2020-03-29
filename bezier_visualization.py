@@ -1,12 +1,15 @@
 import bezier
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
 from Assistant import CurveAssistant
 import time
 
 time0 = time.time()
 
-
+fontP = FontProperties()
+fontP.set_size('small')
+labels = []
 # The angle to the control point related to the object
 gamma = [35, 15]
 # Distance to the end of the graph (our max viewing distance)
@@ -42,6 +45,7 @@ end = 5
 
 # The resolution dictates how many points are calculated (the lower the better, but slower)
 resolution = 0.05
+
 
 # Calculates x and y points for the bezier curve
 def calculate_curve():
@@ -85,6 +89,7 @@ def calculate_curve():
 calculate_curve()
 
 # Plots obstacles if they intersect the Bezier curve
+ind = 1
 for obstacle in curveas.obstacles:
     # Converts the x-y points into the nt points
     points = obstacle.edge_points
@@ -94,8 +99,10 @@ for obstacle in curveas.obstacles:
     plt.plot(nt_obst[0], nt_obst[1], linewidth=4)
     # Allows for computation of control points if and only if the curve intersects the object
     if obstacle.intersect(x_vals, y_vals):
+        labels.append("Object " + str(ind))
         obstacle.next_side(curveas.extrema[0], curveas.extrema[1])
         calculate_curve()
+        ind += 1
 
 
 # Plots and displays bezier curve
@@ -114,10 +121,13 @@ plt.plot(nt_bez_list[0], nt_bez_list[1])
 
 # Plots Control points after converting from xy to nt
 ctr_points = curveas.get_control_points()
+ind = 0
 for x in range(len(ctr_points)):
     nt_ctr = curveas.convert_nt(ctr_points[x][0], ctr_points[x][1])
     plt.plot(nt_ctr[0], nt_ctr[1], 'ro')
-
+    ind += 1
+labels.extend(['Global Path', 'Actual Path', 'Control Point'])
+plt.legend(labels, prop=fontP)
 
 # Sets the plot axis to not be dumb
 plt.axis('square')
