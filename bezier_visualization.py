@@ -3,13 +3,22 @@ import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 from pip._vendor.distlib.compat import raw_input
 from Assistant import CurveAssistant
+import sys
+from io import StringIO
 import time
 
+## OPEN TESTDATA FILE. ONLY FOR TESTING UNTIL INTEGRATION ##
+datafile = open('TestData', 'r')
+lines = datafile.readlines()
+stdin = sys.stdin
+
+time0 = time.time()
 fontP = FontProperties()
 fontP.set_size('small')
 labels = []
 # Distance to the end of the graph (our max viewing distance)
-end_dist = int(input('end_dist: '))
+sys.stdin = StringIO(lines.pop(0))
+end_dist = int(input())
 # The angle to the control point related to the object
 gamma = []
 # Distances from the bike to the objects
@@ -30,6 +39,7 @@ y_vals = []
 # The resolution dictates how many points are calculated (the lower the better, but slower)
 resolution = 0.05
 
+
 def reset_data():
     gamma.clear()
     dist_to_edge.clear()
@@ -38,32 +48,33 @@ def reset_data():
     side_small_edge.clear()
     edge_len.clear()
 
+
 def get_data():
     reset_data()
     # Format is numbers with spaces inbetween:
     # num_obst gamma1 dist_to_edge1 vel_div1 edge_to_path1 side_small_edge1 edge_len1 gamma2 ...
-    data = raw_input('Data: ').split()
+    sys.stdin = StringIO(lines.pop(0))
+    data = raw_input().split()
     if data[0] == "quit":
         return False
     for x in range(int(data[0])):
-        gamma.append(float(data[x*6 + 1]))
-        dist_to_edge.append(float(data[x*6 + 2]))
-        vel_div.append(float(data[x*6 + 3]))
-        edge_to_path.append(float(data[x*6 + 4]))
-        side_small_edge.append(int(data[x*6 + 5]))
-        edge_len.append(float(data[x*6 + 6]))
+        gamma.append(float(data[x * 6 + 1]))
+        dist_to_edge.append(float(data[x * 6 + 2]))
+        vel_div.append(float(data[x * 6 + 3]))
+        edge_to_path.append(float(data[x * 6 + 4]))
+        side_small_edge.append(int(data[x * 6 + 5]))
+        edge_len.append(float(data[x * 6 + 6]))
 
 
-time0 = time.time()
 # Creates a CurveAssistant that will allow us to access our data
 curveas = CurveAssistant(end_dist)
 
 # The coordinate of the final control point at the end of the graph
 lastpoint = curveas.get_last_control_point()
 
+
 # Calculates x and y points for the bezier curve
 def calculate_curve():
-
     # Empties the x and y values for the next curve
     x_vals.clear()
     y_vals.clear()
@@ -158,7 +169,8 @@ def plot_environment():
     plt.clf()
     plot_environment()
 
-plot_environment()
 
+plot_environment()
+sys.stdin = stdin
 time1 = time.time()
-print(time1-time0)
+print(time1 - time0)
