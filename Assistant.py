@@ -31,6 +31,9 @@ class CurveAssistant:
         self.obstacles.append(Obstacle(dist_to_edge, vel_dir, edge_to_path, edge_len, side, gamma))
         self.compute_control_points()
 
+    def clear_obstacles(self):
+        self.obstacles.clear()
+
     # Returns control Points
     def get_control_points(self):
         self.compute_control_points()
