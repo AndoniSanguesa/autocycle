@@ -1,30 +1,46 @@
 import bezier
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
+from pip._vendor.distlib.compat import raw_input
+
 from Assistant import CurveAssistant
 import time
 
-time0 = time.time()
+
 
 fontP = FontProperties()
 fontP.set_size('small')
 labels = []
-# The angle to the control point related to the object
-gamma = [35, 15]
 # Distance to the end of the graph (our max viewing distance)
-end_dist = 10
+end_dist = int(input('end_dist: '))
+# The angle to the control point related to the object
+gamma = []
 # Distances from the bike to the objects
-dist_to_edge = [4, 6]
+dist_to_edge = []
 # Derivatives of velocity
-vel_div = [0, 0]
+vel_div = []
 # Shortest distance from the edges of the objects to the global path
-edge_to_path = [1, 4.4]
+edge_to_path = []
 # Sides that the variables above are based on. 1 is above global path, -1 is below.
-side_small_edge = [1, 1]
+side_small_edge = []
 # Lengths of the objects
-edge_len = [6, 4.5]
+edge_len = []
 
+def get_data():
+    # Format is numbers with spaces inbetween:
+    # num_obst gamma1 dist_to_edge1 vel_div1 edge_to_path1 side_small_edge1 edge_len1 gamma2 ...
+    data = raw_input('Data: ').split()
+    for x in range(int(data[0])):
+        gamma.append(float(data[x*6 + 1]))
+        dist_to_edge.append(float(data[x*6 + 2]))
+        vel_div.append(float(data[x*6 + 3]))
+        edge_to_path.append(float(data[x*6 + 4]))
+        side_small_edge.append(int(data[x*6 + 5]))
+        edge_len.append(float(data[x*6 + 6]))
+
+get_data()
+
+time0 = time.time()
 # Creates a CurveAssistant that will allow us to access our data
 curveas = CurveAssistant(end_dist)
 
@@ -131,7 +147,7 @@ plt.legend(labels, prop=fontP)
 
 # Sets the plot axis to not be dumb
 plt.axis('square')
-plt.axis([0,nt_last_point[0],0,nt_last_point[1]])
+plt.axis([0, nt_last_point[0], 0, nt_last_point[1]])
 plt.show()
 
 time1 = time.time()
