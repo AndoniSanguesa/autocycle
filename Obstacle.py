@@ -2,9 +2,8 @@ import numpy as np
 import math
 
 class Obstacle:
-    def __init__(self, dist_to_edge, vel_dir, edge_to_path, edge_len, side, gamma):
+    def __init__(self, dist_to_edge, edge_to_path, edge_len, side, gamma):
         self.dist_to_edge = dist_to_edge
-        self.vel_dir = vel_dir
         self.edge_to_path = edge_to_path
         self.edge_len = edge_len
         self.side = side
@@ -73,9 +72,6 @@ class Obstacle:
 
     def get_dist_to_edge(self):
         return self.dist_to_edge
-
-    def get_vel_dir(self):
-        return self.vel_dir
 
     def get_edge_to_path(self):
         return self.edge_to_path
