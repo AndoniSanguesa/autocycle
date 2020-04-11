@@ -1,5 +1,6 @@
 import numpy as np
-import math
+import Assistant
+
 
 class Obstacle:
     def __init__(self, dist_to_edge, edge_to_path, edge_len, side, gamma):
@@ -38,15 +39,11 @@ class Obstacle:
         self.control_points.append([x, y])
         self.control_points.append([x-(0.5*self.side), y-(0.5*self.side)])
         self.control_points.append([x+(0.5*self.side), y - (0.5*self.side)])
-        #self.control_points.append([self.edge_points[0][ref_point], self.edge_points[1][ref_point]])
+        # self.control_points.append([self.edge_points[0][ref_point], self.edge_points[1][ref_point]])
 
     # Determines if a set of x and y coordinates at any point intersect with the obstacle
     def intersect(self, xs, ys):
-        close_x = xs[0]
-        for x in xs:
-            if abs(self.dist_to_edge - x) < abs(self.dist_to_edge - close_x):
-                close_x = x
-        close_index = xs.index(close_x)
+        close_index = Assistant.find_closest_x(xs, self.dist_to_edge)
         close_y = ys[close_index]
         thisys = self.edge_points[1]
         if thisys[0] < close_y < thisys[1] or thisys[1] < close_y < thisys[0]:

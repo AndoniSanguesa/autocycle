@@ -1,5 +1,22 @@
 import numpy as np
 from Obstacle import Obstacle
+import math
+from LineSeg import LineSeg
+
+# Looks for closest x_val in an array through binary search
+def find_closest_x(x_vals, target):
+    start = 0
+    end = len(x_vals)-1
+    while start != end:
+        half_ind = start + math.floor((end-start) / 2)
+        half_val = x_vals[half_ind]
+        if half_val > target:
+            end = half_ind-1
+        elif half_val < target:
+            start = half_ind+1
+        else:
+            return half_val
+    return start
 
 # The CurveAssistant stores all the information for a given curve and
 # allows the user to perform calculations using it
@@ -58,6 +75,12 @@ class CurveAssistant:
 
         # These lines should always be computed last
         self.control_points.append([self.end_dist, 0])
+
+    def get_line_seg(self, xvals, yvals, target):
+        close_ind = find_closest_x(xvals, target)
+        coord1 = [xvals[close_ind], yvals[close_ind]]
+        coord2 = [xvals[close_ind+1], yvals[close_ind+1]]
+        return LineSeg(coord1, coord2)
 
     # Returns the number of control points
     def get_num_control_points(self):
