@@ -1,23 +1,30 @@
 import numpy as np
 import Assistant
+import math
 
 
 class Obstacle:
-    def __init__(self, dist_to_edge, edge_to_path, edge_len, side, gamma):
+    def __init__(self, dist_to_edge, edge_to_path, edge_len, side):
         self.dist_to_edge = dist_to_edge
         self.edge_to_path = edge_to_path
         self.edge_len = edge_len
         self.side = side
         self.edge_points = []
         self.control_points = []
-        self.gamma = gamma
+        self.gamma = math.degrees(math.atan(edge_to_path/dist_to_edge))+5
+        print(self.gamma)
         self.shown = False
 
         self.calculate_obst_points()
         self.calculate_control_point()
 
+    def adjust_gamma(self):
+        self.gamma += 5
+        self.calculate_control_point()
+
     # Calculates the end points of the obstacle
     def calculate_obst_points(self):
+        self.edge_points.clear()
         x = self.dist_to_edge
         y1 = self.side*self.edge_to_path
         y2 = self.side*(self.edge_to_path-self.edge_len)

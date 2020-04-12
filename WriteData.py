@@ -15,20 +15,18 @@ dataFile = None
 
 # The furthest distance from origin that the path is rendered to
 resolution = 10
-# The angle to the control point related to the object
-gamma = [[35, 15], [35, 15]]
 # Distances from the bike to the objects
 dist_to_edge = [[4, 6], [4, 6]]
 # The distance from the global path to the closest obstacle end-point
-edge_to_path = [[1, 4.4], [1, 4.4]]
+edge_to_path = [[1, 0.5], [1, 0.5]]
 # A 1 indicates that the the above measurement is made above the global path line
 # A -1 indicates that the measurement is made below the global path line
-side_small_edge = [[1, 1], [1, 1]]
+side_small_edge = [[1, -1], [1, 1]]
 # Lengths of the objects
-edge_len = [[6, 4.5], [6, 4]]
+edge_len = [[6, 4], [6, 4]]
 
-for frame in range(len(gamma)):
-    if not (len(gamma[frame]) == len(dist_to_edge[frame]) == len(edge_to_path[frame])
+for frame in range(len(dist_to_edge)):
+    if not (len(dist_to_edge[frame]) == len(edge_to_path[frame])
             == len(side_small_edge[frame]) == len(edge_len[frame])):
         print("The number of items in all arrays must be the same!")
         exit()
@@ -43,11 +41,10 @@ except:
     exit()
 
 dataFile.write(str(resolution) + "\n")
-for frame in range(len(gamma)):
-    dataFile.write(str(len(gamma[frame])) + " ")
-    for datum in range(len(gamma[frame])):
-        dataFile.write(str(gamma[frame][datum]) + " " +
-                       str(dist_to_edge[frame][datum]) + " " +
+for frame in range(len(edge_len)):
+    dataFile.write(str(len(edge_len[frame])) + " ")
+    for datum in range(len(edge_len[frame])):
+        dataFile.write(str(dist_to_edge[frame][datum]) + " " +
                        str(edge_to_path[frame][datum]) + " " +
                        str(side_small_edge[frame][datum]) + " " +
                        str(edge_len[frame][datum]) + " ")

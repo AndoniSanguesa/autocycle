@@ -3,6 +3,7 @@ from Obstacle import Obstacle
 import math
 from LineSeg import LineSeg
 
+
 # Looks for closest x_val in an array through binary search
 def find_closest_x(x_vals, target):
     start = 0
@@ -10,12 +11,17 @@ def find_closest_x(x_vals, target):
     while start != end:
         half_ind = start + math.floor((end-start) / 2)
         half_val = x_vals[half_ind]
+        if end == start+1:
+            if abs(x_vals[end]-target) > abs(x_vals[start]-target):
+                return start
+            else:
+                return end
         if half_val > target:
             end = half_ind-1
         elif half_val < target:
             start = half_ind+1
         else:
-            return half_val
+            return half_ind
     return start
 
 # The CurveAssistant stores all the information for a given curve and
@@ -44,8 +50,8 @@ class CurveAssistant:
         return self.coordinates
 
     # Creates obstacle object and produces initial control points
-    def create_obstacle(self, dist_to_edge, edge_to_path, edge_len, side, gamma):
-        self.obstacles.append(Obstacle(dist_to_edge, edge_to_path, edge_len, side, gamma))
+    def create_obstacle(self, dist_to_edge, edge_to_path, edge_len, side):
+        self.obstacles.append(Obstacle(dist_to_edge, edge_to_path, edge_len, side))
         self.compute_control_points()
 
     def clear_obstacles(self):

@@ -19,8 +19,6 @@ labels = []
 # Distance to the end of the graph (our max viewing distance)
 sys.stdin = StringIO(lines.pop(0))
 end_dist = int(input())
-# The angle to the control point related to the object
-gamma = []
 # Distances from the bike to the objects
 dist_to_edge = []
 # Shortest distance from the edges of the objects to the global path
@@ -39,7 +37,6 @@ resolution = 0.05
 
 
 def reset_data():
-    gamma.clear()
     dist_to_edge.clear()
     edge_to_path.clear()
     side_small_edge.clear()
@@ -53,11 +50,10 @@ def get_data():
     sys.stdin = StringIO(lines.pop(0))
     data = raw_input().split()
     for x in range(int(data[0])):
-        gamma.append(float(data[x * 5 + 1]))
-        dist_to_edge.append(float(data[x * 5 + 2]))
-        edge_to_path.append(float(data[x * 5 + 3]))
-        side_small_edge.append(int(data[x * 5 + 4]))
-        edge_len.append(float(data[x * 5 + 5]))
+        dist_to_edge.append(float(data[x * 4 + 1]))
+        edge_to_path.append(float(data[x * 4 + 2]))
+        side_small_edge.append(int(data[x * 4 + 3]))
+        edge_len.append(float(data[x * 4 + 4]))
 
 
 # Creates a CurveAssistant that will allow us to access our data
@@ -151,7 +147,7 @@ def create_environment():
     curveas.clear_obstacles()
     # Creates objects
     for x in range(len(edge_len)):
-        curveas.create_obstacle(dist_to_edge[x], edge_to_path[x], edge_len[x], side_small_edge[x], gamma[x])
+        curveas.create_obstacle(dist_to_edge[x], edge_to_path[x], edge_len[x], side_small_edge[x])
     calculate_curve()
     # Plots obstacles if they intersect the Bezier curve
     ind = 1
@@ -162,9 +158,18 @@ def create_environment():
             obstacle.next_side(curveas.extrema[0], curveas.extrema[1])
             calculate_curve()
             ind += 1
-    #plot()
+    test = False
+    while not test:
+        test = True
+        for obstacle in curveas.obstacles:
+            if obstacle.intersect(x_vals, y_vals):
+                test = False
+                obstacle.adjust_gamma()
+
+        calculate_curve()
+    plot()
     create_environment()
-    
+
 create_environment()
 sys.stdin = stdin
 time1 = time.time()
