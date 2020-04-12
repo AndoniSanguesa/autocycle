@@ -50,8 +50,8 @@ class CurveAssistant:
         return self.coordinates
 
     # Creates obstacle object and produces initial control points
-    def create_obstacle(self, dist_to_edge, edge_to_path, edge_len, side):
-        self.obstacles.append(Obstacle(dist_to_edge, edge_to_path, edge_len, side))
+    def create_obstacle(self, dist_to_edge, edge_to_path, edge_len):
+        self.obstacles.append(Obstacle(dist_to_edge, edge_to_path, edge_len))
         self.compute_control_points()
 
     def clear_obstacles(self):

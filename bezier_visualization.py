@@ -23,8 +23,6 @@ end_dist = int(input())
 dist_to_edge = []
 # Shortest distance from the edges of the objects to the global path
 edge_to_path = []
-# Sides that the variables above are based on. 1 is above global path, -1 is below.
-side_small_edge = []
 # Lengths of the objects
 edge_len = []
 
@@ -39,7 +37,6 @@ resolution = 0.05
 def reset_data():
     dist_to_edge.clear()
     edge_to_path.clear()
-    side_small_edge.clear()
     edge_len.clear()
 
 
@@ -50,10 +47,9 @@ def get_data():
     sys.stdin = StringIO(lines.pop(0))
     data = raw_input().split()
     for x in range(int(data[0])):
-        dist_to_edge.append(float(data[x * 4 + 1]))
-        edge_to_path.append(float(data[x * 4 + 2]))
-        side_small_edge.append(int(data[x * 4 + 3]))
-        edge_len.append(float(data[x * 4 + 4]))
+        dist_to_edge.append(float(data[x * 3 + 1]))
+        edge_to_path.append(float(data[x * 3 + 2]))
+        edge_len.append(float(data[x * 3 + 3]))
 
 
 # Creates a CurveAssistant that will allow us to access our data
@@ -147,7 +143,7 @@ def create_environment():
     curveas.clear_obstacles()
     # Creates objects
     for x in range(len(edge_len)):
-        curveas.create_obstacle(dist_to_edge[x], edge_to_path[x], edge_len[x], side_small_edge[x])
+        curveas.create_obstacle(dist_to_edge[x], edge_to_path[x], edge_len[x])
     calculate_curve()
     # Plots obstacles if they intersect the Bezier curve
     ind = 1

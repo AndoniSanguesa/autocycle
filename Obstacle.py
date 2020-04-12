@@ -4,17 +4,19 @@ import math
 
 
 class Obstacle:
-    def __init__(self, dist_to_edge, edge_to_path, edge_len, side):
+    def __init__(self, dist_to_edge, edge_to_path, edge_len):
         self.dist_to_edge = dist_to_edge
         self.edge_to_path = edge_to_path
         self.edge_len = edge_len
-        self.side = side
         self.edge_points = []
         self.control_points = []
-        self.gamma = math.degrees(math.atan(edge_to_path/dist_to_edge))+5
-        print(self.gamma)
         self.shown = False
-
+        if edge_to_path <= edge_len/2:
+            self.side = 1
+        else:
+            self.side = -1
+            self.edge_to_path = edge_len-edge_to_path
+        self.gamma = math.degrees(math.atan(self.edge_to_path / self.dist_to_edge)) + 5
         self.calculate_obst_points()
         self.calculate_control_point()
 
@@ -53,7 +55,7 @@ class Obstacle:
         close_index = Assistant.find_closest_x(xs, self.dist_to_edge)
         close_y = ys[close_index]
         thisys = self.edge_points[1]
-        if thisys[0] < close_y < thisys[1] or thisys[1] < close_y < thisys[0]:
+        if thisys[0]-0.1 < close_y < thisys[1]+0.1 or thisys[1]-0.1 < close_y < thisys[0]+0.1:
             self.shown = True
             return True
         return False
