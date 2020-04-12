@@ -149,8 +149,8 @@ def create_environment():
     ind = 1
     for obstacle in curveas.obstacles:
         # Allows for computation of control points if and only if the curve intersects the object
+        labels.append("Object " + str(ind))
         if obstacle.intersect(x_vals, y_vals):
-            labels.append("Object " + str(ind))
             obstacle.next_side(curveas.extrema[0], curveas.extrema[1])
             calculate_curve()
             ind += 1
