@@ -17,10 +17,10 @@ dataFile = None
 resolution = 10
 # Distances from the bike to the objects
 dist_to_edge = [[4, 6], [6, 6.3]]
-# The distance from the global path to the closest obstacle end-point
-edge_to_path = [[1, 0.5], [1, 2]]
+# The distance from the global path to edge of the obstacle most counter clockwise from the global path
+edge_to_path = [[1, 0.5], [1, 3]]
 # Lengths of the objects
-edge_len = [[6, 4], [6, 2]]
+edge_len = [[6, 4], [6, 8]]
 
 for frame in range(len(dist_to_edge)):
     if not (len(dist_to_edge[frame]) == len(edge_to_path[frame]) == len(edge_len[frame])):
