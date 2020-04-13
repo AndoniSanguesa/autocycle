@@ -7,6 +7,9 @@ import sys
 from io import StringIO
 import time
 
+writefile = open("WriteData.py")
+exec("writefile")
+
 ## OPEN TESTDATA FILE. ONLY FOR TESTING UNTIL INTEGRATION ##
 datafile = open('TestData', 'r')
 lines = datafile.readlines()
@@ -150,19 +153,12 @@ def create_environment():
     for obstacle in curveas.obstacles:
         # Allows for computation of control points if and only if the curve intersects the object
         labels.append("Object " + str(ind))
-        if obstacle.intersect(x_vals, y_vals):
-            obstacle.next_side(curveas.extrema[0], curveas.extrema[1])
+        obstacle.next_side(curveas.extrema[0], curveas.extrema[1])
+        print(obstacle.side)
+        while obstacle.intersect(x_vals, y_vals):
+            obstacle.adjust_gamma()
             calculate_curve()
-            ind += 1
-    test = False
-    while not test:
-        test = True
-        for obstacle in curveas.obstacles:
-            if obstacle.intersect(x_vals, y_vals):
-                test = False
-                obstacle.adjust_gamma()
-
-        calculate_curve()
+        ind += 1
     plot()
     create_environment()
 

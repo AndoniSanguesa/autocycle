@@ -3,6 +3,7 @@ import Assistant
 import math
 
 
+
 class Obstacle:
     def __init__(self, dist_to_edge, edge_to_path, edge_len):
         self.dist_to_edge = dist_to_edge
@@ -17,6 +18,8 @@ class Obstacle:
             self.side = -1
             self.edge_to_path = edge_len-edge_to_path
         self.gamma = math.degrees(math.atan(self.edge_to_path / self.dist_to_edge)) + 5
+
+
         self.calculate_obst_points()
         self.calculate_control_point()
 
@@ -58,6 +61,7 @@ class Obstacle:
         if thisys[0]-0.1 < close_y < thisys[1]+0.1 or thisys[1]-0.1 < close_y < thisys[0]+0.1:
             self.shown = True
             return True
+
         return False
 
     # Determines which end point of the obstacle is closest to the provided x and y value
