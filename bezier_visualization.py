@@ -34,7 +34,6 @@ x_vals = []
 y_vals = []
 
 # The resolution dictates how many points are calculated (the lower the better, but slower)
-resolution = 0.05
 
 
 def reset_data():
@@ -139,6 +138,8 @@ def calculate_curve():
 
 
 def create_environment():
+    global resolution
+    resolution = 0.4
     labels.clear()
     if len(lines) == 0:
         return
@@ -159,7 +160,9 @@ def create_environment():
             obstacle.adjust_gamma()
             calculate_curve()
         ind += 1
-    plot()
+    resolution = 0.05
+    calculate_curve()
+    #plot()
     create_environment()
 
 create_environment()
