@@ -16,33 +16,35 @@ dataFile = None
 # The furthest distance from origin that the path is rendered to
 resolution = 10
 # Distances from the bike to the objects
-dist_to_edge = [[4, 6], [6, 6.3]]
-# The distance from the global path to edge of the obstacle most counter clockwise from the global path
-edge_to_path = [[1, 0.5], [1, 3]]
+dist_to_edge = [4, 6]
+# The distance from the current path to edge of the obstacle most counter clockwise from the current path
+edge_to_path = [1, 4]
 # Lengths of the objects
-edge_len = [[6, 4], [6, 8]]
+edge_len = [6, 4]
 
-for frame in range(len(dist_to_edge)):
-    if not (len(dist_to_edge[frame]) == len(edge_to_path[frame]) == len(edge_len[frame])):
-        print("The number of items in all arrays must be the same!")
-        exit()
+if not (
+        len(dist_to_edge) == len(edge_to_path) == len(edge_len)
+):
+    raise (Exception, "The number of items in all arrays must be the same!")
 
 try:
     dataFile = open("TestData", "w+")
 except FileNotFoundError:
-    print("The file could not be found, check the name.")
-    exit()
+    raise (Exception, "The file could not be found, check the name.")
 except:
-    print("It is likely that the file is open somewhere else. Close it and try again.")
-    exit()
+    raise (Exception, "It is likely that the file is open somewhere else. Close it and try again.")
 
 dataFile.write(str(resolution) + "\n")
-for frame in range(len(edge_len)):
-    dataFile.write(str(len(edge_len[frame])) + " ")
-    for datum in range(len(edge_len[frame])):
-        dataFile.write(str(dist_to_edge[frame][datum]) + " " +
-                       str(edge_to_path[frame][datum]) + " " +
-                       str(edge_len[frame][datum]) + " ")
-    dataFile.write("\n")
+dataFile.write(str(len(edge_len)) + " ")
+for datum in range(len(edge_len)):
+    dataFile.write(
+        str(dist_to_edge[datum])
+        + " "
+        + str(edge_to_path[datum])
+        + " "
+        + str(edge_len[datum])
+        + " "
+    )
+dataFile.write("\n")
 
 print("Data Recorded!")

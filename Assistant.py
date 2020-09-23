@@ -2,34 +2,38 @@ import numpy as np
 from Obstacle import Obstacle
 import math
 from LineSeg import LineSeg
+import bezier
 
 
 # Looks for closest x_val in an array through binary search
 def find_closest_x(x_vals, target):
     start = 0
-    end = len(x_vals)-1
+    end = len(x_vals) - 1
     while start != end:
-        half_ind = start + math.floor((end-start) / 2)
+        half_ind = start + math.floor((end - start) / 2)
         half_val = x_vals[half_ind]
-        if end == start+1:
-            if abs(x_vals[end]-target) > abs(x_vals[start]-target):
+        if end == start + 1:
+            if abs(x_vals[end] - target) > abs(x_vals[start] - target):
                 return start
             else:
                 return end
         if half_val > target:
-            end = half_ind-1
+            end = half_ind - 1
         elif half_val < target:
-            start = half_ind+1
+            start = half_ind + 1
         else:
             return half_ind
     return start
 
+
 # The CurveAssistant stores all the information for a given curve and
 # allows the user to perform calculations using it
+
 
 class CurveAssistant:
     def __init__(self, end_dist):
         self.end_dist = end_dist
+        self.glob_angle = 0
         self.control_points = []
         self.obstacles = []
         self.coordinates = [[], []]
@@ -54,6 +58,11 @@ class CurveAssistant:
         self.obstacles.append(Obstacle(dist_to_edge, edge_to_path, edge_len))
         self.compute_control_points()
 
+    def get_curve(self):
+        self.compute_control_points()
+        nodes = self.get_fortran()
+        return bezier.Curve(nodes, self.get_num_control_points() - 1)
+
     def clear_obstacles(self):
         self.obstacles.clear()
 
@@ -71,7 +80,6 @@ class CurveAssistant:
         # Clears control points
         self.control_points.clear()
         self.control_points.append([0, 0])
-        self.control_points.append([1, 0])
 
         # Adds all control points associated to each obstacle
         for obstacle in self.obstacles:
@@ -80,12 +88,18 @@ class CurveAssistant:
                 self.control_points.extend(coord)
 
         # These lines should always be computed last
-        self.control_points.append([self.end_dist, 0])
+        self.control_points.append(self.compute_final_point())
+
+    def compute_final_point(self):
+        glob_x = self.end_dist * np.cos(np.deg2rad(self.glob_angle))
+        glob_y = self.end_dist * np.sin(np.deg2rad(self.glob_angle))
+
+        return [glob_x, glob_y]
 
     def get_line_seg(self, xvals, yvals, target):
         close_ind = find_closest_x(xvals, target)
         coord1 = [xvals[close_ind], yvals[close_ind]]
-        coord2 = [xvals[close_ind+1], yvals[close_ind+1]]
+        coord2 = [xvals[close_ind + 1], yvals[close_ind + 1]]
         return LineSeg(coord1, coord2)
 
     # Returns the number of control points
@@ -99,16 +113,13 @@ class CurveAssistant:
         for point in self.control_points:
             xs.append(point[0])
             ys.append(point[1])
-        return np.asfortranarray([
-            xs,
-            ys,
-        ])
+        return np.asfortranarray([xs, ys,])
 
     # Converts an xy point into an nt point
     def convert_nt(self, x, y):
-        scal = np.sqrt(2)/2
-        x1 = scal*(x-y)
-        y1 = scal*(x+y)
+        scal = np.sqrt(2) / 2
+        x1 = scal * (x - y)
+        y1 = scal * (x + y)
         return [x1, y1]
 
     # Returns the end distance

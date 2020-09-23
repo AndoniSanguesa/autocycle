@@ -1,3 +1,5 @@
 /venv/
 /.idea/
 __pycache__
+__init__.py
+.DS_store
