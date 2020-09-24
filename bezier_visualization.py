@@ -95,7 +95,7 @@ class Visualization:
             nt_ctr = self.curveas.convert_nt(ctr_points[x][0], ctr_points[x][1])
             plt.plot(nt_ctr[0], nt_ctr[1], "ro")
             ind += 1
-        self.labels.extend(["Current Path", "Global Path", "Predicted Path", "Control Point"])
+        self.labels.extend(["Current Path", "Global Path", "Control Point"])
         plt.legend(self.labels, prop=self.fontP)
 
         # Sets the plot axis to not be dumb
