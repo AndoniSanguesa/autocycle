@@ -170,4 +170,5 @@ def create_environment():
     calculate_curve()
     plot()
 
+
 create_environment()
