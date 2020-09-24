@@ -1,7 +1,6 @@
 import numpy as np
 from Obstacle import Obstacle
 import math
-from LineSeg import LineSeg
 import bezier
 
 
@@ -95,12 +94,6 @@ class CurveAssistant:
         glob_y = self.end_dist * np.sin(np.deg2rad(self.glob_angle))
 
         return [glob_x, glob_y]
-
-    def get_line_seg(self, xvals, yvals, target):
-        close_ind = find_closest_x(xvals, target)
-        coord1 = [xvals[close_ind], yvals[close_ind]]
-        coord2 = [xvals[close_ind + 1], yvals[close_ind + 1]]
-        return LineSeg(coord1, coord2)
 
     # Returns the number of control points
     def get_num_control_points(self):
