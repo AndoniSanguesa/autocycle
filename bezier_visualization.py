@@ -4,6 +4,9 @@ from Assistant import CurveAssistant
 
 
 class Visualization:
+    """
+    This class facilitates the creation of graphs and allows for access of data
+    """
     def __init__(self, lines):
         # The obstacle data in the format of a list of string lines (parsed from datafile)
         self.lines = lines
@@ -37,6 +40,9 @@ class Visualization:
 
         # This is the  `quality of the graph`. Denotes the distance between sampled points (should be re-assigned later)
         self.resolution = 0
+
+    def get_bez_vals(self):
+        return [self.x_vals, self.y_vals]
 
     def get_data(self):
         """
