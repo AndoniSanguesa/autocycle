@@ -12,6 +12,13 @@ from bezier_visualization import Visualization as Graph
 obstacle_data = []
 resolution = 10
 
+"""
+IMPORTANT NOTE
+
+All of the classes here only describe functionality that could not otherwise be described in kv language.
+If you want to look at the inner workings of any of the classes here, look at their definitions in 
+`bezier.kv`
+"""
 
 class SpaceAroundLayout(FloatLayout):
     """A Layout that evenly spreads children along its x-axis with space at both sides"""
@@ -49,6 +56,7 @@ class SpaceAroundLayout(FloatLayout):
 
 
 class CenteredTextInput(TextInput):
+    """Describes a text input widget whose text is centered"""
 
     def update_padding(self):
         """Updates padding so that text is centered on the cell"""
@@ -58,15 +66,17 @@ class CenteredTextInput(TextInput):
         self.update_resolution()
 
     def validate_num(self):
+        """Validates that the input is a number"""
         try:
             int(self.text[-1])
         except ValueError:
-            if self.text[-1] != ".":
+            if self.text[-1] != "." and self.text[-1] != "-":
                 self.text = self.text[:-1]
         except IndexError:
             pass
 
     def update_resolution(self):
+        """Updates the resolution paramter for the calculation of the bezier curve"""
         global resolution
         if self.parent.children[1].text == "[b]Resolution: [/b]":
             try:
@@ -76,11 +86,13 @@ class CenteredTextInput(TextInput):
 
 
 class ObstacleList(GridLayout):
+    """Lists the attributes of the added obstacles in a list"""
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_once(self.add_children)
 
     def add_children(self, tick):
+        """Adds the attributes of each obstacle to the parent widget"""
         global obstacle_data
         self.add_widget(BoxLayout(size_hint_x=None))
         col1 = NoScaleLabel(text="[b]Distance to\nObstacle[/b]", width="90dp")
@@ -110,25 +122,31 @@ class ObstacleList(GridLayout):
         self.set_height()
 
     def set_height(self):
+        """Sets the height of the widget so that it works well with the ScrolLView"""
         self.height = self.children[1].height*(len(obstacle_data)+3)
 
 
 class Visualization(BoxLayout):
+    """Describes the right side of the screen where the graph and interaction buttons are"""
     pass
 
 
 class NoScaleLabel(Label):
+    """Describes a `Label` with a `size_hint` of `None, None`. Scales automatically to text"""
     pass
 
 
 class NoScaleLabelBordered(Label):
+    """Describes a `NoScaleLabel` but bordered in black (for use in a `GridLayout`)"""
     pass
 
 
 class NoScaleButton(Button):
+    """Describes a button with a `size_hint` of `None, None`. Scales automatically to text"""
     rel_ind = NumericProperty(0)
 
     def delete(self, tick1):
+        """Deletes the data associated with the line next to the button pressed"""
         obstacle_data.pop(self.rel_ind)
         scroll = self.parent.parent
         scroll.clear_widgets()
@@ -136,6 +154,7 @@ class NoScaleButton(Button):
         scroll.add_widget(new_list)
 
     def add(self, tick1):
+        """Adds new data based on the `CenteredTextInput`s next to the button pressed"""
         children = self.parent.children
         try:
             obstacle_data.append([float(children[3].text), float(children[2].text), float(children[1].text)])
@@ -147,6 +166,7 @@ class NoScaleButton(Button):
         scroll.add_widget(new_list)
 
     def create_graph(self):
+        """Takes the data and produces a graph out of it and displays that in the `Visualization` widget"""
         lines = [resolution, obstacle_data]
         Graph(lines).create_environment()
         img = self.parent.parent.children[2]
@@ -154,6 +174,7 @@ class NoScaleButton(Button):
         img.reload()
 
     def download_data(self):
+        """Downloads the data in the form of 2 functions describing the x and y values to `output_data.txt`"""
         lines = [resolution, obstacle_data]
         graph = Graph(lines)
         graph.create_environment()
@@ -162,18 +183,22 @@ class NoScaleButton(Button):
 
 
 class Content(BoxLayout):
+    """Describes the content of the app (the `MainOptions` and `Visualization)"""
     pass
 
 
 class Title(SpaceAroundLayout):
+    """Describes the title of the app. Not very interesting..."""
     pass
 
 
 class MainOptions(BoxLayout):
+    """This is where resolution options and the `ObstacleList` is displayed"""
     pass
 
 
 class MainView(BoxLayout):
+    """This is just a wrapper for the app. Dont worry about it."""
     pass
 
 

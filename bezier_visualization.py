@@ -45,6 +45,9 @@ class Visualization:
         self.resolution = 0
 
     def get_bez_vals(self):
+        """
+        :return: 2 functions with input s (0 <= s <= 1) that describe the x and y values of the curve
+        """
         return self.curveas.get_curve().to_symbolic()
 
     def get_data(self):
@@ -143,10 +146,9 @@ class Visualization:
             self.y_vals.append(curpoint[1][0])
             index += self.resolution
 
-    def get_eq(self):
-        return self.curveas.get_curve().implicitize()
-
     def is_obstacle_block(self):
+        """
+        :returns a list of obstacles which currently intersect the path"""
         obst_block = []
         for obstacle in self.curveas.obstacles:
             if obstacle.intersect(self.x_vals, self.y_vals):
