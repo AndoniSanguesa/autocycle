@@ -1,0 +1,139 @@
+<SpaceAroundLayout>:
+    size_hint_y: None
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<CenteredTextInput>:
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 1
+        Line:
+            width: 2
+            rectangle: self.x, self.y, self.width, self.height
+    size_hint: None, None
+    on_text: self.update_padding()
+    height: "28dp"
+
+<ObstacleList>:
+    cols: 5
+    size_hint: None, None
+
+<Visualization>:
+    orientation: "vertical"
+    Image:
+        size_hint_x: None
+        width: self.parent.width
+        keep_ratio: True
+        allow_stretch: True
+        source: "Autocycle.jpg"
+    BoxLayout:
+        orientation: "horizontal"
+        size_hint_y: None
+        BoxLayout:
+            size_hint: None, None
+            width: "35dp"
+        NoScaleButton:
+            text: "Calculate Graph"
+            on_press: self.create_graph()
+        BoxLayout:
+            size_hint: None, None
+            width: "30dp"
+        NoScaleButton:
+            text: "Download Data"
+    BoxLayout:
+        size_hint_y: None
+        height: "50dp"
+
+<NoScaleLabel>:
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    markup: True
+    size_hint: None, None
+    font_size: "15dp"
+    color: 0, 0, 0, 1
+    halign: "center"
+    height: self.texture_size[1] + 20
+
+<NoScaleLabelBordered>:
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 1
+        Line:
+            width: 2
+            rectangle: self.x, self.y, self.width, self.height
+    size_hint: None, None
+    font_size: "15dp"
+    color: 0, 0, 0, 1
+    halign: "center"
+    height: self.texture_size[1] + 20
+
+<NoScaleButton>:
+    canvas.after:
+        Color:
+            rgba: 0, 0, 0, 1
+        Line:
+            width: 2
+            rectangle: self.x, self.y, self.width, self.height
+    size_hint: None, None
+    background_normal: ""
+    background_color: 0, 0.5, 0, 1
+    font_size: "20dp"
+    markup: True
+    size: self.texture_size[0] + 20, self.texture_size[1] + 20
+
+<Title>:
+    Label:
+        markup: True
+        text: "[b]Autocycle Navigation[/b]"
+        color: 0, 0, 0, 1
+        font_size: "30dp"
+        size_hint: None, None
+
+<MainOptions>:
+    orientation: "vertical"
+    SpaceAroundLayout:
+        id: res_layout
+        BoxLayout:
+            orientation: "horizontal"
+            width: res_label.width + resolution.width
+            NoScaleLabel:
+                id: res_label
+                text: "[b]Resolution: [/b]"
+                size_hint_x: None
+                width: self.texture_size[0] + 20
+            CenteredTextInput:
+                id: resolution
+                text: "10"
+                width: "100dp"
+    ScrollView:
+        id: scroll
+        size_hint: 1, None
+        size: self.parent.size[0], self.parent.size[1] - res_layout.height
+        do_scroll_y: True
+        ObstacleList
+
+<Content>:
+    orientation: "horizontal"
+    BoxLayout:
+        MainOptions
+    BoxLayout:
+        Visualization
+
+<MainView>:
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    orientation: "vertical"
+    Title
+    Content

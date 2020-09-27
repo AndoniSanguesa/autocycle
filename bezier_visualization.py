@@ -7,6 +7,7 @@ class Visualization:
     """
     This class facilitates the creation of graphs and allows for access of data
     """
+
     def __init__(self, lines):
         # The obstacle data in the format of a list of string lines (parsed from datafile)
         self.lines = lines
@@ -18,6 +19,8 @@ class Visualization:
 
         # Distance to the end of the graph (our max viewing distance)
         self.end_dist = int(self.lines[0])
+
+        self.lines[1].sort(key=lambda x: x[0])
 
         # Distances from the bike to the objects
         self.dist_to_edge = []
@@ -50,11 +53,10 @@ class Visualization:
 
         :return:
         """
-        data = self.lines[1].split()
-        for x in range(int(data[0])):
-            self.dist_to_edge.append(float(data[x * 3 + 1]))
-            self.edge_to_path.append(float(data[x * 3 + 2]))
-            self.edge_len.append(float(data[x * 3 + 3]))
+        for line in self.lines[1]:
+            self.dist_to_edge.append(line[0])
+            self.edge_to_path.append(line[1])
+            self.edge_len.append(line[2])
 
     def plot(self):
         """
@@ -101,7 +103,7 @@ class Visualization:
         # Sets the plot axis to not be dumb
         plt.axis("square")
         plt.axis([0, nt_last_point[0], 0, nt_last_point[1]])
-        plt.show()
+        plt.savefig("plot.png")
         plt.clf()
 
     def calculate_curve(self):
@@ -157,6 +159,8 @@ class Visualization:
         self.calculate_curve()
         # Plots obstacles if they intersect the Bezier curve
         ind = 1
+        count = 0
+        lim = 1000
         for obstacle in self.curveas.obstacles:
             # Allows for computation of control points if and only if the curve intersects the object
             self.labels.append("Object " + str(ind))
@@ -164,7 +168,13 @@ class Visualization:
             while obstacle.intersect(self.x_vals, self.y_vals):
                 obstacle.adjust_gamma()
                 self.calculate_curve()
+                count += 1
+                if count > lim:
+                    break
             ind += 1
         self.resolution = 0.001
         self.calculate_curve()
         self.plot()
+
+
+Visualization([10, [[6, 4, 4], [3, 4, 7]]]).create_environment()
