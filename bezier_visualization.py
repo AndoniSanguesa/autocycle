@@ -45,7 +45,7 @@ class Visualization:
         self.resolution = 0
 
     def get_bez_vals(self):
-        return [self.x_vals, self.y_vals]
+        return self.curveas.get_curve().to_symbolic()
 
     def get_data(self):
         """
@@ -143,6 +143,9 @@ class Visualization:
             self.y_vals.append(curpoint[1][0])
             index += self.resolution
 
+    def get_eq(self):
+        return self.curveas.get_curve().implicitize()
+
     def is_obstacle_block(self):
         obst_block = []
         for obstacle in self.curveas.obstacles:
@@ -183,6 +186,3 @@ class Visualization:
                 break
             block_list = self.is_obstacle_block()
         self.plot()
-
-
-Visualization([10, [[6, 4, 4], [3, 4, 7]]]).create_environment()
