@@ -97,7 +97,7 @@ class Visualization:
             nt_ctr = self.curveas.convert_nt(ctr_points[x][0], ctr_points[x][1])
             plt.plot(nt_ctr[0], nt_ctr[1], "ro")
             ind += 1
-        self.labels.extend(["Current Path", "Global Path", "Control Point"])
+        self.labels.extend(["Global Path", "Current Path", "Control Point"])
         plt.legend(self.labels, prop=self.fontP)
 
         # Sets the plot axis to not be dumb
@@ -143,6 +143,13 @@ class Visualization:
             self.y_vals.append(curpoint[1][0])
             index += self.resolution
 
+    def is_obstacle_block(self):
+        obst_block = []
+        for obstacle in self.curveas.obstacles:
+            if obstacle.intersect(self.x_vals, self.y_vals):
+                obst_block.append(obstacle)
+        return obst_block
+
     def create_environment(self):
         """
         Creates obstacles and heuristically produces curve by continuous calls to `calculate_curve()`
@@ -150,7 +157,7 @@ class Visualization:
         :return:
         """
         # Temporarily reassigns the global variable `resolution` to get a rough sketch of the graph
-        self.resolution = 0.4
+        self.resolution = 0.001
         self.get_data()
         self.curveas.clear_obstacles()
         # Creates objects
@@ -165,15 +172,16 @@ class Visualization:
             # Allows for computation of control points if and only if the curve intersects the object
             self.labels.append("Object " + str(ind))
             obstacle.next_side(self.curveas.extrema[0], self.curveas.extrema[1])
-            while obstacle.intersect(self.x_vals, self.y_vals):
-                obstacle.adjust_gamma()
-                self.calculate_curve()
-                count += 1
-                if count > lim:
-                    break
             ind += 1
-        self.resolution = 0.001
-        self.calculate_curve()
+        block_list = self.is_obstacle_block()
+        while block_list:
+            for obstacle in block_list:
+                obstacle.adjust_gamma()
+            self.calculate_curve()
+            count += 1
+            if count > lim:
+                break
+            block_list = self.is_obstacle_block()
         self.plot()
 
 

@@ -49,7 +49,6 @@ class Obstacle:
         self.control_points.append([x, y])
         self.control_points.append([x - (0.5 * self.side), y - (0.5 * self.side)])
         self.control_points.append([x + (0.5 * self.side), y - (0.5 * self.side)])
-        # self.control_points.append([self.edge_points[0][ref_point], self.edge_points[1][ref_point]])
 
     # Determines if a set of x and y coordinates at any point intersect with the obstacle
     def intersect(self, xs, ys):

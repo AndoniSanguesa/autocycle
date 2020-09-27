@@ -9,7 +9,7 @@ from kivy.clock import Clock
 from kivy.properties import NumericProperty
 from bezier_visualization import Visualization as Graph
 
-obstacle_data = [[4.0, 1.0, 6.0], [6.0, 4.0, 4.0]]
+obstacle_data = []
 resolution = 10
 
 
@@ -153,6 +153,12 @@ class NoScaleButton(Button):
         img.source = "plot.png"
         img.reload()
 
+    def download_data(self):
+        lines = [resolution, obstacle_data]
+        graph = Graph(lines)
+        graph.create_environment()
+        file = open("output_data.txt", "w")
+        file.write(str(graph.get_bez_vals()))
 
 
 class Content(BoxLayout):
