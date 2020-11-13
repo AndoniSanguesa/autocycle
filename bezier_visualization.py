@@ -7,6 +7,8 @@ import sys
 from io import StringIO
 import time
 
+resolution = 0.04
+
 writefile = open("WriteData.py")
 exec("writefile")
 
@@ -33,7 +35,7 @@ edge_len = []
 x_vals = []
 y_vals = []
 
-# The resolution dictates how many points are calculated (the lower the better, but slower)
+
 
 
 def reset_data():
@@ -139,7 +141,6 @@ def calculate_curve():
 
 def create_environment():
     global resolution
-    resolution = 0.4
     labels.clear()
     if len(lines) == 0:
         return
@@ -162,7 +163,7 @@ def create_environment():
         ind += 1
     resolution = 0.05
     calculate_curve()
-    #plot()
+    plot()
     create_environment()
 
 create_environment()
