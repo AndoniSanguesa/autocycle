@@ -2,7 +2,7 @@ import bezier
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 from pip._vendor.distlib.compat import raw_input
-from Assistant import CurveAssistant
+from PathPlanning.Assistant import CurveAssistant
 import sys
 from io import StringIO
 import time

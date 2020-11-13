@@ -1,7 +1,7 @@
 import numpy as np
-from Obstacle import Obstacle
+from PathPlanning.Obstacle import Obstacle
 import math
-from LineSeg import LineSeg
+from PathPlanning.LineSeg import LineSeg
 
 
 # Looks for closest x_val in an array through binary search

@@ -1,5 +1,5 @@
 import numpy as np
-import Assistant
+from PathPlanning import Assistant
 import math
 
 
