@@ -92,10 +92,13 @@ def check_status(status_code):
         print("System Summary : NORMAL")
     print("---------------------------------------------")
 
+
 with open("lidar.lvx", "rb") as f:
     # Validation
     if str(struct.unpack("10s", f.read(10))[0])[2:-1] != "livox_tech":
         raise ValueError("Uh oh bad file")
+
+    # Garbage validation stuff that we dont need
     f.read(14)
 
     # Duration of each frame in ms
@@ -197,7 +200,7 @@ with open("lidar.lvx", "rb") as f:
                 # Documentation does mention unit type
                 reflectivity = struct.unpack("B", f.read(1))[0]
 
-                # Used for determining noise in data. Can be implemented later
+                # Used for determining noise in data. Don't think we need it, but can revisit later
                 tag = struct.unpack("B", f.read(1))[0]
 
                 """TODO: Store this information in a the data structure of your choosing"""
@@ -213,15 +216,4 @@ with open("lidar.lvx", "rb") as f:
             acc_y = struct.unpack("f", f.read(4))[0]
             acc_z = struct.unpack("f", f.read(4))[0]
         f.seek(next_offset)
-
-
-
-
-
-
-
-
-
-
-
 
