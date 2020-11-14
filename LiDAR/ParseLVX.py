@@ -215,5 +215,6 @@ with open("lidar.lvx", "rb") as f:
             acc_x = struct.unpack("f", f.read(4))[0]
             acc_y = struct.unpack("f", f.read(4))[0]
             acc_z = struct.unpack("f", f.read(4))[0]
+            """TODO: Store this information in a the data structure of your choosing"""
         f.seek(next_offset)
 
