@@ -1,5 +1,7 @@
 import struct
 import os
+import time
+
 
 def check_status(status_code):
     print("---------------------------------------------")
@@ -92,8 +94,11 @@ def check_status(status_code):
         print("System Summary : NORMAL")
     print("---------------------------------------------")
 
+time0 = time.time()
+with open("lidar.bin", "rb") as f:
 
-with open("lidar.lvx", "rb") as f:
+    f_struct = struct.Struct("f")
+
     # Validation
     if str(struct.unpack("10s", f.read(10))[0])[2:-1] != "livox_tech":
         raise ValueError("Uh oh bad file")
@@ -102,10 +107,10 @@ with open("lidar.lvx", "rb") as f:
     f.read(14)
 
     # Duration of each frame in ms
-    frame_dur = struct.unpack("I", f.read(4))
+    frame_dur = int.from_bytes(f.read(4), "little")
 
     # Number of devices
-    device_count = struct.unpack("B", f.read(1))
+    device_count = int.from_bytes(f.read(1), "little")
 
     # Broadcast Code for our LiDAR Unit. Can be found on the back of Lidar
     broadcast_code = str(f.read(16))[16:-1]
@@ -114,11 +119,11 @@ with open("lidar.lvx", "rb") as f:
     f.read(16)
 
     # Device Information. Index should be 0. type should be 3.
-    device_index = struct.unpack("B", f.read(1))[0]
-    device_type = struct.unpack("B", f.read(1))[0]
+    device_index = int.from_bytes(f.read(1), "little")
+    device_type = int.from_bytes(f.read(1), "little")
 
-    # Extrinsic Parameters Toggle
-    ext_tog = struct.unpack("B", f.read(1))[0]
+    # Extrinsic Parameters Toggle. 0 -> Disabled. 1 -> Enabled
+    ext_tog = int.from_bytes(f.read(1), "little")
 
     # Initial Sensor Readings
     # Roll, Pitch, and Yaw --> Degrees
@@ -135,86 +140,95 @@ with open("lidar.lvx", "rb") as f:
     f.seek(0, os.SEEK_END)
     end_loc = f.tell()
     f.seek(cur_loc)
-
+    num_pack = 0
     # Reads all frames in the file
     while f.tell() < end_loc:
         # Absolute offset of the current frame in this file
-        current_offset = struct.unpack("q", f.read(8))[0]
+        current_offset = int.from_bytes(f.read(8), "little")
 
         # Absolute offset of the next frame in this file
-        next_offset = struct.unpack("q", f.read(8))[0]
+        next_offset = int.from_bytes(f.read(8), "little")
 
         # Index of frame
-        frame_ind = struct.unpack("q", f.read(8))[0]
+        frame_ind = int.from_bytes(f.read(8), "little")
+        while f.tell() < next_offset:
 
-        # Index of device
-        device_frame_index = struct.unpack("B", f.read(1))[0]
+            """# Index of device
+            device_frame_index = struct.unpack("B", f.read(1))[0]
 
-        # Package Protocol Version. Should be 5 (as of 11-14-20)
-        ppv = struct.unpack("B", f.read(1))[0]
+            # Package Protocol Version. Should be 5 (as of 11-14-20)
+            ppv = struct.unpack("B", f.read(1))[0]
 
-        # Garbage value. Slot ID used only in Mid-40. We're utilizing the Horizon
-        f.read(1)
+            # Garbage value. Slot ID used only in Mid-40. We're utilizing the Horizon
+            f.read(1)
 
-        # LiDAR ID. Should be 1
-        lidar_id = struct.unpack("B", f.read(1))[0]
+            # LiDAR ID. Should be 1
+            lidar_id = struct.unpack("B", f.read(1))[0]
 
-        # Absolute garbage value. Does not encode any data
-        f.read(1)
+            # Absolute garbage value. Does not encode any data
+            f.read(1)
 
-        # Status Code. If you want to analyze the code, call `check_status()` with the code as the param.
-        stat_code = struct.unpack("I", f.read(4))[0]
+            # Status Code. If you want to analyze the code, call `check_status()` with the code as the param.
+            stat_code = struct.unpack("I", f.read(4))[0]
 
-        # Time Stamp Type
-        # 0 : No Sync Source (unit : ns)
-        # 1 : PTP            (unit : ns)
-        # 2 : Reserved
-        # 3 : GPS            (UTC)
-        # 4 : PPS            (unit : ns)
-        time_stamp_type = struct.unpack("B", f.read(1))[0]
+            # Time Stamp Type
+            # 0 : No Sync Source (unit : ns)
+            # 1 : PTP            (unit : ns)
+            # 2 : Reserved
+            # 3 : GPS            (UTC)
+            # 4 : PPS            (unit : ns)
+            time_stamp_type = struct.unpack("B", f.read(1))[0]
+            """
+            f.read(10)
+            # Data Type
+            # 0 : Cartesian Coordinate System; Single Return; (Only for Livox Mid)
+            # 1 : Spherical Coordinate System; Single Return; (Only for Livox Mid)
+            # 2 : Cartesian Coordinate System; Single Return;
+            # 3 : Spherical Coordinate System; Single Return;
+            # 4 : Cartesian Coordinate System; Double Return;
+            # 5 : Spherical Coordinate System; Double Return;
+            # 6 : IMU Information
+            data_type = int.from_bytes(f.read(1), "little")
 
-        # Data Type
-        # 0 : Cartesian Coordinate System; Single Return; (Only for Livox Mid)
-        # 1 : Spherical Coordinate System; Single Return; (Only for Livox Mid)
-        # 2 : Cartesian Coordinate System; Single Return;
-        # 3 : Spherical Coordinate System; Single Return;
-        # 4 : Cartesian Coordinate System; Double Return;
-        # 5 : Spherical Coordinate System; Double Return;
-        # 6 : IMU Information
-        data_type = struct.unpack("B", f.read(1))[0]
+            # Time Stamp (Check value of `time_stamp_type` above for kind of time stamp)
+            # Frankly how this time stamp works is confusing and I don't think we need it so I'm just gonna
+            # skip the bytes
+            f.read(8)  # time_stamp = list(struct.unpack("B", f.read(1))[0] for _ in range(8))
 
-        # Time Stamp (Check value of `time_stamp_type` above for kind of time stamp)
-        # Frankly how this time stamp works is confusing and I don't think we need it so I'm just gonna
-        # skip the bytes
-        f.read(8)  # time_stamp = list(struct.unpack("B", f.read(1))[0] for _ in range(8))
+            # Gets Point Cloud/IMU Data
+            # Cartesian Coordinate System; Single Return
+            if data_type == 2:
+                for _ in range(96):
+                    num_pack += 1
+                    # (x, y, z)'s unit --> mm
+                    x = int.from_bytes(f.read(4), "little")
+                    y = int.from_bytes(f.read(4), "little")
+                    z = int.from_bytes(f.read(4), "little")
 
-        # Gets Point Cloud/IMU Data
-        # Cartesian Coordinate System; Single Return
-        if data_type == 2:
-            for _ in range(96):
-                # (x, y, z)'s unit --> mm
-                x = struct.unpack("i", f.read(4))[0]
-                y = struct.unpack("i", f.read(4))[0]
-                z = struct.unpack("i", f.read(4))[0]
+                    # Documentation does mention unit type
+                    """reflectivity = struct.unpack("B", f.read(1))[0]"""
 
-                # Documentation does mention unit type
-                reflectivity = struct.unpack("B", f.read(1))[0]
+                    # Used for determining noise in data. Don't think we need it, but can revisit later
+                    """tag = struct.unpack("B", f.read(1))[0]"""
+                    f.read(2)
 
-                # Used for determining noise in data. Don't think we need it, but can revisit later
-                tag = struct.unpack("B", f.read(1))[0]
+                    """TODO: Store this information in a the data structure of your choosing"""
+            # IMU Data
+            elif data_type == 6:
+                """# (gyro_x, gyro_y, gyro_z)'s unit --> rad/s
+                gyro_x = f_struct.unpack(f.read(4))[0]
+                gyro_y = f_struct.unpack(f.read(4))[0]
+                gyro_z = f_struct.unpack(f.read(4))[0]
 
+                # (acc_x, acc_y, acc_z)'s unit --> g
+                acc_x = f_struct.unpack(f.read(4))[0]
+                acc_y = f_struct.unpack(f.read(4))[0]
+                acc_z = f_struct.unpack(f.read(4))[0]"""
+                f.read(24)
                 """TODO: Store this information in a the data structure of your choosing"""
-        # IMU Data
-        elif data_type == 6:
-            # (gyro_x, gyro_y, gyro_z)'s unit --> rad/s
-            gyro_x = struct.unpack("f", f.read(4))[0]
-            gyro_y = struct.unpack("f", f.read(4))[0]
-            gyro_z = struct.unpack("f", f.read(4))[0]
-
-            # (acc_x, acc_y, acc_z)'s unit --> g
-            acc_x = struct.unpack("f", f.read(4))[0]
-            acc_y = struct.unpack("f", f.read(4))[0]
-            acc_z = struct.unpack("f", f.read(4))[0]
-            """TODO: Store this information in a the data structure of your choosing"""
-        f.seek(next_offset)
+f.close()
+time1 = time.time()
+print(200*(50/1000))
+print(time1-time0)
+print(num_pack)
 
