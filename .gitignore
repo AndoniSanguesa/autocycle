@@ -3,4 +3,4 @@
 __pycache__
 /.DS_Store
 /LiDAR/.idea/
-/LiDAR/cmake-build-debug
+/LiDAR/cmake-build-debug/
