@@ -4,6 +4,119 @@
 using namespace std;
 using namespace std::chrono;
 
+unsigned int get_pow_2(int power){
+    return((unsigned int) pow(2, power));
+}
+
+void check_status(uint32_t status_code){
+    cout << "---------------------------------------------\n";
+    cout << "              STATUS REPORT                  \n";
+    cout << "---------------------------------------------\n";
+
+    // Check Temperature
+    if(get_pow_2(0) & status_code){
+        cout << "Temperature : HIGH\n";
+    } else if (get_pow_2(1) & status_code){
+        cout << "Temperature : EXTREMELY HIGH\n";
+    } else{
+        cout << "Temperature : GOOD\n";
+    }
+
+    // Check Voltage
+    if(get_pow_2(2) & status_code){
+        cout << "Voltage : HIGH\n";
+    } else if (get_pow_2(3) & status_code){
+        cout << "Voltage : EXTREMELY HIGH\n";
+    } else{
+        cout << "Voltage : GOOD\n";
+    }
+
+    // Motor Status
+    if(get_pow_2(4) & status_code){
+        cout << "Motor : WARNING\n";
+    } else if (get_pow_2(5) & status_code){
+        cout << "Motor : CRITICAL WARNING, UNABLE TO FUNCTION\n";
+    } else {
+        cout << "Motor : GOOD\n";
+    }
+
+    // Dirty Warning
+    if(get_pow_2(6) & status_code){
+        cout << "Sensor : DIRTY\n";
+    } else {
+        cout << "Sensor : CLEAN\n";
+    }
+
+    // BIT 7 IS RESERVED AND CONTAINS NO DATA
+
+    // Firmware Warning
+    if(get_pow_2(8) & status_code){
+        cout << "Firmware : PLEASE UPDATE\n";
+    } else {
+        cout << "Firmware : OK\n";
+    }
+
+    // PPS Status (For  GPS Synchronization)
+    if(get_pow_2(9) & status_code){
+        cout << "PPS : OK\n";
+    } else{
+        cout << "PPS : NO PPS SIGNAL\n";
+    }
+
+    // Device Status
+    if(get_pow_2(10) & status_code){
+        cout << "Device : APPROACHING END OF LIFE SERVICE\n";
+    } else{
+        cout << "Device : GOOD\n";
+    }
+
+    // Fan Status
+    if(get_pow_2(11) & status_code){
+        cout << "Fan : WARNING\n";
+    } else{
+        cout << "Fan : GOOD\n";
+    }
+
+    // Self Heating. LiDAR will heat itself under cold temperatures
+    if(get_pow_2(12) & status_code){
+        cout << "Self Heating : OFF\n";
+    } else{
+        cout << "Self Heating : ON\n";
+    }
+
+    // PTP Status (For GPS Synchronization)
+    if(get_pow_2(13) & status_code){
+        cout << "PTP : 1588 SIGNAL OK\n";
+    } else{
+        cout << "PTP : NO 1588 SIGNAL\n";
+    }
+
+    // Time Synchronization
+    if(get_pow_2(16) & status_code){
+        cout << "Time Sync : ABNORMAL\n";
+    } else if((get_pow_2(14) & status_code) && (get_pow_2(15) & status_code)){
+        cout << "Time Sync : USING PPS SYNCHRONIZATION\n";
+    } else if(get_pow_2(15) & status_code){
+        cout << "Time Sync : USING GPS SYNCHRONIZATION\n";
+    } else if(get_pow_2(14) & status_code){
+        cout << "Time Sync : USING PTP 1588 SYNCHRONIZATION\n";
+    } else{
+        cout << "Time Sync : SYSTEM DOES NOT START TIME SYNCHRONIZATION\n";
+    }
+
+    // BYTES 17-29 INCLUSIVE ARE RESERVED AND CONTAIN NO INFORMATION
+
+    // System Status Summary
+    if(get_pow_2(30) & status_code){
+        cout << "System Summary : WARNING\n";
+    } else if (get_pow_2(31) & status_code){
+        cout << "System Summary : ERROR\n";
+    }else{
+        cout << "System Summary : NORMAL\n";
+    }
+    cout << "---------------------------------------------\n";
+}
+
 int main() {
     auto start = high_resolution_clock::now();
     streampos size;
