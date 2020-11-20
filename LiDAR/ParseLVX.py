@@ -37,6 +37,7 @@ def check_status(status_code):
     else:
         print("Sensor : CLEAN")
 
+
     # Firmware Status
     if 2**8 & status_code:
         print("Firmware : Please Update")

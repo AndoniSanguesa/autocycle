@@ -151,7 +151,7 @@ int main() {
         file.ignore(78);
 
         // Analyzes Frames
-        frame_cnt = 0;
+        //frame_cnt = 0;
         while(file.tellg() < size) {
             // Ignoring current frame's absolute offset
             file.ignore(8);
@@ -164,7 +164,7 @@ int main() {
             file.ignore(8);
 
             // Analyzes Packages
-            while(file.tellg() < next_offset){
+            while(file.tellg() < next_offset) {
                 // Ignore the following data
                 // Device Index for this frame
                 // Package Protocol Version
@@ -190,31 +190,34 @@ int main() {
 
                 // Analyze Data (Coordinate point or IMU)
                 // Cartesian Coordinate System; Single Return
-                if(data_type == 2){
-                    for(int i = 0; i < 96; i++){
-                        frame_cnt++;
-                        // x val
-                        file.read(buff, 4);
-                        x = *((uint32_t *)buff);
+                switch(data_type){
+                    case 2:
+                        for (int i = 0; i < 96; i++){
+                            //frame_cnt++;
+                            // x val
+                            file.read(buff, 4);
+                            x = *((uint32_t *) buff);
 
-                        // y val
-                        file.read(buff, 4);
-                        y = *((uint32_t *)buff);
+                            // y val
+                            file.read(buff, 4);
+                            y = *((uint32_t *) buff);
 
-                        // z val
-                        file.read(buff, 4);
-                        z = *((uint32_t *)buff);
+                            // z val
+                            file.read(buff, 4);
+                            z = *((uint32_t *) buff);
 
-                        //TODO: Define a data structure for x, y, & z
-                        //TODO: Decide if we want any more data (reflexivity, tag, or IMU)
+                            //TODO: Define a data structure for x, y, & z
+                            //TODO: Decide if we want any more data (reflexivity, tag, or IMU)
 
 
-                        // Ignores tag and reflexivity
-                        file.ignore(2);
-                    }
-                } else if(data_type == 6){
-                    // We can collect this data later if we want
-                    file.ignore(24);
+                            // Ignores tag and reflexivity
+                            file.ignore(2);
+                        }
+                        break;
+                    default:
+                        // We can collect this data later if we want
+                        file.ignore(24);
+                        break;
                 }
             }
         }
