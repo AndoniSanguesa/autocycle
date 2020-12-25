@@ -4,3 +4,11 @@ __pycache__
 /.DS_Store
 /LiDAR/.idea/
 /LiDAR/cmake-build-debug/
+/LiDAR/CMakeCache.txt
+/LiDAR/CMakeFiles/
+/LiDAR/CMakeLists.txt
+/LiDAR/LiDAR
+/LiDAR/Makefile
+/LiDAR/cmake_install.cmake
+/__init__.py
+/LiDAR/__init__.py
