@@ -36,8 +36,6 @@ x_vals = []
 y_vals = []
 
 
-
-
 def reset_data():
     dist_to_edge.clear()
     edge_to_path.clear()
@@ -61,6 +59,7 @@ curveas = CurveAssistant(end_dist)
 
 # The coordinate of the final control point at the end of the graph
 lastpoint = curveas.get_last_control_point()
+
 
 def plot():
     for obstacle in curveas.obstacles:
@@ -98,6 +97,7 @@ def plot():
     plt.axis([0, nt_last_point[0], 0, nt_last_point[1]])
     plt.show()
     plt.clf()
+
 
 # Calculates x and y points for the bezier curve
 def calculate_curve():
@@ -139,8 +139,19 @@ def calculate_curve():
         index += resolution
 
 
+def is_obstacle_block():
+    """
+    :returns a list of obstacles which currently intersect the path"""
+    obst_block = []
+    for obstacle in curveas.obstacles:
+        if obstacle.intersect(x_vals, y_vals):
+            obst_block.append(obstacle)
+    return obst_block
+
+
 def create_environment():
     global resolution
+    resolution = 0.005
     labels.clear()
     if len(lines) == 0:
         return
@@ -152,19 +163,25 @@ def create_environment():
     calculate_curve()
     # Plots obstacles if they intersect the Bezier curve
     ind = 1
+    count = 0
+    lim = 1000
     for obstacle in curveas.obstacles:
         # Allows for computation of control points if and only if the curve intersects the object
         labels.append("Object " + str(ind))
         obstacle.next_side(curveas.extrema[0], curveas.extrema[1])
-        print(obstacle.side)
-        while obstacle.intersect(x_vals, y_vals):
-            obstacle.adjust_gamma()
-            calculate_curve()
         ind += 1
-    resolution = 0.05
-    calculate_curve()
-    plot()
+    block_list = is_obstacle_block()
+    while block_list:
+        for obstacle in block_list:
+            obstacle.adjust_gamma()
+        calculate_curve()
+        count += 1
+        if count > lim:
+            break
+        block_list = is_obstacle_block()
+    #plot()
     create_environment()
+
 
 create_environment()
 sys.stdin = stdin
