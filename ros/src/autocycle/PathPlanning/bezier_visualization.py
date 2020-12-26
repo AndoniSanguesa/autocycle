@@ -151,7 +151,7 @@ def is_obstacle_block():
 
 def create_environment():
     global resolution
-    resolution = 0.005
+    resolution = 0.05
     labels.clear()
     if len(lines) == 0:
         return

@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
+#include <math.h>
+#include <cstring>
 using namespace std;
 using namespace std::chrono;
 
@@ -152,7 +154,7 @@ int main() {
 
         // Analyzes Frames
         //frame_cnt = 0;
-        while(file.tellg() < size) {
+        while(file.tellg() < size && file.tellg() != -1) {
             // Ignoring current frame's absolute offset
             file.ignore(8);
 
