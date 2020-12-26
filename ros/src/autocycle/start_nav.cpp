@@ -26,6 +26,8 @@ int main(int argc, char **argv) {
 
   // Navigation loop
   while(ros::ok()){
+    ROS_INFO_STREAM("Sending request for LiDAR data");
+
     // Calls on the run_lidar node to record data
     lidar_client.call(req, resp);
   }

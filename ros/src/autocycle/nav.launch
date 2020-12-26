@@ -1,0 +1,14 @@
+<launch>
+  <node
+    pkg="autocycle"
+    type="start_nav"
+    name="navigation_core"
+    output="screen"
+  />
+  <node
+    pkg="autocycle"
+    type="run_lidar"
+    name="run_lidar"
+    output="screen"
+  />
+</launch>

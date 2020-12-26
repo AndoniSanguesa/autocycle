@@ -25,6 +25,8 @@ bool callLidar(
   autocycle::Lidar::Request &req,
   autocycle::Lidar::Response &resp
 ) {
+   ROS_INFO_STREAM("Attempting to record LiDAR data.");
+
   // Runs the command to run the LiDAR.
   system((path_to_lvx + "lidar_lvx_sample -t " + to_string(req.time)).c_str());
   sleep(req.time);
@@ -35,8 +37,9 @@ bool callLidar(
   //Checks for newly generated LiDAR file
   while(!found){
     for (const auto & entry : fs::directory_iterator(path_to_lvx)){
-      if(isdigit(((string) entry.path()).at(0))){
-        resp.path = path_to_lvx + ((string) entry.path());
+      ROS_INFO_STREAM("Found file : " << entry.path());
+      if(((string) entry.path()).at(((string) entry.path()).length() - 1) == 'x'){
+        resp.path = entry.path();
         found = true;
         break;
       }
