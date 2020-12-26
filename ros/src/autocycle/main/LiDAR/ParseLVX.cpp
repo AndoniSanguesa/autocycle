@@ -1,10 +1,16 @@
 #include <iostream>
 #include <fstream>
+#include <ros/ros.h>
+#include <std_msgs/String.h>
+#include <autocycle/LvxData.h>
 #include <chrono>
 #include <math.h>
 #include <cstring>
 using namespace std;
 using namespace std::chrono;
+
+// This Vector will contain the data points
+vector< vector<int> > res;
 
 unsigned int get_pow_2(int power){
     return((unsigned int) pow(2, power));
@@ -119,13 +125,15 @@ void check_status(uint32_t status_code){
     cout << "---------------------------------------------\n";
 }
 
-int main() {
+void parseLVX(const std_msgs::String &msg) {
     auto start = high_resolution_clock::now();
     streampos size;
     uint64_t next_offset;
     int frame_cnt;
     int data_type, x, y, z;
     char * buff;
+    vector<int> x_vals;
+    vector<int> z_vals;
 
     ifstream file ("lidar.bin", ios::in|ios::binary|ios::ate);
     if (file.is_open()) {
@@ -160,13 +168,13 @@ int main() {
 
             // Offset for the next frame
             file.read(buff, 8);
-            next_offset = *((uint64_t*) buff);
+            next_offset = *((uint64_t *) buff);
 
             // Ignoring current frame's index
             file.ignore(8);
 
             // Analyzes Packages
-            while(file.tellg() < next_offset) {
+            while (file.tellg() < next_offset) {
                 // Ignore the following data
                 // Device Index for this frame
                 // Package Protocol Version
@@ -192,25 +200,23 @@ int main() {
 
                 // Analyze Data (Coordinate point or IMU)
                 // Cartesian Coordinate System; Single Return
-                switch(data_type){
+                switch (data_type) {
                     case 2:
-                        for (int i = 0; i < 96; i++){
+                        for (int i = 0; i < 96; i++) {
                             //frame_cnt++;
                             // x val
                             file.read(buff, 4);
                             x = *((uint32_t *) buff);
 
-                            // y val
-                            file.read(buff, 4);
-                            y = *((uint32_t *) buff);
+                            // y val. We can record it if we determine we need it
+                            file.ignore(4);
 
                             // z val
                             file.read(buff, 4);
                             z = *((uint32_t *) buff);
 
-                            //TODO: Define a data structure for x, y, & z
-                            //TODO: Decide if we want any more data (reflexivity, tag, or IMU)
-
+                            x_vals.push_back(x);
+                            z_vals.push_back(z);
 
                             // Ignores tag and reflexivity
                             file.ignore(2);
@@ -223,10 +229,29 @@ int main() {
                 }
             }
         }
+        res.push_back(x_vals);
+        res.push_back(z_vals);
     }
     else cout << "File could not be opened";
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(stop - start);
     cout << duration.count() << endl;
-    return 0;
+}
+
+int main(int argc, char **argv) {
+    // Initialize the node and register it with the master.
+    ros::init(argc, argv, "parse_lvx");
+    ros::NodeHandle nh;
+
+    // Register a publisher with the master.
+    ros::Publisher lvx_pub = nh.advertize<autocycle::LvxData>("LiDAR/data", 3);
+
+    // Constantly checks for new data to process
+    while(ros::ok()) {
+        ros::spinOnce();
+        if(res.size() > 0){
+            lvx_pub.publish(res);
+        }
+        res.clear();
+    }
 }
