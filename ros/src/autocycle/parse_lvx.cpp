@@ -9,8 +9,9 @@
 using namespace std;
 using namespace std::chrono;
 
-// This Vector will contain the data points
-vector< vector<int> > res;
+// These Vectors will contain the data points
+vector<int> xs;
+vector<int> zs;
 
 unsigned int get_pow_2(int power){
     return((unsigned int) pow(2, power));
@@ -132,8 +133,6 @@ void parseLVX(const std_msgs::String &msg) {
     int frame_cnt;
     int data_type, x, y, z;
     char * buff;
-    vector<int> x_vals;
-    vector<int> z_vals;
 
     ifstream file ("lidar.bin", ios::in|ios::binary|ios::ate);
     if (file.is_open()) {
@@ -215,8 +214,8 @@ void parseLVX(const std_msgs::String &msg) {
                             file.read(buff, 4);
                             z = *((uint32_t *) buff);
 
-                            x_vals.push_back(x);
-                            z_vals.push_back(z);
+                            xs.push_back(x);
+                            zs.push_back(z);
 
                             // Ignores tag and reflexivity
                             file.ignore(2);
@@ -229,8 +228,6 @@ void parseLVX(const std_msgs::String &msg) {
                 }
             }
         }
-        res.push_back(x_vals);
-        res.push_back(z_vals);
     }
     else cout << "File could not be opened";
     auto stop = high_resolution_clock::now();
@@ -244,14 +241,18 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;
 
     // Register a publisher with the master.
-    ros::Publisher lvx_pub = nh.advertize<autocycle::LvxData>("LiDAR/data", 3);
+    ros::Publisher lvx_pub = nh.advertise<autocycle::LvxData>("LiDAR/data", 3);
 
     // Constantly checks for new data to process
     while(ros::ok()) {
         ros::spinOnce();
-        if(res.size() > 0){
-            lvx_pub.publish(res);
+        if(xs.size() > 0){
+            autocycle::LvxData msg;
+            msg.xs = xs;
+            msg.zs = zs;
+            lvx_pub.publish(msg);
         }
-        res.clear();
+        xs.clear();
+        zs.clear();
     }
 }
