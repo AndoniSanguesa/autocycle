@@ -1,7 +1,7 @@
 // This program handles the communication between different parts of
 // Autocycle's navigation systems.
 #include <ros/ros.h>
-#include <std_msgs/Int16.h>
+#include <autocycle/Lidar.h>
 
 // Time in seconds to run LiDAR at each call
 int lidar_time = 5;
@@ -11,14 +11,22 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "navigation_communicator");
   ros::NodeHandle nh;
 
-  // Defines the publisher that will call on the LiDAR to operate.
-  ros::Publisher lidar_pub = nh.advertize<std_msgs::Int16>("LiDAR/time_dur", 5);
+  // Wait for the run_lidar service to be active
+  ros::service::waitForService("run_lidar");
 
-  //Defines the subscriber that will wait for the LVX file.
-  ros::Subscriber lidar_sub = nh.subscribe("LiDAR/path", 5);
+  // Register a server client with the master.
+  ros::ServiceClient lidar_client = nh.serviceClient<autocycle::Lidar>("run_lidar");
+
+  // The response and request objects that will contain data regarding lidar
+  autocycle::Lidar::Request req;
+  autocycle::Lidar::Response resp;
+
+  // Assign the appropriate data to the request object
+  req.time = lidar_time;
 
   // Navigation loop
   while(ros::ok()){
     // Calls on the run_lidar node to record data
+    lidar_client.call(req, resp);
   }
 }
