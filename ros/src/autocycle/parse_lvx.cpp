@@ -13,6 +13,9 @@ using namespace std::chrono;
 vector<int> xs;
 vector<int> zs;
 
+// The publisher that will publish frame data
+ros::Publisher lvx_pub;
+
 unsigned int get_pow_2(int power){
     return((unsigned int) pow(2, power));
 }
@@ -134,7 +137,7 @@ void parseLVX(const std_msgs::String &msg) {
     int data_type, x, y, z;
     char * buff;
 
-    ifstream file ("lidar.bin", ios::in|ios::binary|ios::ate);
+    ifstream file (msg.data, ios::in|ios::binary|ios::ate);
     if (file.is_open()) {
 
         // Initialization
@@ -227,6 +230,12 @@ void parseLVX(const std_msgs::String &msg) {
                         break;
                 }
             }
+            autocycle::LvxData msg;
+            msg.xs = xs;
+            msg.zs = zs;
+            lvx_pub.publish(msg);
+            xs.clear();
+            zs.clear();
         }
     }
     else cout << "File could not be opened";
@@ -240,19 +249,12 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "parse_lvx");
     ros::NodeHandle nh;
 
+    // Register subscriber looking for lvx files
+    ros::Subscriber lvx_sub = nh.subscribe("LiDAR/path", 1, &parseLVX);
+
     // Register a publisher with the master.
-    ros::Publisher lvx_pub = nh.advertise<autocycle::LvxData>("LiDAR/data", 3);
+    lvx_pub = nh.advertise<autocycle::LvxData>("LiDAR/data", 3);
 
     // Constantly checks for new data to process
-    while(ros::ok()) {
-        ros::spinOnce();
-        if(xs.size() > 0){
-            autocycle::LvxData msg;
-            msg.xs = xs;
-            msg.zs = zs;
-            lvx_pub.publish(msg);
-        }
-        xs.clear();
-        zs.clear();
-    }
+    ros::spin();
 }
