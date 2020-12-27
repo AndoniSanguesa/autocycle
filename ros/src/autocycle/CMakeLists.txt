@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(autocycle)
 find_package(catkin REQUIRED COMPONENTS message_generation roscpp std_msgs)
+catkin_python_setup()
 add_message_files(FILES
   LvxData.msg
   Object.msg
@@ -21,3 +22,5 @@ target_link_libraries(run_lidar ${catkin_LIBRARIES})
 target_link_libraries(run_lidar stdc++fs)
 target_link_libraries(start_nav ${catkin_LIBRARIES})
 target_link_libraries(parse_lvx ${catkin_LIBRARIES})
+catkin_install_python(PROGRAMS bin/bezier_visualization
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
