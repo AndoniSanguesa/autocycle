@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include <ros/ros.h>
-#include <std_msgs/String.h>
 #include <autocycle/LvxData.h>
 #include <chrono>
 #include <math.h>
@@ -130,7 +129,10 @@ void check_status(uint32_t status_code){
     cout << "---------------------------------------------\n";
 }
 
-void parseLVX(const std_msgs::String &msg) {
+bool parseLVX(
+        autocycle::LvxData::Request &req,
+        autocycle::LvxData::Response &resp
+) {
     auto start = high_resolution_clock::now();
     streampos size;
     uint64_t next_offset;
@@ -138,7 +140,7 @@ void parseLVX(const std_msgs::String &msg) {
     int data_type, x, y, z;
     char * buff;
 
-    ifstream file (msg.data, ios::in|ios::binary|ios::ate);
+    ifstream file (req.path, ios::in|ios::binary|ios::ate);
     if (file.is_open()) {
 
         // Initialization
@@ -231,25 +233,25 @@ void parseLVX(const std_msgs::String &msg) {
                         break;
                 }
             }
-            autocycle::LvxData msg;
-            msg.xs = xs;
-            msg.zs = zs;
-            lvx_pub.publish(msg);
-            xs.clear();
-            zs.clear();
+            resp.xs = xs;
+            resp.zs = zs;
         }
     }
-    else cout << "File could not be opened";
+    else {
+        ROS_ERROR_STREAM("File could not be opened");
+        return false;
+    }
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(stop - start);
     ROS_INFO_STREAM("Time to process: " <<  duration.count() << "\n");
 
     // Deletes LVX File after processing
-    if(remove((msg.data).c_str()) != 0){
+    if(remove((req.path).c_str()) != 0){
         ROS_ERROR_STREAM("Could not delete LVX file");
     } else{
         ROS_INFO_STREAM("LVX file succesfully deleted");
     }
+    return true;
 }
 
 int main(int argc, char **argv) {
@@ -257,11 +259,8 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "parse_lvx");
     ros::NodeHandle nh;
 
-    // Register subscriber looking for lvx files
-    ros::Subscriber lvx_sub = nh.subscribe("LiDAR/path", 1, &parseLVX);
-
-    // Register a publisher with the master.
-    lvx_pub = nh.advertise<autocycle::LvxData>("LiDAR/data", 3);
+    // Register Service Server with the master.
+    ros::ServiceServer lvx_server = nh.advertiseService("parse_lvx", &parseLVX);
 
     // Constantly checks for new data to process
     ros::spin();

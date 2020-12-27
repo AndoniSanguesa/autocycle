@@ -16,7 +16,7 @@ string file (__FILE__);
 string path_to_file = file.substr(0, file.length() - 13);
 
 // Path to where the LVX file will be generated.
-string path_to_lvx = path_to_file + "./main/LiDAR/Livox-SDK/build/sample/lidar_lvx_file/";
+string path_to_lvx = path_to_file + "/Livox-SDK/build/sample/lidar_lvx_file/";
 
 // Callback function whenever the run_lidar service is called.
 // TODO: This function could hang if livox fails to record.

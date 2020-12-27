@@ -3,12 +3,12 @@ project(autocycle)
 find_package(catkin REQUIRED COMPONENTS message_generation roscpp std_msgs)
 catkin_python_setup()
 add_message_files(FILES
-  LvxData.msg
   Object.msg
-  ObjectList.msg
 )
 add_service_files(FILES
   Lidar.srv
+  LvxData.srv
+  ObjectList.srv
 )
 generate_messages(DEPENDENCIES std_msgs)
 catkin_package(

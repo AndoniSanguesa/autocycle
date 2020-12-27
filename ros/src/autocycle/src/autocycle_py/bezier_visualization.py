@@ -8,8 +8,7 @@ import sys
 from io import StringIO
 import time
 import rospy
-from autocycle.msg import ObjectList
-from std_msgs.msg import String
+from autocycle.srv import ObjectList, ObjectListResponse
 
 class Obstacle:
     def __init__(self, dist_to_edge, edge_to_path, edge_len):
@@ -321,9 +320,9 @@ def is_obstacle_block():
     return obst_block
 
 
-def create_environment(objectList):
+def create_environment(req):
     global resolution
-    for object in objectList.obj_lst:
+    for object in req.obj_lst:
         dist_to_edge.append(object.dist_to_edge)
         edge_to_path.append(object.edge_to_path)
         edge_len.append(object.edge_len)
@@ -352,18 +351,16 @@ def create_environment(objectList):
             break
         block_list = is_obstacle_block()
     #plot()
-    pub = rospy.Publisher("bezier/param", String)
-    msg = String()
-    msg.data = str(curveas.get_curve().to_symbolic())
-    pub.publish(msg)
-    rospy.loginfo("Path generated")
+    rospy.loginfo("Path generated.")
+    return ObjectListResponse(str(curveas.get_curve().to_symbolic()))
 
 
 def start():
     # Initialize the node and register it with the master.
     rospy.init_node("bezier")
 
-    rospy.Subscriber("bezier/objects", ObjectList, create_environment)
+    param_service = rospy.Service("plan_path", ObjectList, create_environment)
 
     rospy.spin()
+
 

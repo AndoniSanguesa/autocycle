@@ -7,22 +7,6 @@
 #include <autocycle/Object.h>
 #include <std_msgs/String.h>
 
-
-// TEMPORARY CALLBACK FUNCTION TO TEST THE PARSER
-void TestFrames(const autocycle::LvxData &msg) {
-  ROS_WARN_STREAM("THIS ANALYSIS IS TEMPORARY AND FOR TESTING PURPOSES ONLY. SHOULD BE REPLACED BY OBJECT GENERATING ALGOITHM");
-  for(int i=0; i < 5; i++){
-    ROS_INFO_STREAM("x value at" << i <<  ": " << msg.xs.at(i));
-  }
-  ROS_INFO_STREAM("LVX file analyzed");
-}
-
-// TEMPORARY CALLBACK FUNCTION TO TEST THE PARAMETRIC FUNCTIONS
-void TestParam(const std_msgs::String &msg) {
-  ROS_WARN_STREAM("THIS INFORMATION IS ONLY TEMPORARILY ACCESSED HEAR UNTIL I N T E G R A T I O N");
-  ROS_INFO_STREAM("Parametric fx: " << msg.data);
-}
-
 // Time in seconds to run LiDAR at each call
 int lidar_time = 5;
 
@@ -34,38 +18,44 @@ int main(int argc, char **argv) {
   // Wait for the run_lidar service to be active
   ros::service::waitForService("run_lidar");
 
+  // Wait for the parse_lvx service to be active
+  ros::service::waitForService("parse_lvx");
+
+  // Wait for the plan_path service to be active
+  ros::service::waitForService("plan_path");
+
   // Register a server client with the master.
   // Responsible for calling on the run_lidar service
   ros::ServiceClient lidar_client = nh.serviceClient<autocycle::Lidar>("run_lidar");
 
   // TEMPRORARY UNTIL LVX ANALYSIS ALGORITHM IS COMPLETE.
   // ONLY TO TEST THAT FRAMES ARE BEING RECORDED.
-  ros::Subscriber lvx_sub = nh.subscribe("LiDAR/data", 3, &TestFrames);
+  ros::ServiceClient lvx_client = nh.serviceClient<autocycle::LvxData>("parse_lvx");
 
-  // TEMPORARY: publisher responsible for generating dummy object data
-  ros::Publisher object_pub = nh.advertise<autocycle::ObjectList>("bezier/objects", 3);
-
-  // PROBABLY TEMPRORARY: subscription to bezier/param. Used to confirm output
-  ros::Subscriber path_sub = nh.subscribe("bezier/param", 1, &TestParam);
-
-  // Registers a Publisher with the master.
-  // Responsible for publishing the path of
-  // lvx files to the LiDAR/path topic
-  ros::Publisher lvx_pub = nh.advertise<std_msgs::String>("LiDAR/path", 1);
+  //TEMPORARY UNTIL I N T E G R A T I O N
+  ros::ServiceClient path_client = nh.serviceClient<autocycle::ObjectList>("plan_path");
 
   // The response and request objects that will contain data regarding lidar
-  autocycle::Lidar::Request req;
-  autocycle::Lidar::Response resp;
+  autocycle::Lidar::Request lidar_req;
+  autocycle::Lidar::Response lidar_resp;
+
+  // The response and request objects that will contain data regarding the lvx file
+  autocycle::LvxData::Request lvx_req;
+  autocycle::LvxData::Response lvx_resp;
+
+  // The response and request objects that will contain data regarding the path
+  autocycle::ObjectList::Request path_req;
+  autocycle::ObjectList::Response path_resp;
 
   // Assign the appropriate data to the request object
-  req.time = lidar_time;
+  lidar_req.time = lidar_time;
 
   // Navigation loop
   while(ros::ok()){
     ROS_INFO_STREAM("Sending request for LVX file.");
 
     // Calls on the run_lidar node to record data
-    bool result = lidar_client.call(req, resp);
+    bool result = lidar_client.call(lidar_req, lidar_resp);
 
     if(!result){
       ROS_FATAL_STREAM("LVX FILE COULD NOT BE CREATED");
@@ -76,22 +66,34 @@ int main(int argc, char **argv) {
     ROS_INFO_STREAM("Sending request to analyze LVX File.");
 
     // Publishes the determined lvx file to LiDAR/path
-    std_msgs::String msg;
-    msg.data = resp.path;
-    lvx_pub.publish(msg);
+    lvx_req.path = lidar_resp.path;
+    result = lvx_client.call(lvx_req, lvx_resp);
 
-    // Checks Subscriptions
-    ros::spinOnce();
+    if(!result){
+        exit(1);
+    }
+
+    // TEMPORARY: analyzes results of the parse_lvx fe
+    ROS_WARN_STREAM("TEMPORARY LVX DATA ANALYSIS FOR TESTING UNTIL JACOBS ALGORITHM IS DONE");
+    for(int i = 0; i < 5; i++){
+        ROS_INFO_STREAM("x value at " << i << " : " << lvx_resp.xs.at(i));
+    }
+    ROS_INFO_STREAM("LVX file analyzed.");
 
     ROS_INFO_STREAM("Sending Object data to path planning");
     ROS_WARN_STREAM("THIS IS TEMPORARY UNTIL WE CAN GET OBJECT DATA");
+
     // TEMPORARY: Sends dummy object data to bezier/objects to test for now
     autocycle::Object o1 ;
     autocycle::ObjectList ol1;
     o1.edge_to_path = 2;
     o1.dist_to_edge = 3;
     o1.edge_len = 3;
-    ol1.obj_lst.push_back(o1);
-    object_pub.publish(ol1);
+    path_req.obj_lst.push_back(o1);
+
+    // Report parameterized equation for the calculated path
+    path_client.call(path_req, path_resp);
+    ROS_WARN_STREAM("THIS INFORMATION SHOULD ONLY BE REPORTED HERE UNTIL I N T E G R A T I O N");
+    ROS_INFO_STREAM("Param for path: " << path_resp.param);
   }
 }
