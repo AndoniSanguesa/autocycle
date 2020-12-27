@@ -1,6 +1,6 @@
 # Instaling `autocycle` ROS Package on Ubuntu Focal 20.04 #
 
-Note: As of 20/27/2020, ROS does not support Ubuntu Grooby 20.1. You must install Ubuntu Focal 20.04 or earlier to install ROS succesfully.
+Note: As of 20/27/2020, ROS does not support Ubuntu Groovy 20.1. You must install Ubuntu Focal 20.04 or earlier to install ROS succesfully.
 
 ## 1. Install ROS and Create Catkin Workspace##
 
