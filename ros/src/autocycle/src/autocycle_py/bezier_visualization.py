@@ -7,6 +7,8 @@ from pip._vendor.distlib.compat import raw_input
 import sys
 from io import StringIO
 import time
+import rospy
+from autocycle.msg import ObstacleList
 
 class Obstacle:
     def __init__(self, dist_to_edge, edge_to_path, edge_len):
@@ -214,7 +216,7 @@ fontP.set_size('small')
 labels = []
 # Distance to the end of the graph (our max viewing distance)
 sys.stdin = StringIO(lines.pop(0))
-end_dist = int(input())
+end_dist = 10
 # Distances from the bike to the objects
 dist_to_edge = []
 # Shortest distance from the edges of the objects to the global path
@@ -225,25 +227,6 @@ edge_len = []
 # The final x and y values of the Bezier plot
 x_vals = []
 y_vals = []
-
-
-def reset_data():
-    dist_to_edge.clear()
-    edge_to_path.clear()
-    edge_len.clear()
-
-
-def get_data():
-    reset_data()
-    # Format is numbers with spaces inbetween:
-    # num_obst gamma1 dist_to_edge1 edge_to_path1 side_small_edge1 edge_len1 gamma2 ...
-    sys.stdin = StringIO(lines.pop(0))
-    data = raw_input().split()
-    for x in range(int(data[0])):
-        dist_to_edge.append(float(data[x * 3 + 1]))
-        edge_to_path.append(float(data[x * 3 + 2]))
-        edge_len.append(float(data[x * 3 + 3]))
-
 
 # Creates a CurveAssistant that will allow us to access our data
 curveas = CurveAssistant(end_dist)
@@ -340,14 +323,13 @@ def is_obstacle_block():
     return obst_block
 
 
-def create_environment():
+def create_environment(obstacleList):
     global resolution
+    for object in obstacleList:
+        dist_to_edge.append(object.dist_to_edge)
+        edge_to_path.append(object.edge_to_path)
+        edge_len.append(object.edge_len)
     resolution = 0.05
-    labels.clear()
-    if len(lines) == 0:
-        return
-    get_data()
-    curveas.clear_obstacles()
     # Creates objects
     for x in range(len(edge_len)):
         curveas.create_obstacle(dist_to_edge[x], edge_to_path[x], edge_len[x])
@@ -371,4 +353,13 @@ def create_environment():
             break
         block_list = is_obstacle_block()
     #plot()
-    create_environment()
+
+
+def start():
+    # Initialize the node and register it with the master.
+    rospy.init_node("bezier")
+
+    rospy.Subscriber("bezier/objects", ObstacleList, create_environment)
+
+    rospy.spin()
+
