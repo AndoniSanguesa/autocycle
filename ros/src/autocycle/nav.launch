@@ -4,11 +4,20 @@
     type="start_nav"
     name="navigation_core"
     output="screen"
+    required="true"
   />
   <node
     pkg="autocycle"
     type="run_lidar"
     name="run_lidar"
     output="screen"
+    required="true"
+  />
+  <node
+    pkg="autocycle"
+    type="parse_lvx"
+    name="parse_lvx_file"
+    output="screen"
+    respawn="true"
   />
 </launch>

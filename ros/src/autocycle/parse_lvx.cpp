@@ -6,6 +6,7 @@
 #include <chrono>
 #include <math.h>
 #include <cstring>
+#include <stdio.h>
 using namespace std;
 using namespace std::chrono;
 
@@ -241,7 +242,14 @@ void parseLVX(const std_msgs::String &msg) {
     else cout << "File could not be opened";
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(stop - start);
-    cout << duration.count() << endl;
+    ROS_INFO_STREAM("Time to process: " <<  duration.count() << "\n");
+
+    // Deletes LVX File after processing
+    if(remove((msg.data).c_str()) != 0){
+        ROS_ERROR_STREAM("Could not delete LVX file");
+    } else{
+        ROS_INFO_STREAM("LVX file succesfully deleted");
+    }
 }
 
 int main(int argc, char **argv) {

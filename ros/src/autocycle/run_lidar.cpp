@@ -29,23 +29,16 @@ bool callLidar(
 
   // Runs the command to run the LiDAR.
   system((path_to_lvx + "lidar_lvx_sample -t " + to_string(req.time)).c_str());
-  sleep(req.time);
-
-  // Whether the LVX file has been generated or not
-  bool found = false;
 
   //Checks for newly generated LiDAR file
-  while(!found){
-    for (const auto & entry : fs::directory_iterator(path_to_lvx)){
-      ROS_INFO_STREAM("Found file : " << entry.path());
-      if(((string) entry.path()).at(((string) entry.path()).length() - 1) == 'x'){
-        resp.path = entry.path();
-        found = true;
-        break;
-      }
+  for (const auto & entry : fs::directory_iterator(path_to_lvx)){
+    ROS_INFO_STREAM("Found file : " << entry.path());
+    if(((string) entry.path()).at(((string) entry.path()).length() - 1) == 'x'){
+      resp.path = entry.path();
+      return true;
     }
   }
-  return true;
+  return false;
 }
 
 int main(int argc, char **argv) {
