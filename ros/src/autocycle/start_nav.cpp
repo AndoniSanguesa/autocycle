@@ -3,15 +3,24 @@
 #include <ros/ros.h>
 #include <autocycle/Lidar.h>
 #include <autocycle/LvxData.h>
+#include <autocycle/ObjectList.h>
+#include <autocycle/Object.h>
 #include <std_msgs/String.h>
 
 
 // TEMPORARY CALLBACK FUNCTION TO TEST THE PARSER
 void TestFrames(const autocycle::LvxData &msg) {
+  ROS_WARN_STREAM("THIS ANALYSIS IS TEMPORARY AND FOR TESTING PURPOSES ONLY. SHOULD BE REPLACED BY OBJECT GENERATING ALGOITHM");
   for(int i=0; i < 5; i++){
     ROS_INFO_STREAM("x value at" << i <<  ": " << msg.xs.at(i));
   }
   ROS_INFO_STREAM("LVX file analyzed");
+}
+
+// TEMPORARY CALLBACK FUNCTION TO TEST THE PARAMETRIC FUNCTIONS
+void TestParam(const std_msgs::String &msg) {
+  ROS_WARN_STREAM("THIS INFORMATION IS ONLY TEMPORARILY ACCESSED HEAR UNTIL I N T E G R A T I O N");
+  ROS_INFO_STREAM("Parametric fx: " << msg.data);
 }
 
 // Time in seconds to run LiDAR at each call
@@ -32,6 +41,12 @@ int main(int argc, char **argv) {
   // TEMPRORARY UNTIL LVX ANALYSIS ALGORITHM IS COMPLETE.
   // ONLY TO TEST THAT FRAMES ARE BEING RECORDED.
   ros::Subscriber lvx_sub = nh.subscribe("LiDAR/data", 3, &TestFrames);
+
+  // TEMPORARY: publisher responsible for generating dummy object data
+  ros::Publisher object_pub = nh.advertise<autocycle::ObjectList>("bezier/objects", 3);
+
+  // PROBABLY TEMPRORARY: subscription to bezier/param. Used to confirm output
+  ros::Subscriber path_sub = nh.subscribe("bezier/param", 1, &TestParam);
 
   // Registers a Publisher with the master.
   // Responsible for publishing the path of
@@ -67,5 +82,16 @@ int main(int argc, char **argv) {
 
     // Checks Subscriptions
     ros::spinOnce();
+
+    ROS_INFO_STREAM("Sending Object data to path planning");
+    ROS_WARN_STREAM("THIS IS TEMPORARY UNTIL WE CAN GET OBJECT DATA");
+    // TEMPORARY: Sends dummy object data to bezier/objects to test for now
+    autocycle::Object o1 ;
+    autocycle::ObjectList ol1;
+    o1.edge_to_path = 2;
+    o1.dist_to_edge = 3;
+    o1.edge_len = 3;
+    ol1.obj_lst.push_back(o1);
+    object_pub.publish(ol1);
   }
 }

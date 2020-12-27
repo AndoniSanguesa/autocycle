@@ -8,7 +8,8 @@ import sys
 from io import StringIO
 import time
 import rospy
-from autocycle.msg import ObstacleList
+from autocycle.msg import ObjectList
+from std_msgs.msg import String
 
 class Obstacle:
     def __init__(self, dist_to_edge, edge_to_path, edge_len):
@@ -61,7 +62,7 @@ class Obstacle:
 
     # Determines if a set of x and y coordinates at any point intersect with the obstacle
     def intersect(self, xs, ys):
-        close_index = Assistant.find_closest_x(xs, self.dist_to_edge)
+        close_index = find_closest_x(xs, self.dist_to_edge)
         close_y = ys[close_index]
         thisys = self.edge_points[1]
         if thisys[0]-0.1 < close_y < thisys[1]+0.1 or thisys[1]-0.1 < close_y < thisys[0]+0.1:
@@ -140,6 +141,11 @@ class CurveAssistant:
             self.coordinates[1].append(coord[1])
         return self.coordinates
 
+    def get_curve(self):
+        self.compute_control_points()
+        nodes = self.get_fortran()
+        return bezier.Curve(nodes, self.get_num_control_points() - 1)
+
     # Creates obstacle object and produces initial control points
     def create_obstacle(self, dist_to_edge, edge_to_path, edge_len):
         self.obstacles.append(Obstacle(dist_to_edge, edge_to_path, edge_len))
@@ -202,20 +208,12 @@ class CurveAssistant:
 
 resolution = 0.04
 
-writefile = open("main/PathPlanning/WriteData.py")
-exec("writefile")
-
 ## OPEN TESTDATA FILE. ONLY FOR TESTING UNTIL INTEGRATION ##
-datafile = open('main/PathPlanning/TestData', 'r')
-lines = datafile.readlines()
-stdin = sys.stdin
-
 time0 = time.time()
 fontP = FontProperties()
 fontP.set_size('small')
 labels = []
 # Distance to the end of the graph (our max viewing distance)
-sys.stdin = StringIO(lines.pop(0))
 end_dist = 10
 # Distances from the bike to the objects
 dist_to_edge = []
@@ -323,12 +321,13 @@ def is_obstacle_block():
     return obst_block
 
 
-def create_environment(obstacleList):
+def create_environment(objectList):
     global resolution
-    for object in obstacleList:
+    for object in objectList.obj_lst:
         dist_to_edge.append(object.dist_to_edge)
         edge_to_path.append(object.edge_to_path)
         edge_len.append(object.edge_len)
+    rospy.loginfo("Object data accepted. Generating Path")
     resolution = 0.05
     # Creates objects
     for x in range(len(edge_len)):
@@ -353,13 +352,18 @@ def create_environment(obstacleList):
             break
         block_list = is_obstacle_block()
     #plot()
+    pub = rospy.Publisher("bezier/param", String)
+    msg = String()
+    msg.data = str(curveas.get_curve().to_symbolic())
+    pub.publish(msg)
+    rospy.loginfo("Path generated")
 
 
 def start():
     # Initialize the node and register it with the master.
     rospy.init_node("bezier")
 
-    rospy.Subscriber("bezier/objects", ObstacleList, create_environment)
+    rospy.Subscriber("bezier/objects", ObjectList, create_environment)
 
     rospy.spin()
 

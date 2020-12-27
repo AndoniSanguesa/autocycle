@@ -3,4 +3,4 @@
 import autocycle_py.bezier_visualization
 
 if __name__ == '__main__':
-  autocycle_py.bezier_visualization.create_environment()
+  autocycle_py.bezier_visualization.start()

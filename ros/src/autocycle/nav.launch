@@ -20,4 +20,11 @@
     output="screen"
     respawn="true"
   />
+  <node
+    pkg="autocycle"
+    type="bezier_visualization"
+    name="bezier"
+    output="screen"
+    respawn="true"
+  />
 </launch>
