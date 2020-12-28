@@ -4,6 +4,7 @@ find_package(catkin REQUIRED COMPONENTS message_generation roscpp std_msgs)
 catkin_python_setup()
 add_message_files(FILES
   Object.msg
+  LvxPoint.msg
 )
 add_service_files(FILES
   Lidar.srv

@@ -2,16 +2,13 @@
 #include <fstream>
 #include <ros/ros.h>
 #include <autocycle/LvxData.h>
+#include <autocycle/LvxPoint.h>
 #include <chrono>
 #include <math.h>
 #include <cstring>
 #include <stdio.h>
 using namespace std;
 using namespace std::chrono;
-
-// These Vectors will contain the data points
-vector<int> xs;
-vector<int> zs;
 
 // The publisher that will publish frame data
 ros::Publisher lvx_pub;
@@ -220,21 +217,23 @@ bool parseLVX(
                             file.read(buff, 4);
                             z = *((uint32_t *) buff);
 
-                            xs.push_back(x);
-                            zs.push_back(z);
+                            //xs.push_back(x);
+                            //zs.push_back(z);
 
                             // Ignores tag and reflexivity
                             file.ignore(2);
+
+                            autocycle::LvxPoint msg;
+                            msg.x = x;
+                            msg.z = z;
+                            lvx_pub.publish(msg);
                         }
-                        break;
                     default:
                         // We can collect this data later if we want
                         file.ignore(24);
-                        break;
                 }
             }
-            resp.xs = xs;
-            resp.zs = zs;
+            break;
         }
     }
     else {
@@ -261,6 +260,9 @@ int main(int argc, char **argv) {
 
     // Register Service Server with the master.
     ros::ServiceServer lvx_server = nh.advertiseService("parse_lvx", &parseLVX);
+
+    // Register Publish with the master.
+    lvx_pub = nh.advertise<autocycle::LvxPoint>("lidar/data", 14000);
 
     // Constantly checks for new data to process
     ros::spin();

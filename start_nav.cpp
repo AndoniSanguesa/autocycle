@@ -8,7 +8,7 @@
 #include <std_msgs/String.h>
 
 // Time in seconds to run LiDAR at each call
-int lidar_time = 5;
+int lidar_time = 1;
 
 int main(int argc, char **argv) {
   // Initializes the Node and registers it with the master.
@@ -73,11 +73,6 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    // TEMPORARY: analyzes results of the parse_lvx fe
-    ROS_WARN_STREAM("TEMPORARY LVX DATA ANALYSIS FOR TESTING UNTIL JACOBS ALGORITHM IS DONE");
-    for(int i = 0; i < 5; i++){
-        ROS_INFO_STREAM("x value at " << i << " : " << lvx_resp.xs.at(i));
-    }
     ROS_INFO_STREAM("LVX file analyzed.");
 
     ROS_INFO_STREAM("Sending Object data to path planning");

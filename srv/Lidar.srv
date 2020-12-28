@@ -1,3 +1,3 @@
-int16 time
+int32 time
 ---
 string path
