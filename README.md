@@ -13,23 +13,23 @@ Note: As of 20/27/2020, ROS does not support Ubuntu Groovy 20.1. You must instal
 
 ## 3. Clone Livox-SDK Repository ##
 
-   Clone the repository [here](https://github.com/Livox-SDK/Livox-SDK) under the root directory of this pacakge (src/autocycle/)
+   Clone the repository [here](https://github.com/Livox-SDK/Livox-SDK) under the root directory of this pacakge (src/autocycle/)  
    Follow the setup instructions listed in the Livox-SDK's `README.md`
 
-## 3. Configure Package ##
+## 4. Configure Package ##
 
    While in the root directory of your catkin workspace call  
    `catkin_make`  
      
    NOTE: This will generate two directories "build" and "devel" there is no need to delete these between subsequent `catkin_make` calls
    
-## 4. Setup Environment ##
+## 5. Setup Environment ##
 
    NOTE: This step must be repeated for evey separate terminal open.  
    while in the root directory of your catkin workspace call  
    `./devel/setup.bash`
    
-## 5. Start Navigation ##
+## 6. Start Navigation ##
 
    Run the command  
    `roslaunch autocycle nav.launch`
