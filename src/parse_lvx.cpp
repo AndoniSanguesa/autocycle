@@ -2,16 +2,13 @@
 #include <fstream>
 #include <ros/ros.h>
 #include <autocycle/LvxData.h>
-#include <autocycle/LvxPoint.h>
+#include <autocycle/Point.h>
 #include <chrono>
 #include <math.h>
 #include <cstring>
 #include <stdio.h>
 using namespace std;
 using namespace std::chrono;
-
-// The publisher that will publish frame data
-ros::Publisher lvx_pub;
 
 bool parseLVX(
         autocycle::LvxData::Request &req,
@@ -21,7 +18,9 @@ bool parseLVX(
     streampos size;
     int data_type, x, y, z;
     char * buff;
-    ifstream file (req.path, ios::in|ios::binary|ios::ate);
+    vector<autocycle::Point> ret;
+
+   ifstream file (req.path, ios::in|ios::binary|ios::ate);
     if (file.is_open()) {
         // Initialization
         size = file.tellg();
@@ -65,7 +64,8 @@ bool parseLVX(
                         x = *((uint32_t *) buff);
 
                         // y val. We can record it if we determine we need it
-                            file.ignore(4);
+                        file.read(buff, 4);
+                        y = *((uint32_t *) buff);
 
                         // z val
                         file.read(buff, 4);
@@ -77,10 +77,11 @@ bool parseLVX(
                         // Ignores tag and reflexivity
                         file.ignore(2);
 
-                        autocycle::LvxPoint msg;
-                        msg.x = x;
-                        msg.z = z;
-                        lvx_pub.publish(msg);
+                        autocycle::Point p;
+                        p.x = x;
+                        p.y = y;
+                        p.z = z;
+                        ret.push_back(p);
                         //ROS_INFO_STREAM("Coordinates: (" << x << ", " << z << ").\n");
                     }
                 default:
@@ -95,6 +96,8 @@ bool parseLVX(
     }
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(stop - start);
+    ret.shrink_to_fit();
+    resp.data = ret;
     ROS_INFO_STREAM("Time to process: " <<  duration.count() << "\n");
     return true;
 }
@@ -107,9 +110,7 @@ int main(int argc, char **argv) {
     // Register Service Server with the master.
     ros::ServiceServer lvx_server = nh.advertiseService("parse_lvx", &parseLVX);
 
-    // Register Publish with the master.
-    lvx_pub = nh.advertise<autocycle::LvxPoint>("lidar/data", 14000);
-
     // Constantly checks for new data to process
     ros::spin();
 }
+
