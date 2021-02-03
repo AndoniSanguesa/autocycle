@@ -1,22 +1,21 @@
 // This program handles the communication between different parts of
 // Autocycle's navigation systems.
 #include <ros/ros.h>
-#include <autocycle/Lidar.h>
 #include <autocycle/LvxData.h>
 #include <autocycle/ObjectList.h>
 #include <autocycle/Object.h>
+#include <fstream>
+#include <iostream>
 #include <std_msgs/String.h>
 
-// Time in seconds to run LiDAR at each call
-int lidar_time = 1;
+
+std::string path_to_lvx = "f_done.lvx";
+
 
 int main(int argc, char **argv) {
   // Initializes the Node and registers it with the master.
   ros::init(argc, argv, "navigation_communicator");
   ros::NodeHandle nh;
-
-  // Wait for the run_lidar service to be active
-  ros::service::waitForService("run_lidar");
 
   // Wait for the parse_lvx service to be active
   ros::service::waitForService("parse_lvx");
@@ -24,20 +23,12 @@ int main(int argc, char **argv) {
   // Wait for the plan_path service to be active
   ros::service::waitForService("plan_path");
 
-  // Register a server client with the master.
-  // Responsible for calling on the run_lidar service
-  ros::ServiceClient lidar_client = nh.serviceClient<autocycle::Lidar>("run_lidar");
-
   // TEMPRORARY UNTIL LVX ANALYSIS ALGORITHM IS COMPLETE.
   // ONLY TO TEST THAT FRAMES ARE BEING RECORDED.
   ros::ServiceClient lvx_client = nh.serviceClient<autocycle::LvxData>("parse_lvx");
 
   //TEMPORARY UNTIL I N T E G R A T I O N
   ros::ServiceClient path_client = nh.serviceClient<autocycle::ObjectList>("plan_path");
-
-  // The response and request objects that will contain data regarding lidar
-  autocycle::Lidar::Request lidar_req;
-  autocycle::Lidar::Response lidar_resp;
 
   // The response and request objects that will contain data regarding the lvx file
   autocycle::LvxData::Request lvx_req;
@@ -47,26 +38,28 @@ int main(int argc, char **argv) {
   autocycle::ObjectList::Request path_req;
   autocycle::ObjectList::Response path_resp;
 
-  // Assign the appropriate data to the request object
-  lidar_req.time = lidar_time;
+  // Initializes the variable that will hold the lvx file
+  std::ofstream f_done;
 
   // Navigation loop
   while(ros::ok()){
     ROS_INFO_STREAM("Sending request for LVX file.");
 
-    // Calls on the run_lidar node to record data
-    bool result = lidar_client.call(lidar_req, lidar_resp);
-
-    if(!result){
-      ROS_FATAL_STREAM("LVX FILE COULD NOT BE CREATED");
-      exit(1);
+    // Waits until f_done.lvx has been populated
+    f_done.open("f_done.lvx", std::ios::app);
+    while(f_done.tellp() == 0){
+      f_done.close();
+      f_done.open("f_done.lvx", std::ios::app);
     }
+    f_done.close();
 
     ROS_INFO_STREAM("LVX file generated.");
     ROS_INFO_STREAM("Sending request to analyze LVX File.");
 
+    bool result;
+
     // Publishes the determined lvx file to LiDAR/path
-    lvx_req.path = lidar_resp.path;
+    lvx_req.path = path_to_lvx;
     result = lvx_client.call(lvx_req, lvx_resp);
 
     if(!result){
@@ -90,5 +83,12 @@ int main(int argc, char **argv) {
     path_client.call(path_req, path_resp);
     ROS_WARN_STREAM("THIS INFORMATION SHOULD ONLY BE REPORTED HERE UNTIL I N T E G R A T I O N");
     ROS_INFO_STREAM("Param for path: " << path_resp.param);
+
+    // Clears f_done.lvx file
+    f_done.open(path_to_lvx, std::ios::trunc);
+    f_done.close();
   }
+  f_done.open(path_to_lvx, std::ios::trunc);
+  f_done.write("done", 4);
+  f_done.close();
 }

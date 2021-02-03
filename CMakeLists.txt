@@ -7,7 +7,6 @@ add_message_files(FILES
   LvxPoint.msg
 )
 add_service_files(FILES
-  Lidar.srv
   LvxData.srv
   ObjectList.srv
 )
