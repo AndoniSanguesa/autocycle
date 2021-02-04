@@ -5,9 +5,6 @@
 // Will contain the new roll value!
 float roll;
 
-// Allows for the creation of services and subscribers
-ros::NodeHandle nh;
-
 void getRollFromTopic(const std_msgs::Float64 new_roll){
   roll = new_roll.data;
 }
@@ -16,6 +13,8 @@ bool getRoll(
     autocycle::Roll::Request &req,
     autocycle::Roll::Response &resp
 ){
+  ros::NodeHandle nh;
+
   // Creates subscriber for the roll data, Collects data, deletes subscriber
   ros::Subscriber roll_sub = nh.subscribe("sensors/roll", 1, &getRollFromTopic);
   ros::spinOnce();
@@ -30,6 +29,7 @@ bool getRoll(
 int main(int argc, char **argv){
   //Initaialize the node and register it wth the master.
   ros::init(argc, argv, "get_roll");
+  ros::NodeHandle nh;
 
   // Register Service Server with the master.
   ros::ServiceServer get_roll_server = nh.advertiseService("get_roll", &getRoll);
