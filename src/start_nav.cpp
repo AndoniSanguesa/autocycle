@@ -5,6 +5,7 @@
 #include <autocycle/ObjectList.h>
 #include <autocycle/Object.h>
 #include <autocycle/Roll.h>
+#include <autocycle/Heading.h>
 #include <autocycle/RollAdj.h>
 #include <fstream>
 #include <iostream>
@@ -28,6 +29,9 @@ int main(int argc, char **argv) {
   // Waits for the roll getter service to be active
   ros::service::waitForService("get_roll");
 
+  // Waits for the heading getter service to be active
+  ros::service::waitForService("get_heading");
+
   // Wait for the fix_roll service to be active
   ros::service::waitForService("fix_roll");
 
@@ -40,6 +44,9 @@ int main(int argc, char **argv) {
 
   // Creates the service that will fetch the latest roll data
   ros::ServiceClient get_roll_client = nh.serviceClient<autocycle::Roll>("get_roll");
+
+  // Creates the service client that will fetch the latest heading data
+  ros::ServiceClient get_heading_client = nh.serviceClient<autocycle::Heading>("get_heading");
 
   // Creates service client that will call on the fix_roll service to fix the roll...
   ros::ServiceClient roll_client = nh.serviceClient<autocycle::RollAdj>("fix_roll");
@@ -54,6 +61,10 @@ int main(int argc, char **argv) {
   // The response and request objects that will handle fetching roll data
   autocycle::Roll::Request get_roll_req;
   autocycle::Roll::Response get_roll_resp;
+
+  // The response and reqeust objects that will handle fetching heading data
+  autocycle::Heading::Request get_heading_req;
+  autocycle::Heading::Response get_heading_resp;
 
   // The response and requests objects that will contain the non roll-adjusted points and the adjusted ones
   autocycle::RollAdj::Request adj_roll_req;

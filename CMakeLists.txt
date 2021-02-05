@@ -11,6 +11,7 @@ add_service_files(FILES
   ObjectList.srv
   RollAdj.srv
   Roll.srv
+  Heading.srv
 )
 generate_messages(DEPENDENCIES std_msgs)
 catkin_package(
@@ -23,12 +24,14 @@ add_executable(start_nav src/start_nav.cpp)
 add_executable(parse_lvx src/parse_lvx.cpp)
 add_executable(fix_roll src/fix_roll.cpp)
 add_executable(get_roll src/get_roll.cpp)
+add_executable(get_heading src/get_heading.cpp)
 target_link_libraries(run_lidar ${catkin_LIBRARIES})
 target_link_libraries(run_lidar stdc++fs)
 target_link_libraries(start_nav ${catkin_LIBRARIES})
 target_link_libraries(parse_lvx ${catkin_LIBRARIES})
 target_link_libraries(fix_roll ${catkin_LIBRARIES})
 target_link_libraries(get_roll ${catkin_LIBRARIES})
+target_link_libraries(get_heading ${catkin_LIBRARIES})
 catkin_install_python(PROGRAMS bin/bezier_visualization
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
