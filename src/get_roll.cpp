@@ -3,7 +3,7 @@
 #include <std_msgs/Float64.h>
 
 // Will contain the new roll value!
-float roll;
+float roll = -1;
 
 void getRollFromTopic(const std_msgs::Float64 new_roll){
   roll = new_roll.data;
@@ -17,11 +17,14 @@ bool getRoll(
 
   // Creates subscriber for the roll data, Collects data, deletes subscriber
   ros::Subscriber roll_sub = nh.subscribe("sensors/roll", 1, &getRollFromTopic);
-  ros::spinOnce();
+  while(roll == -1){
+    ros::spinOnce();
+  }
   roll_sub.shutdown();
 
   // Stores the roll in the response variable
   resp.roll = roll;
+  roll = -1;
   return true;
 }
 

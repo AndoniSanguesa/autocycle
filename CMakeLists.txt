@@ -17,6 +17,7 @@ catkin_package(
   CATKIN_DEPENDS message_runtime std_msgs
 )
 include_directories(include ${catkin_INCLUDE_DIRS})
+# PROJECT FILES
 add_executable(run_lidar src/run_lidar.cpp)
 add_executable(start_nav src/start_nav.cpp)
 add_executable(parse_lvx src/parse_lvx.cpp)
@@ -30,3 +31,9 @@ target_link_libraries(fix_roll ${catkin_LIBRARIES})
 target_link_libraries(get_roll ${catkin_LIBRARIES})
 catkin_install_python(PROGRAMS bin/bezier_visualization
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+# TESTING FILES
+add_executable(test_roll_adj test/test_roll_adj.cpp)
+add_executable(test_roll_publisher test/test_roll_publisher.cpp)
+target_link_libraries(test_roll_adj ${catkin_LIBRARIES})
+target_link_libraries(test_roll_publisher ${catkin_LIBRARIES})

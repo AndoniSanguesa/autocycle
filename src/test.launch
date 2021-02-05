@@ -1,0 +1,27 @@
+<launch>
+  <node
+    pkg="autocycle"
+    type="test_roll_adj"
+    name="test_roll_adj"
+    output="screen"
+  />
+  <node
+    pkg="autocycle"
+    type="test_roll_publisher"
+    name="test_roll_publisher"
+    output="screen"
+  />
+  <node
+    pkg="autocycle"
+    type="fix_roll"
+    name="fix_roll"
+    output="screen"
+    required="true"
+  />
+  <node
+    pkg="autocycle"
+    type="get_roll"
+    name="get_roll"
+    required="true"
+  />
+</launch>

@@ -25,9 +25,8 @@ bool fixRoll(
   for(i=0;i<req.in.size();i++){
     autocycle::Point new_point;
     cur_point = req.in[i];
-    deg = req.roll * (180/PI);
-    new_point.x = (cur_point.x*cos(deg)) - (cur_point.y*sin(deg));
-    new_point.y = (cur_point.x*sin(deg)) + (cur_point.y*cos(deg));
+    new_point.x = (cur_point.x*cos(req.roll)) - (cur_point.y*sin(req.roll));
+    new_point.y = (cur_point.x*sin(req.roll)) + (cur_point.y*cos(req.roll));
     new_point.z = cur_point.z;
     ret.push_back(new_point);
   }

@@ -1,3 +1,3 @@
-int32 x
-int32 y
-int32 z
+float64 x
+float64 y
+float64 z
