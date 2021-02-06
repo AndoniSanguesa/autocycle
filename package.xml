@@ -18,6 +18,8 @@
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>bezier</exec_depend>
   <exec_depend>sympy</exec_depend>
+  <build_depend>serial</build_depend>
+  <exec_depend>serial</exec_depend>
   <export>
   </export>
 </package>
