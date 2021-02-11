@@ -29,15 +29,8 @@
   />
   <node
     pkg="autocycle"
-    type="get_roll"
-    name="get_roll"
-    output="screen"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
-    type="fix_roll"
-    name="fix_roll"
+    type="get_data"
+    name="get_data"
     output="screen"
     respawn="true"
   />

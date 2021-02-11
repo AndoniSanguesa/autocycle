@@ -20,8 +20,8 @@
   />
   <node
     pkg="autocycle"
-    type="get_roll"
-    name="get_roll"
+    type="get_data"
+    name="get_data"
     required="true"
   />
 </launch>

@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <autocycle/Roll.h>
+#include <autocycle/GetData.h>
 #include <autocycle/RollAdj.h>
 #include <autocycle/Point.h>
 #include <std_msgs/Float64.h>
@@ -18,16 +18,16 @@ int main(int argc, char **argv){
   ros::NodeHandle nh;
 
   ros::service::waitForService("fix_roll");
-  ros::service::waitForService("get_roll");
+  ros::service::waitForService("get_data");
 
-  ros::ServiceClient get_roll_cli = nh.serviceClient<autocycle::Roll>("get_roll");
+  ros::ServiceClient get_data_cli = nh.serviceClient<autocycle::GetData>("get_data");
   ros::ServiceClient fix_roll_cli = nh.serviceClient<autocycle::RollAdj>("fix_roll");
 
   autocycle::RollAdj::Request fix_roll_req;
   autocycle::RollAdj::Response fix_roll_resp;
 
-  autocycle::Roll::Request get_roll_req;
-  autocycle::Roll::Response get_roll_resp;
+  autocycle::GetData::Request get_data_req;
+  autocycle::GetData::Response get_data_resp;
 
   srand(time(NULL));
 
@@ -47,8 +47,9 @@ int main(int argc, char **argv){
     p.z = rand() % 200 - 100;
     vec.push_back(p);
     fix_roll_req.in = vec;
-    get_roll_cli.call(get_roll_req, get_roll_resp);
-    roll = get_roll_resp.roll;
+    get_data_req.data_type = "roll";
+    get_data_cli.call(get_data_req, get_data_resp);
+    roll = get_data_resp.data;
     fix_roll_req.roll = roll;
     fix_roll_cli.call(fix_roll_req, fix_roll_resp);
     res_x = round(fix_roll_resp.out[0].x * 1000.0) / 1000.0;
