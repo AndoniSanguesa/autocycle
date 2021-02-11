@@ -31,7 +31,7 @@ target_link_libraries(parse_lvx ${catkin_LIBRARIES})
 target_link_libraries(fix_roll ${catkin_LIBRARIES})
 target_link_libraries(get_data ${catkin_LIBRARIES})
 target_link_libraries(read_serial ${catkin_LIBRARIES})
-catkin_install_python(PROGRAMS bin/bezier_visualization
+catkin_install_python(PROGRAMS bin/bezier_visualization bin/get_deltas
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 # TESTING FILES
