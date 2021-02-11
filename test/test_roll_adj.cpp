@@ -63,4 +63,5 @@ int main(int argc, char **argv){
     }
   }
   ROS_INFO_STREAM("ALL TESTS FOR ROLL ADJUSTMENT PASSED");
+  ros::shutdown();
 }

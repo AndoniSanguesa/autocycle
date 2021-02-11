@@ -37,5 +37,7 @@ catkin_install_python(PROGRAMS bin/bezier_visualization
 # TESTING FILES
 add_executable(test_roll_adj test/test_roll_adj.cpp)
 add_executable(test_roll_publisher test/test_roll_publisher.cpp)
+add_executable(test_gen_param test/test_gen_param.cpp)
 target_link_libraries(test_roll_adj ${catkin_LIBRARIES})
 target_link_libraries(test_roll_publisher ${catkin_LIBRARIES})
+target_link_libraries(test_gen_param ${catkin_LIBRARIES})
