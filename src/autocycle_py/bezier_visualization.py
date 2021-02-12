@@ -9,6 +9,7 @@ from io import StringIO
 import time
 import rospy
 from autocycle.srv import ObjectList, ObjectListResponse
+from autocycle.msg import Curve
 
 class Obstacle:
     def __init__(self, dist_to_edge, edge_to_path, edge_len):
@@ -322,6 +323,9 @@ def is_obstacle_block():
 
 def create_environment(req):
     global resolution
+
+    pub = rospy.Publisher('cycle/curve', Curve, queue_size=1)
+
     for object in req.obj_lst:
         dist_to_edge.append(object.dist_to_edge)
         edge_to_path.append(object.edge_to_path)
@@ -350,16 +354,16 @@ def create_environment(req):
         if count > lim:
             break
         block_list = is_obstacle_block()
-    #plot()
     rospy.loginfo("Path generated.")
-    return ObjectListResponse(str(curveas.get_curve().to_symbolic()))
+    pub.publish(str(curveas.get_curve().to_symbolic()), curveas.get_curve().length)
+    return
 
 
 def start():
     # Initialize the node and register it with the master.
     rospy.init_node("bezier")
 
-    param_service = rospy.Service("plan_path", ObjectList, create_environment)
+    rospy.Service("plan_path", ObjectList, create_environment)
 
     rospy.spin()
 

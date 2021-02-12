@@ -120,8 +120,6 @@ int main(int argc, char **argv) {
 
     // Report parameterized equation for the calculated path
     path_client.call(path_req, path_resp);
-    ROS_WARN_STREAM("THIS INFORMATION SHOULD ONLY BE REPORTED HERE UNTIL I N T E G R A T I O N");
-    ROS_INFO_STREAM("Param for path: " << path_resp.param);
 
     // Clears f_done.lvx file
     f_done.open(path_to_lvx, std::ios::trunc);

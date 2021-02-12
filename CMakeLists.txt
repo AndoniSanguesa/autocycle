@@ -5,12 +5,14 @@ catkin_python_setup()
 add_message_files(FILES
   Object.msg
   Point.msg
+  Curve.msg
 )
 add_service_files(FILES
   LvxData.srv
   ObjectList.srv
   RollAdj.srv
   GetData.srv
+  Action.srv
 )
 generate_messages(DEPENDENCIES std_msgs)
 catkin_package(

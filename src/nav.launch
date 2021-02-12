@@ -29,6 +29,13 @@
   />
   <node
     pkg="autocycle"
+    type="get_deltas"
+    name="get_deltas"
+    output="screen"
+    respawn="true"
+  />
+  <node
+    pkg="autocycle"
     type="get_data"
     name="get_data"
     output="screen"

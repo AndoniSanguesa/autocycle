@@ -1,9 +1,12 @@
 import rospy
 import re
-from std_msgs.msg import String
+from autocycle.msg import Curve
 from autocycle.srv import GetData, Action
+import time
 
 param = ""
+length = -1
+dist_travelled = 0
 
 def subs(eq, x):
     return eval(eq.replace("s", str(x)))
@@ -18,8 +21,23 @@ def derv(eq, x, acc=0.000001):
 
 
 def update_param(msg):
-    global param
-    param = msg.data
+    global param, length, dist_travelled
+
+    param = msg.param
+    length = msg.length
+    dist_travelled = 0
+
+def update_distance(time):
+    global dist_travelled
+
+    ## Creates the Service Client that will get speed data
+    data_getter = rospy.ServiceProxy("get_data", GetData)
+
+    ## Updates the dist_travelled
+    dist_travelled += data_getter("vel")*time
+
+    ## Closes the getter
+    data_getter.close()
 
 
 def get_deltas():
@@ -48,13 +66,17 @@ def get_deltas():
     return curve_deltas
 
 
+def find_x_ind(li, x):
+    return li.index(min(li, key=lambda t:abs(t-x)))
+
+
 def start():
-    global param
+    global param, dist_travelled
     # Registers Node with the master
     rospy.init_node('get_deltas')
 
     # Creates subscriber option that waits for a new
-    rospy.Subscriber("cycle/param", String, get_deltas)
+    rospy.Subscriber("cycle/curve", Curve, update_param)
 
     # Waits for the data getter to be done setting up
     rospy.wait_for_service('get_data')
@@ -63,20 +85,36 @@ def start():
     rospy.wait_for_service("send_action")
 
     # Creates the Service client that will send actions to the bike!
-    action_sender = rospy.ServiceProxy("send_action", )
+    action_sender = rospy.ServiceProxy("send_action", Action)
 
     # Waits for a curve to come in
     while param == "":
         rospy.spin_once()
+
+    # Initial Time
+    time_i = time.time()
 
     # Grabs the first deltas
     deltas = get_deltas()
 
     # Continues sending commands to bike and updating deltas
     while rospy.ok():
-        # TODO: ADJUST FOR DISTANCE TRAVELLED
-        action_sender(deltas[1][0], 4.5, "")
-        
+        # Time to adjust for
+        time_f = time.time()
+
+        # Adjusts for distance travelled
+        update_distance(time_f-time_i)
+
+        # Updates initial time
+        time_i = time_f
+
+        # Gets closest x to the distance travelled
+        x_ind = find_x_ind(deltas, dist_travelled)
+
+        # Sends commands to the `action` node
+        action_sender(deltas[x_ind][0], 4.5, "")
+
+        # If there is a new curve, we rerun `get_deltas()`
         p_temp = param
         rospy.spin_once()
         if param != p_temp:
