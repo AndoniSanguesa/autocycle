@@ -112,7 +112,7 @@ def start():
         x_ind = find_x_ind(deltas, dist_travelled)
 
         # Sends commands to the `action` node
-        action_sender(deltas[x_ind][0], 4.5, "")
+        action_sender([True, True, False], deltas[x_ind][0], 4.5, "")
 
         # If there is a new curve, we rerun `get_deltas()`
         p_temp = param
