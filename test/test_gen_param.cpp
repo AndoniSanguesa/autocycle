@@ -7,6 +7,12 @@
 
 using namespace std;
 
+param = "";
+
+void GetParam(msg){
+    param = msg.param;
+}
+
 int main(int argc, char **argv){
   ros::init(argc, argv, "test_gen_param");
   ros::NodeHandle nh;
@@ -15,6 +21,8 @@ int main(int argc, char **argv){
   ros::ServiceClient bez_cli = nh.serviceClient<autocycle::ObjectList>("plan_path");
   autocycle::ObjectList::Request req;
   autocycle::ObjectList::Response resp;
+
+  ros::Subscriber param_sub = nh.subscribe("cycle/param", 1, &GetParam)
 
   srand(time(NULL));
 
@@ -27,7 +35,10 @@ int main(int argc, char **argv){
     req.obj_lst.push_back(o);
     ROS_INFO_STREAM("OBJECT " << i << "--> EDGE TO PATH: " << o.edge_to_path << ", DIST_TO_EDGE: " << o.dist_to_edge << ", EDGE_LEN: " << o.edge_len);
   }
+
   bez_cli.call(req, resp);
-  ROS_INFO_STREAM("PARAM CURVE: " << resp.param);
+  spinOnce();
+
+  ROS_INFO_STREAM("PARAM CURVE: " << param);
   ros::shutdown();
 }
