@@ -125,6 +125,7 @@ class CurveAssistant:
         self.control_points = []
         self.obstacles = []
         self.coordinates = [[], []]
+        self.heading = 0
         self.compute_control_points()
         self.extrema = [0, 0]
 
@@ -177,7 +178,7 @@ class CurveAssistant:
                 self.control_points.extend(coord)
 
         # These lines should always be computed last
-        self.control_points.append([self.end_dist, 0])
+        self.control_points.append([np.cos(self.heading)*self.end_dist, np.sin(self.heading)*self.end_dist])
 
     # Returns the number of control points
     def get_num_control_points(self):
@@ -221,6 +222,9 @@ dist_to_edge = []
 edge_to_path = []
 # Lengths of the objects
 edge_len = []
+
+# Desired heading
+des_heading = 0
 
 # The final x and y values of the Bezier plot
 x_vals = []
@@ -292,7 +296,7 @@ def calculate_curve():
     diff = [0, 0]
     ys = [0, 0]
 
-    while curpoint[0][0] < end_dist:
+    while index < 1:
         curpoint = curve.evaluate(index * 1.00)
         x = curpoint[0][0]
         y = curpoint[1][0]
@@ -322,7 +326,13 @@ def is_obstacle_block():
 
 
 def create_environment(req):
-    global resolution
+    global resolution, des_heading
+
+    ## Creates the Service Client that will get speed data
+    data_getter = rospy.ServiceProxy("get_data", GetData)
+    
+    heading = des_heading - data_getter("heading").data
+    curveas.heading = heading*np.pi
 
     pub = rospy.Publisher('cycle/curve', Curve, queue_size=1)
 
@@ -356,14 +366,23 @@ def create_environment(req):
         block_list = is_obstacle_block()
     rospy.loginfo("Path generated.")
     pub.publish(str(curveas.get_curve().to_symbolic()), curveas.get_curve().length)
+    data_getter.close()
+    pub.close()
     return
 
 
 def start():
+    global des_heading
     # Initialize the node and register it with the master.
     rospy.init_node("bezier")
 
     rospy.Service("plan_path", ObjectList, create_environment)
+
+    ## Creates the Service Client that will get speed data
+    data_getter = rospy.ServiceProxy("get_data", GetData)
+    
+    ## Sets desired heading (for now the intial heading)
+    des_heading = data_getter("heading").data
 
     rospy.spin()
 
