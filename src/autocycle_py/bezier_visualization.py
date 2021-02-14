@@ -327,12 +327,15 @@ def is_obstacle_block():
 
 def create_environment(req):
     global resolution, des_heading
+    
+    ## Resets obstacle list for the current curve object
+    curveas.obstacles = []
 
     ## Creates the Service Client that will get speed data
     data_getter = rospy.ServiceProxy("get_data", GetData)
     
     heading = des_heading - data_getter("heading").data
-    curveas.heading = heading*np.pi
+    curveas.heading = heading
 
     pub = rospy.Publisher('cycle/curve', Curve, queue_size=1)
 
