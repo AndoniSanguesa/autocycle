@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
     ROS_INFO_STREAM("LVX file generated.");
     ROS_INFO_STREAM("Sending request to analyze LVX File.");
 
-    // Publishes the determined lvx file to LiDAR/path
+    // Parses the lvx file
     lvx_req.path = path_to_lvx;
     result = lvx_client.call(lvx_req, lvx_resp);
     ROS_INFO_STREAM("NUMBER OF POINTS: " << lvx_resp.data.size());

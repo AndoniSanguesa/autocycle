@@ -28,13 +28,13 @@ def update_param(msg):
     dist_travelled = 0
 
 def update_distance(time):
-    global dist_travelled
+    global dist_travelled, length
 
     ## Creates the Service Client that will get speed data
     data_getter = rospy.ServiceProxy("get_data", GetData)
 
     ## Updates the dist_travelled
-    dist_travelled += data_getter("vel").data*time
+    dist_travelled += (data_getter("vel").data*time)/length
 
     ## Closes the getter
     data_getter.close()
@@ -104,6 +104,8 @@ def start():
 
         # Adjusts for distance travelled
         update_distance(time_f-time_i)
+        
+        
 
         # Updates initial time
         time_i = time_f
