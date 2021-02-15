@@ -340,7 +340,7 @@ def create_environment(req):
     pub = rospy.Publisher('cycle/curve', Curve, queue_size=1)
 
     for object in req.obj_lst:
-        dist_to_edge.append(object.dist_to_edge)
+        dist_to_edge.append(object.dist_to_edge - req.distance)
         edge_to_path.append(object.edge_to_path)
         edge_len.append(object.edge_len)
     rospy.loginfo("Object data accepted. Generating Path")

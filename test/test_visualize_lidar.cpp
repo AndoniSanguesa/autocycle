@@ -28,7 +28,7 @@ int main(int argc, char** argv){
     ros::NodeHandle nh;
 
     // Waits for the data getter service to be active
-    ros::service::waitForService("get_data");
+    ros::service::waitForService("parse_lvx");
 
     // Creates the service that will fetch the latest data
     ros::ServiceClient lvx_client = nh.serviceClient<autocycle::LvxData>("parse_lvx");

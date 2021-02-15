@@ -6,10 +6,12 @@
 #include <autocycle/Object.h>
 #include <autocycle/GetData.h>
 #include <autocycle/RollAdj.h>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <std_msgs/String.h>
 
+using namespace std::chronol;
 
 std::string path_to_lvx = "f_done.lvx";
 
@@ -66,6 +68,13 @@ int main(int argc, char **argv) {
   // Initializes the variable that will hold the lvx file
   std::ofstream f_done;
 
+  // Initializes variables for time
+  high_resolution_clock::time_point start;
+  high_resolution_clock::time_point end;
+  double duration;
+  float velocity;
+  float distance;
+
   // Navigation loop
   while(ros::ok()){
     ROS_INFO_STREAM("Sending request for LVX file.");
@@ -83,6 +92,7 @@ int main(int argc, char **argv) {
       f_done.open("f_done.lvx", std::ios::app);
     }
     f_done.close();
+    start = high_resolution_clock::now();
 
     // Collects the latest roll data
     get_data_req.data_type = "roll";
@@ -117,6 +127,18 @@ int main(int argc, char **argv) {
     o1.dist_to_edge = 3;
     o1.edge_len = 3;
     path_req.obj_lst.push_back(o1);
+
+    // Gets computation time
+    end = high_resolution_clock::now();
+    std::chrono::duration<double> duration = end-start;
+
+    // Calculates distance travelled since computation time
+    get_data_req.data_type = "vel";
+    result = get_data_client.call(get_data_req, get_data_resp);
+    distance = get_data_resp.data*duration;
+
+    // Sends distance to path planning to adjust distances
+    path_req.distance = distance;
 
     // Report parameterized equation for the calculated path
     path_client.call(path_req, path_resp);
