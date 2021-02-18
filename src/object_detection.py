@@ -10,7 +10,6 @@ cell_row = np.ceil(width/cell_dim)
 # Tunable parameters to determine if something is an object.
 col_diff = 20           # Expected max difference between two adjacent cells in a column.
 counter_reps = 3        # Number of reps required to dictate it is an object.
-prev_diff = 1           # Amount of error needed to exceed for previous to be flags
 same_obj_diff = 20      # maximum diff between horizontal cells to be considered the same object
 
 
@@ -21,8 +20,8 @@ def object_detection(points):
     for tup in points:
         # creates list with x, y, and z coordinate
         x, y, z = tup
-        x = x//cell_col
-        y = y//cell_row
+        x = x//cell_col     # Add offset such that the points are translated to cords such as lidar mounting offset accounted for
+        y = y//cell_row     # Add offset such that the points are translated to cords such as lidar mounting offset accounted for
 
         # Dictating the z value for the cell. Currently only finds the minimum value of the cell.
         if x >= 0 and x < cell_col and y >= 0 and y < cell_row:
@@ -36,13 +35,13 @@ def object_detection(points):
         counter = 0     # Counts the instances in which adjacent cells do not exceed diff.
         min_obj = 0     # Minimum dist to detected object
         for row in range(cell_row):
-            min_obj = cells[row, col] if counter = 0 else min(min_obj, cells[row, col])
-            if abs(cells[row, col] - prev) < col_diff:
+            min_obj = cells[row, col] if counter == 0 else min(min_obj, cells[row, col])
+            if abs(cells[row, col] - prev) > col_diff:
                 counter = 0
                 min_obj = 0
             else:
                 counter += 1
-            if prev > cells[row, col] + prev_diff:
+            if prev > cells[row, col] + col_diff:
                 closest = min(cells[row, col], closest)
             if counter > counter_reps:
                 closest = min(min_obj, closest)
@@ -53,8 +52,8 @@ def object_detection(points):
     right_bound = 0     # right most cord of object
     prev = 0            # previous cell's z value
     objects = []        # array of detected object tuples (left bound, right bound, distance)
-
-    for col in range(cell_w):
+    
+    for col in range(cell_col):
         if close_arr[0, col] != 0:
             if prev == 0:
                 left_bound = col
