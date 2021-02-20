@@ -30,7 +30,7 @@ int main(int argc, char **argv){
 
   // Creates serial object to read from
   // TODO: Figure out what to do with the timeout
-  serial::Serial my_serial("/dev/ttyUSB0", (long) 0, serial::Timeout::simpleTimeout(0));
+  serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
   while(ros::ok()){
     temp.append(my_serial.read());
