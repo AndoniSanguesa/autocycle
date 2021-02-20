@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
     o1.x1 = 4;
     o1.x2 = 4;
     o1.y1 = 1;
-    o1.y2 = -1
+    o1.y2 = -1;
     path_req.obj_lst.push_back(o1);
 
     // Gets computation time
