@@ -40,11 +40,12 @@ int main(int argc, char **argv){
   // Generates the objects, adds them to the request and prints out their properties
   for(int i = 0; i < num_obj; i++){
     autocycle::Object o;
-    o.edge_to_path = (rand() % 3) + ((double) rand() / (RAND_MAX));
-    o.dist_to_edge = (rand() % 7 + 2) + ((double) rand() / (RAND_MAX));
-    o.edge_len = rand() % int(ceil(o.edge_to_path)) + 1;
+    o.x1 = (rand() % 10) + ((double) rand() / (RAND_MAX));
+    o.x2 = (rand() % 10) + ((double) rand() / (RAND_MAX));
+    o.y1 = (rand() % 10) + ((double) rand() / (RAND_MAX));
+    o.y2 = (rand() % 10) + ((double) rand() / (RAND_MAX));
     req.obj_lst.push_back(o);
-    ROS_INFO_STREAM("OBJECT " << i << "--> EDGE TO PATH: " << o.edge_to_path << ", DIST_TO_EDGE: " << o.dist_to_edge << ", EDGE_LEN: " << o.edge_len);
+    ROS_INFO_STREAM("OBJECT " << i << "--> (" << o.x1 << ", " << o.y1 << "), (" << o.x2 << ", " << o.y2 << ")";
   }
 
   // Calls on path planning to do its work and listens for its response

@@ -122,9 +122,10 @@ int main(int argc, char **argv) {
     // TEMPORARY: Sends dummy object data to bezier/objects to test for now
     autocycle::Object o1 ;
     autocycle::ObjectList ol1;
-    o1.edge_to_path = 2;
-    o1.dist_to_edge = 3;
-    o1.edge_len = 3;
+    o1.x1 = 4;
+    o1.x2 = 4;
+    o1.y1 = 1;
+    o1.y2 = -1
     path_req.obj_lst.push_back(o1);
 
     // Gets computation time

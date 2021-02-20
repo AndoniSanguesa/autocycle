@@ -25,11 +25,11 @@ void readVel(std_msgs::Float64 msg){
     ROS_INFO_STREAM("Vel: " << msg.data);
 }
 
-void readHeading(std_msgs::Float64 msg){
+void readHead(std_msgs::Float64 msg){
     ROS_INFO_STREAM("Heading: " << msg.data);
 }
 
-void readDheading(std_msgs::Float64 msg){
+void readDhead(std_msgs::Float64 msg){
     ROS_INFO_STREAM("Dheading: " << msg.data);
 }
 
@@ -50,7 +50,7 @@ int main(int argc, char **argv){
     ros::Subscriber dsteer_sub = nh.subscribe("sensors/dsteer", 1, &readDsteer);
     ros::Subscriber vel_sub = nh.subscribe("sensors/vel", 1, &readVel);
     ros::Subscriber head_sub = nh.subscribe("sensors/heading", 1, &readHead);
-    ros::Subscriber dhead_sub = nh.subscribe("sensors/dheading", 1, &readDheading);
+    ros::Subscriber dhead_sub = nh.subscribe("sensors/dheading", 1, &readDhead);
     ros::Subscriber met_sub = nh.subscribe("sensors/met", 1, &readMet);
 
     ros::spin();
