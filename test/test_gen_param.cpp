@@ -1,15 +1,16 @@
 #include <ros/ros.h>
 #include <autocycle/ObjectList.h>
 #include <autocycle/Object.h>
+#include <autocycle/Curve.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
 
 using namespace std;
 
-param = "";
+string param = "";
 
-void GetParam(msg){
+void GetParam(autocycle::Curve msg){
     param = msg.param;
 }
 
@@ -28,7 +29,7 @@ int main(int argc, char **argv){
   autocycle::ObjectList::Response resp;
 
   // Subscriber that will be listening for a new curve
-  ros::Subscriber param_sub = nh.subscribe("cycle/param", 1, &GetParam)
+  ros::Subscriber param_sub = nh.subscribe("cycle/param", 1, &GetParam);
 
   // Sets the rand seed
   srand(time(NULL));
@@ -48,7 +49,7 @@ int main(int argc, char **argv){
 
   // Calls on path planning to do its work and listens for its response
   bez_cli.call(req, resp);
-  spinOnce();
+  ros::spinOnce();
 
   // Prints the discovered curve
   ROS_INFO_STREAM("PARAM CURVE: " << param);

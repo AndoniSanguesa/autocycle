@@ -11,7 +11,7 @@
 #include <iostream>
 #include <std_msgs/String.h>
 
-using namespace std::chronol;
+using namespace std::chrono;
 
 std::string path_to_lvx = "f_done.lvx";
 
@@ -71,9 +71,8 @@ int main(int argc, char **argv) {
   // Initializes variables for time
   high_resolution_clock::time_point start;
   high_resolution_clock::time_point end;
-  double duration;
+  double duration, distance;
   float velocity;
-  float distance;
 
   // Navigation loop
   while(ros::ok()){
@@ -135,7 +134,7 @@ int main(int argc, char **argv) {
     // Calculates distance travelled since computation time
     get_data_req.data_type = "vel";
     result = get_data_client.call(get_data_req, get_data_resp);
-    distance = get_data_resp.data*duration;
+    distance = get_data_resp.data*duration.count();
 
     // Sends distance to path planning to adjust distances
     path_req.distance = distance;
