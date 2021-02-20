@@ -39,7 +39,7 @@ void readMet(std_msgs::Float64 msg){
 
 int main(int argc, char **argv){
     // Registers the node with the master
-    ros::init(argc, argv, "test_serial");
+    ros::init(argc, argv, "test_serial_read");
     ros::NodeHandle nh;
 
     // Creates subscribers for all data types

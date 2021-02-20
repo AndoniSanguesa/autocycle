@@ -5,7 +5,7 @@
 using namespace std;
 
 // Creates serial object to write to
-serial::Serial my_serial("/dev/ttyUSB0", (long) 0, serial::Timeout::simpleTimeout(0));
+serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
 bool SendAction(
         autocycle::Action::Request &req,

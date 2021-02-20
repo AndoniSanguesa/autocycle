@@ -8,8 +8,8 @@
   />
   <node
     pkg="autocycle"
-    type="test_serial"
-    name="test_serial"
+    type="test_serial_read"
+    name="test_serial_read"
     output="screen"
     required="true"
   />
