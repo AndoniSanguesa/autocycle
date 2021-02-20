@@ -1,0 +1,9 @@
+<launch>
+  <node
+    pkg="autocycle"
+    type="test_serial_write"
+    name="test_serial_write"
+    output="screen"
+    required="true"
+  />
+</launch>
