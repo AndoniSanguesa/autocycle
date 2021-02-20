@@ -406,8 +406,8 @@ def create_environment(req):
     pub = rospy.Publisher('cycle/curve', Curve, queue_size=1)
 
     # Creates objects
-    for object in req.obj_lst:
-        curveas.create_obstacle(object.points)
+    for o in req.obj_lst:
+        curveas.create_obstacle(((o.x1, o.x2), (o.y1, o.y2)))
     rospy.loginfo("Object data accepted. Generating Path")
     calculate_curve()
 
