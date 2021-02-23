@@ -122,6 +122,9 @@ int main(int argc, char** argv){
             bins[x_bin_ind][y_bin_ind] = (bins[x_bin_ind][y_bin_ind] * count + points[i].y) / (count+1);
         }
 
+        system("CLS");
+        cout << "bruh"
+        system("CLS")
         // Generates image
         system ("CLS");
         for(int i = 0; i < height; i++){
@@ -130,6 +133,8 @@ int main(int argc, char** argv){
             }
             cout << endl;
         }
+        f_done.open("f_done.lvx", std::ios::trunc);
+        f_done.close();
     }
     return 0;
 }
