@@ -6,10 +6,10 @@ add_message_files(FILES
   Object.msg
   Point.msg
   Curve.msg
+  ObjectList.msg
 )
 add_service_files(FILES
   LvxData.srv
-  ObjectList.srv
   RollAdj.srv
   GetData.srv
   Action.srv

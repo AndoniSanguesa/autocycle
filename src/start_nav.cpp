@@ -120,6 +120,7 @@ int main(int argc, char **argv) {
     ROS_INFO_STREAM("Sending LiDAR data to Object Detection")
     detect_req.data = adj_roll_resp.out
     result = detection_client.call(detect_req, detect_resp)
+
     // Clears f_done.lvx file
     f_done.open(path_to_lvx, std::ios::trunc);
     f_done.close();
