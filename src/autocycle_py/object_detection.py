@@ -1,4 +1,7 @@
 import numpy as np
+import rospy
+from autocycle.msg import Object
+from autocycle.srv import DetectObject
 
 height = 10000              # vertical dimension in millimeters
 width = 20000               # horizontal dimension in millimeters
@@ -14,12 +17,12 @@ same_obj_diff = 20      # maximum diff between horizontal cells to be considered
 
 
 def object_detection(points):
-
+    pub = rospy.Publisher('cycle/objects', Object, queue_size=1)
     cells = np.zeros((cell_row, cell_col))
 
-    for tup in points:
+    for p in points.data:
         # creates list with x, y, and z coordinate
-        x, y, z = tup
+        x, y, z = p.x, p.y, p.z
         x = x//cell_col + width//2    # Add offset such that the points are translated to cords such as lidar mounting offset accounted for
         y = y//cell_row     # Add offset such that the points are translated to cords such as lidar mounting offset accounted for
 
@@ -51,7 +54,6 @@ def object_detection(points):
     left_bound = 0      # left most cord of object
     right_bound = 0     # right most cord of object
     prev = 0            # previous cell's z value
-    objects = []        # array of detected object tuples (left bound, right bound, distance)
 
     for col in range(cell_col):
         if close_arr[0, col] != 0:
@@ -63,9 +65,19 @@ def object_detection(points):
                 right_bound += 1
                 prev = close_arr[0, col]
             else:
-                objects.add((left_bound*cell_dim - width/2, close_arr[0, left_bound], right_bound * cell_dim - width/2, close_arr[0, right_bound]))
+                pub.publish(left_bound*cell_dim - width/2, right_bound * cell_dim - width/2, close_arr[0, left_bound], close_arr[0, right_bound])
                 prev = 0
         elif prev != 0:
-            objects.add((left_bound*cell_dim - width/2, close_arr[0, left_bound], right_bound * cell_dim - width/2, close_arr[0, right_bound]))
+            pub.publish(left_bound*cell_dim - width/2, right_bound * cell_dim - width/2, close_arr[0, left_bound], close_arr[0, right_bound])
             prev = 0
-    return objects
+    return True
+
+def start():
+    # Registers node with the master
+    rospy.init_node("object_detection")
+    
+    # Creates Service to be called
+    rospy.Service("object_detection", DetectObject, object_detection)
+    
+    # Waits to be called
+    rospy.spin()
