@@ -20,7 +20,7 @@ def object_detection(points):
     for tup in points:
         # creates list with x, y, and z coordinate
         x, y, z = tup
-        x = x//cell_col     # Add offset such that the points are translated to cords such as lidar mounting offset accounted for
+        x = x//cell_col + width//2    # Add offset such that the points are translated to cords such as lidar mounting offset accounted for
         y = y//cell_row     # Add offset such that the points are translated to cords such as lidar mounting offset accounted for
 
         # Dictating the z value for the cell. Currently only finds the minimum value of the cell.
