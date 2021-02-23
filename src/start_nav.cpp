@@ -6,6 +6,7 @@
 #include <autocycle/Object.h>
 #include <autocycle/GetData.h>
 #include <autocycle/RollAdj.h>
+#include <autocycle/DetectObjects.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -30,11 +31,12 @@ int main(int argc, char **argv) {
   // Waits for the data getter service to be active
   ros::service::waitForService("get_data");
 
+  // Waits for the object detector service to be active
+  ros::service::waitForService("object_detection")
+
   // Wait for the fix_roll service to be active
   ros::service::waitForService("fix_roll");
 
-  // Wait for the plan_path service to be active
-  ros::service::waitForService("plan_path");
 
   // TEMPRORARY UNTIL LVX ANALYSIS ALGORITHM IS COMPLETE.
   // ONLY TO TEST THAT FRAMES ARE BEING RECORDED.
@@ -43,11 +45,10 @@ int main(int argc, char **argv) {
   // Creates the service that will fetch the latest data
   ros::ServiceClient get_data_client = nh.serviceClient<autocycle::GetData>("get_data");
 
+  ros::ServiceClient detection_client = nh.serviceClient<autocycle::DetectObjects>("object_detection")
+
   // Creates service client that will call on the fix_roll service to fix the roll...
   ros::ServiceClient roll_client = nh.serviceClient<autocycle::RollAdj>("fix_roll");
-
-  //TEMPORARY UNTIL I N T E G R A T I O N
-  ros::ServiceClient path_client = nh.serviceClient<autocycle::ObjectList>("plan_path");
 
   // The response and request objects that will contain data regarding the lvx file
   autocycle::LvxData::Request lvx_req;
@@ -57,13 +58,13 @@ int main(int argc, char **argv) {
   autocycle::GetData::Request get_data_req;
   autocycle::GetData::Response get_data_resp;
 
+  // The response and request objects that will handle object detection
+  autocycle::DetectObjects::Request detect_req;
+  autocycle::DetectObjects::Response detect_resp;
+
   // The response and requests objects that will contain the non roll-adjusted points and the adjusted ones
   autocycle::RollAdj::Request adj_roll_req;
   autocycle::RollAdj::Response adj_roll_resp;
-
-  // The response and request objects that will contain data regarding the path
-  autocycle::ObjectList::Request path_req;
-  autocycle::ObjectList::Response path_resp;
 
   // Initializes the variable that will hold the lvx file
   std::ofstream f_done;
@@ -116,33 +117,9 @@ int main(int argc, char **argv) {
 
     ROS_INFO_STREAM("Points have been adjusted for roll.");
 
-    ROS_INFO_STREAM("Sending Object data to path planning");
-    ROS_WARN_STREAM("THIS IS TEMPORARY UNTIL WE CAN GET OBJECT DATA");
-
-    // TEMPORARY: Sends dummy object data to bezier/objects to test for now
-    autocycle::Object o1 ;
-    autocycle::ObjectList ol1;
-    o1.x1 = 4;
-    o1.x2 = 4;
-    o1.y1 = 1;
-    o1.y2 = -1;
-    path_req.obj_lst.push_back(o1);
-
-    // Gets computation time
-    end = high_resolution_clock::now();
-    std::chrono::duration<double> duration = end-start;
-
-    // Calculates distance travelled since computation time
-    get_data_req.data_type = "vel";
-    result = get_data_client.call(get_data_req, get_data_resp);
-    distance = get_data_resp.data*duration.count();
-
-    // Sends distance to path planning to adjust distances
-    path_req.distance = distance;
-
-    // Report parameterized equation for the calculated path
-    path_client.call(path_req, path_resp);
-
+    ROS_INFO_STREAM("Sending LiDAR data to Object Detection")
+    detect_req.data = adj_roll_resp.out
+    result = detection_client.call(detect_req, detect_resp)
     // Clears f_done.lvx file
     f_done.open(path_to_lvx, std::ios::trunc);
     f_done.close();

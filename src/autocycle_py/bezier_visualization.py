@@ -442,11 +442,6 @@ def start():
     # Initialize the node and register it with the master.
     rospy.init_node("bezier")
 
-    rospy.Service("plan_path", ObjectList, create_environment)
-
-    ## Creates the Service Client that will get speed data
-    data_getter = rospy.ServiceProxy("get_data", GetData)
-
     ## Sets desired heading (for now the intial heading)
     des_heading = data_getter("heading").data
 
