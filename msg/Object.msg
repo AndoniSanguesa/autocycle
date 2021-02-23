@@ -1,3 +1,4 @@
-float64 dist_to_edge
-float64 edge_to_path
-float64 edge_len
+float64 x1
+float64 x2
+float64 y1
+float64 y2

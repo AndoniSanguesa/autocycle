@@ -3,118 +3,186 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 from matplotlib.font_manager import FontProperties
-from pip._vendor.distlib.compat import raw_input
-import sys
-from io import StringIO
 import time
 import rospy
-from autocycle.srv import ObjectList, ObjectListResponse
+from autocycle.srv import ObjectList, ObjectListResponse, GetData
 from autocycle.msg import Curve
 
+
+def rotate_point(point, theta):
+    return point[0] * np.cos(theta) - point[1] * np.sin(theta), point[0] * np.sin(theta) + point[1] * np.cos(theta)
+
+
+def trans_point(point, trans):
+    return point[0] + trans[0], point[1] + trans[1]
+
+
 class Obstacle:
-    def __init__(self, dist_to_edge, edge_to_path, edge_len):
-        self.dist_to_edge = dist_to_edge
-        self.edge_to_path = edge_to_path
-        self.edge_len = edge_len
-        self.edge_points = []
+    def __init__(self, points):
+        self.points = points
         self.control_points = []
+        self.bound_box = []
+        self.bound_max_min = []
         self.shown = False
-        if edge_to_path <= edge_len/2:
-            self.side = 1
-        else:
-            self.side = -1
-            self.edge_to_path = edge_len-edge_to_path
-        self.gamma = math.degrees(math.atan(self.edge_to_path / self.dist_to_edge)) + 5
+        self.side = 0
+        self.dir = 1
+        self.err = 0.2
 
-
-        self.calculate_obst_points()
+        self.get_bounding_box()
+        self.p2p3 = (self.bound_box[2][0] - self.bound_box[1][0], self.bound_box[2][1] - self.bound_box[1][1])
+        self.p2p1 = (self.bound_box[0][0] - self.bound_box[1][0], self.bound_box[0][1] - self.bound_box[1][1])
+        self.next_side(0, 0)
         self.calculate_control_point()
 
-    def adjust_gamma(self):
-        self.gamma += 5
-        self.calculate_control_point()
+    # Creates bounding box that will be used for intersection
+    def get_bounding_box(self):
+        offset = 0.2
 
-    # Calculates the end points of the obstacle
-    def calculate_obst_points(self):
-        self.edge_points.clear()
-        x = self.dist_to_edge
-        y1 = self.side*self.edge_to_path
-        y2 = self.side*(self.edge_to_path-self.edge_len)
-        self.edge_points.append([x, x])
-
-        # This is structured this way so that the top point is always the first in the list
-        if self.side == 1:
-            self.edge_points.append([y1, y2])
+        # o1 is the point where o1.x < o2.x
+        if self.points[0][1] >= self.points[0][0]:
+            o1 = (self.points[0][0], self.points[1][0])
+            o2 = (self.points[0][1], self.points[1][1])
         else:
-            self.edge_points.append([y2, y1])
+            o1 = (self.points[0][1], self.points[1][1])
+            o2 = (self.points[0][0], self.points[1][0])
+
+        # Translates points so that 'o2' is centered on 0,0
+        mov = o2
+        o1 = (o1[0] - mov[0], o1[1] - mov[1])
+        # Rotates o1 about o2/origin so that o1 is directly above o2
+        if o1[1] == 0:
+            theta = (1 / 2) * np.pi if o1[0] > 0 else -(1 / 2) * np.pi
+        else:
+            theta = np.arctan(o1[0] / o1[1]) if o1[1] >= 0 else np.arctan(o1[0] / o1[1]) + np.pi
+
+        o1 = rotate_point(o1, theta)
+        p1 = (-offset, o1[1] + offset)
+        p2 = (offset, o1[1] + offset)
+        p3 = (offset, -offset)
+        p4 = (-offset, -offset)
+
+        # Rotates p1, p2, and p3 by negative theta (original orientation)
+        p1 = rotate_point(p1, -theta)
+        p2 = rotate_point(p2, -theta)
+        p3 = rotate_point(p3, -theta)
+        p4 = rotate_point(p4, -theta)
+
+        # Translates points back to relative positions
+        p1 = trans_point(p1, mov)
+        p2 = trans_point(p2, mov)
+        p3 = trans_point(p3, mov)
+        p4 = trans_point(p4, mov)
+
+        # Sets the bounding box points
+        self.bound_box = [p1, p2, p3, p4]
+        zipped = list(zip(*self.bound_box))
+        xs = zipped[0]
+        ys = zipped[1]
+        self.bound_max_min = [(min(xs), max(xs)), (min(ys), max(ys))]
 
     # Calculates the control points associated with this obstacle
     def calculate_control_point(self):
         self.control_points.clear()
-        angle_rad = np.deg2rad(self.gamma*self.side)
-        x = self.dist_to_edge
-        y = np.tan(angle_rad)*x
+        # o1 is the point where o1.x < o2.x
+        if self.points[0][1] >= self.points[0][0]:
+            o1 = (self.points[0][0], self.points[1][0])
+            o2 = (self.points[0][1], self.points[1][1])
+        else:
+            o1 = (self.points[0][0], self.points[1][0])
+            o2 = (self.points[0][1], self.points[1][1])
 
-        self.control_points.append([x, y])
-        self.control_points.append([x-(0.5*self.side), y-(0.5*self.side)])
-        self.control_points.append([x+(0.5*self.side), y - (0.5*self.side)])
-        # self.control_points.append([self.edge_points[0][ref_point], self.edge_points[1][ref_point]])
+        # Translates points so that 'o2' is centered on 0,0
+        mov = o2
+        o1 = (o1[0] - mov[0], o1[1] - mov[1])
+
+        # Rotates o1 about o2/origin so that o1 is directly above o2
+        if o1[1] == 0:
+            theta = (1 / 2) * np.pi if o1[0] > 0 else -(1 / 2) * np.pi
+        else:
+            theta = np.arctan(o1[0] / o1[1]) if o1[1] > 0 else np.arctan(o1[0] / o1[1]) + np.pi
+
+        o1 = rotate_point(o1, theta)
+        cp1 = (o1[0], o1[1] + self.err)
+        cp2 = (cp1[0] - 0.5, cp1[1] - 0.5)
+        cp3 = (cp1[0] + 0.5, cp1[1] - 0.5)
+
+        # Rotates control points back to original orientation
+        cp1 = rotate_point(cp1, -theta)
+        cp2 = rotate_point(cp2, -theta)
+        cp3 = rotate_point(cp3, -theta)
+
+        # Translates control points to their original location
+        cp1 = trans_point(cp1, mov)
+        cp2 = trans_point(cp2, mov)
+        cp3 = trans_point(cp3, mov)
+
+        self.control_points.extend([cp1, cp2, cp3])
+
+    def adjust_err(self):
+        self.err += 0.2
+        self.calculate_control_point()
 
     # Determines if a set of x and y coordinates at any point intersect with the obstacle
     def intersect(self, xs, ys):
-        close_index = find_closest_x(xs, self.dist_to_edge)
-        close_y = ys[close_index]
-        thisys = self.edge_points[1]
-        if thisys[0]-0.1 < close_y < thisys[1]+0.1 or thisys[1]-0.1 < close_y < thisys[0]+0.1:
-            self.shown = True
-            return True
-
+        for i in range(len(xs)):
+            # Throws out any x and y values too far away to bother checking
+            if self.bound_max_min[0][0] <= xs[i] <= self.bound_max_min[0][1] \
+                    and self.bound_max_min[1][0] <= ys[i] <= self.bound_max_min[1][1]:
+                if self.points[0][0] == self.points[0][1]:
+                    self.shown = True
+                    return True
+                # ~~Magic~~ Code
+                point = (xs[i], ys[i])
+                p2m = (point[0] - self.bound_box[1][0], point[1] - self.bound_box[1][1])
+                if 0 < np.dot(p2m, self.p2p3) < np.dot(self.p2p3, self.p2p3) and \
+                        0 < np.dot(p2m, self.p2p1) < np.dot(self.p2p1, self.p2p1):
+                    self.shown = True
+                    return True
         return False
 
     # Determines which end point of the obstacle is closest to the provided x and y value
     def next_side(self, x, y):
-        diff_s1 = (self.edge_points[0][0]-x)**2 + (self.edge_points[1][0]-y)**2
-        diff_s2 = (self.edge_points[0][1]-x)**2 + (self.edge_points[1][1]-y)**2
+        diff_s1 = (self.points[0][0] - x) ** 2 + (self.points[1][0] - y) ** 2
+        diff_s2 = (self.points[0][1] - x) ** 2 + (self.points[1][1] - y) ** 2
         if diff_s1 <= diff_s2:
-            self.side = 1
+            self.side = 0
         else:
-            self.side = -1
+            self.side = 1
+
+        if self.points[1][self.side] < self.points[1][self.side - 1]:
+            self.dir = -1
+        else:
+            self.dir = 1
+
         self.calculate_control_point()
 
     def get_obst_points(self):
-        return self.edge_points
+        return self.points
 
     def get_control_points(self):
         return self.control_points
 
-    def get_dist_to_edge(self):
-        return self.dist_to_edge
-
-    def get_edge_to_path(self):
-        return self.edge_to_path
-
-    def get_edge_len(self):
-        return self.edge_len
 
 # Looks for closest x_val in an array through binary search
 def find_closest_x(x_vals, target):
     start = 0
-    end = len(x_vals)-1
+    end = len(x_vals) - 1
     while start != end:
-        half_ind = start + math.floor((end-start) / 2)
+        half_ind = start + math.floor((end - start) / 2)
         half_val = x_vals[half_ind]
-        if end == start+1:
-            if abs(x_vals[end]-target) > abs(x_vals[start]-target):
+        if end == start + 1:
+            if abs(x_vals[end] - target) > abs(x_vals[start] - target):
                 return start
             else:
                 return end
         if half_val > target:
-            end = half_ind-1
+            end = half_ind - 1
         elif half_val < target:
-            start = half_ind+1
+            start = half_ind + 1
         else:
             return half_ind
     return start
+
 
 # The CurveAssistant stores all the information for a given curve and
 # allows the user to perform calculations using it
@@ -124,8 +192,8 @@ class CurveAssistant:
         self.end_dist = end_dist
         self.control_points = []
         self.obstacles = []
-        self.coordinates = [[], []]
         self.heading = 0
+        self.coordinates = [[], []]
         self.compute_control_points()
         self.extrema = [0, 0]
 
@@ -148,8 +216,8 @@ class CurveAssistant:
         return bezier.Curve(nodes, self.get_num_control_points() - 1)
 
     # Creates obstacle object and produces initial control points
-    def create_obstacle(self, dist_to_edge, edge_to_path, edge_len):
-        self.obstacles.append(Obstacle(dist_to_edge, edge_to_path, edge_len))
+    def create_obstacle(self, points):
+        self.obstacles.append(Obstacle(points))
         self.compute_control_points()
 
     def clear_obstacles(self):
@@ -169,7 +237,7 @@ class CurveAssistant:
         # Clears control points
         self.control_points.clear()
         self.control_points.append([0, 0])
-        self.control_points.append([1, 0])
+        # self.control_points.append([1, 0])
 
         # Adds all control points associated to each obstacle
         for obstacle in self.obstacles:
@@ -178,7 +246,7 @@ class CurveAssistant:
                 self.control_points.extend(coord)
 
         # These lines should always be computed last
-        self.control_points.append([np.cos(self.heading)*self.end_dist, np.sin(self.heading)*self.end_dist])
+        self.control_points.append([np.cos(self.heading) * self.end_dist, np.sin(self.heading) * self.end_dist])
 
     # Returns the number of control points
     def get_num_control_points(self):
@@ -198,14 +266,15 @@ class CurveAssistant:
 
     # Converts an xy point into an nt point
     def convert_nt(self, x, y):
-        scal = np.sqrt(2)/2
-        x1 = scal*(x-y)
-        y1 = scal*(x+y)
+        scal = np.sqrt(2) / 2
+        x1 = scal * (x - y)
+        y1 = scal * (x + y)
         return [x1, y1]
 
     # Returns the end distance
     def get_end_dist(self):
         return self.end_dist
+
 
 resolution = 0.04
 
@@ -216,19 +285,13 @@ fontP.set_size('small')
 labels = []
 # Distance to the end of the graph (our max viewing distance)
 end_dist = 10
-# Distances from the bike to the objects
-dist_to_edge = []
-# Shortest distance from the edges of the objects to the global path
-edge_to_path = []
-# Lengths of the objects
-edge_len = []
-
-# Desired heading
-des_heading = 0
 
 # The final x and y values of the Bezier plot
 x_vals = []
 y_vals = []
+
+# Desired heading
+des_heading = 0
 
 # Creates a CurveAssistant that will allow us to access our data
 curveas = CurveAssistant(end_dist)
@@ -240,7 +303,7 @@ lastpoint = curveas.get_last_control_point()
 def plot():
     for obstacle in curveas.obstacles:
         # Converts the x-y points into the nt points
-        points = obstacle.edge_points
+        points = obstacle.points
         nt_1 = curveas.convert_nt(points[0][0], points[1][0])
         nt_2 = curveas.convert_nt(points[0][1], points[1][1])
         nt_obst = [[nt_1[0], nt_2[0]], [nt_1[1], nt_2[1]]]
@@ -296,7 +359,7 @@ def calculate_curve():
     diff = [0, 0]
     ys = [0, 0]
 
-    while index < 1:
+    while index <= 1.001:
         curpoint = curve.evaluate(index * 1.00)
         x = curpoint[0][0]
         y = curpoint[1][0]
@@ -317,7 +380,8 @@ def calculate_curve():
 
 def is_obstacle_block():
     """
-    :returns a list of obstacles which currently intersect the path"""
+    :returns a list of obstacles which currently intersect the path
+    """
     obst_block = []
     for obstacle in curveas.obstacles:
         if obstacle.intersect(x_vals, y_vals):
@@ -327,28 +391,26 @@ def is_obstacle_block():
 
 def create_environment(req):
     global resolution, des_heading
-    
+
+    resolution = 0.05
+
     ## Resets obstacle list for the current curve object
     curveas.obstacles = []
 
     ## Creates the Service Client that will get speed data
     data_getter = rospy.ServiceProxy("get_data", GetData)
-    
+
     heading = des_heading - data_getter("heading").data
     curveas.heading = heading
 
     pub = rospy.Publisher('cycle/curve', Curve, queue_size=1)
 
-    for object in req.obj_lst:
-        dist_to_edge.append(object.dist_to_edge - req.distance)
-        edge_to_path.append(object.edge_to_path)
-        edge_len.append(object.edge_len)
-    rospy.loginfo("Object data accepted. Generating Path")
-    resolution = 0.05
     # Creates objects
-    for x in range(len(edge_len)):
-        curveas.create_obstacle(dist_to_edge[x], edge_to_path[x], edge_len[x])
+    for o in req.obj_lst:
+        curveas.create_obstacle(((o.x1, o.x2), (o.y1, o.y2)))
+    rospy.loginfo("Object data accepted. Generating Path")
     calculate_curve()
+
     # Plots obstacles if they intersect the Bezier curve
     ind = 1
     count = 0
@@ -361,12 +423,13 @@ def create_environment(req):
     block_list = is_obstacle_block()
     while block_list:
         for obstacle in block_list:
-            obstacle.adjust_gamma()
+            obstacle.adjust_err()
         calculate_curve()
         count += 1
         if count > lim:
             break
         block_list = is_obstacle_block()
+    # plot()
     rospy.loginfo("Path generated.")
     pub.publish(str(curveas.get_curve().to_symbolic()), curveas.get_curve().length)
     data_getter.close()
@@ -379,11 +442,10 @@ def start():
     # Initialize the node and register it with the master.
     rospy.init_node("bezier")
 
-    
-    
     ## Sets desired heading (for now the intial heading)
     des_heading = data_getter("heading").data
 
+    ## Closes this data getter
+    data_getter.close()
+
     rospy.spin()
-
-

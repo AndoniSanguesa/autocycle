@@ -5,7 +5,7 @@
 using namespace std;
 
 // Creates serial object to write to
-serial::Serial my_serial("/dev/ttyUSB0", (long) 0, serial::Timeout::simpleTimeout(0));
+serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
 bool SendAction(
         autocycle::Action::Request &req,
@@ -13,16 +13,15 @@ bool SendAction(
 
 ){
     string to_write = "";
-    bool coms [3] = req.coms;
 
-    if(coms[0]){
-        to_write.append("s " << req.speed << ";");
+    if(req.coms[0]){
+        to_write.append("s " + to_string(req.speed) + ";");
     }
-    if(coms[1]){
-        to_write.append("d " << req.delta << ";");
+    if(req.coms[1]){
+        to_write.append("d " + to_string(req.delta) + ";");
     }
-    if(coms[2]){
-        to_write.append("c " << req.command << ";");
+    if(req.coms[2]){
+        to_write.append("c " + req.command + ";");
     }
 
     my_serial.write(to_write);
@@ -38,6 +37,6 @@ int main(int argc, char **argv) {
     ros::ServiceServer act_srv = nh.advertiseService("send_action", &SendAction);
 
     // Waits for actions to send
-    ros::spin()
+    ros::spin();
 
 }

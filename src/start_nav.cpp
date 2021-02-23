@@ -12,7 +12,7 @@
 #include <iostream>
 #include <std_msgs/String.h>
 
-using namespace std::chronol;
+using namespace std::chrono;
 
 std::string path_to_lvx = "f_done.lvx";
 
@@ -72,9 +72,8 @@ int main(int argc, char **argv) {
   // Initializes variables for time
   high_resolution_clock::time_point start;
   high_resolution_clock::time_point end;
-  double duration;
+  double duration, distance;
   float velocity;
-  float distance;
 
   // Navigation loop
   while(ros::ok()){
@@ -121,7 +120,6 @@ int main(int argc, char **argv) {
     ROS_INFO_STREAM("Sending LiDAR data to Object Detection")
     detect_req.data = adj_roll_resp.out
     result = detection_client.call(detect_req, detect_resp)
-
     // Clears f_done.lvx file
     f_done.open(path_to_lvx, std::ios::trunc);
     f_done.close();

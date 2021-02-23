@@ -1,0 +1,16 @@
+<launch>
+    <node
+        pkg="autocycle"
+        type="run_lidar"
+        name="run_lidar"
+        output="screen"
+        required="true"
+    />
+    <node
+        pkg="autocycle"
+        type="test_visualize_lidar"
+        name="test_visualize_lidar"
+        output="screen"
+        required="true"
+    />
+</launch>
