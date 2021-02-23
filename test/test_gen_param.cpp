@@ -12,6 +12,10 @@ string param = "";
 
 void GetParam(autocycle::Curve msg){
     param = msg.param;
+
+    // Prints the discovered curve
+    ROS_INFO_STREAM("PARAM CURVE: " << param);
+    ros::shutdown();
 }
 
 int main(int argc, char **argv){
@@ -20,13 +24,7 @@ int main(int argc, char **argv){
   ros::init(argc, argv, "test_gen_param");
   ros::NodeHandle nh;
 
-  // Waits for path plan service to be ready and creates service client object
-  ros::service::waitForService("plan_path");
-  ros::ServiceClient bez_cli = nh.serviceClient<autocycle::ObjectList>("plan_path");
-
-  // Creates the request and response objects for the path planning
-  autocycle::ObjectList::Request req;
-  autocycle::ObjectList::Response resp;
+  ros::Publisher obj_pub = nh.advertise<autocycle::ObjectList>("cycle/ObjectFrame", 1);
 
   // Subscriber that will be listening for a new curve
   ros::Subscriber param_sub = nh.subscribe("cycle/param", 1, &GetParam);
@@ -40,19 +38,16 @@ int main(int argc, char **argv){
   // Generates the objects, adds them to the request and prints out their properties
   for(int i = 0; i < num_obj; i++){
     autocycle::Object o;
+    autocycle::ObjectList ol;
     o.x1 = (rand() % 10) + ((double) rand() / (RAND_MAX));
     o.x2 = (rand() % 10) + ((double) rand() / (RAND_MAX));
     o.y1 = (rand() % 10) + ((double) rand() / (RAND_MAX));
     o.y2 = (rand() % 10) + ((double) rand() / (RAND_MAX));
-    req.obj_lst.push_back(o);
+    ol.push_back(o);
+    obj_pub.publish(ol);
     ROS_INFO_STREAM("OBJECT " << i << "--> (" << o.x1 << ", " << o.y1 << "), (" << o.x2 << ", " << o.y2 << ")");
   }
 
   // Calls on path planning to do its work and listens for its response
-  bez_cli.call(req, resp);
-  ros::spinOnce();
-
-  // Prints the discovered curve
-  ROS_INFO_STREAM("PARAM CURVE: " << param);
-  ros::shutdown();
+  ros::spin();
 }

@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   // Creates the service that will fetch the latest data
   ros::ServiceClient get_data_client = nh.serviceClient<autocycle::GetData>("get_data");
 
-  ros::ServiceClient detection_client = nh.serviceClient<autocycle::DetectObjects>("object_detection")
+  ros::ServiceClient detection_client = nh.serviceClient<autocycle::DetectObjects>("object_detection");
 
   // Creates service client that will call on the fix_roll service to fix the roll...
   ros::ServiceClient roll_client = nh.serviceClient<autocycle::RollAdj>("fix_roll");
@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
 
     ROS_INFO_STREAM("Sending LiDAR data to Object Detection")
     detect_req.data = adj_roll_resp.out
-    result = detection_client.call(detect_req, detect_resp)
+    result = detection_client.call(detect_req, detect_resp);
 
     // Clears f_done.lvx file
     f_done.open(path_to_lvx, std::ios::trunc);
