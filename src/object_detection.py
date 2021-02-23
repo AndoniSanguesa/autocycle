@@ -52,7 +52,7 @@ def object_detection(points):
     right_bound = 0     # right most cord of object
     prev = 0            # previous cell's z value
     objects = []        # array of detected object tuples (left bound, right bound, distance)
-    
+
     for col in range(cell_col):
         if close_arr[0, col] != 0:
             if prev == 0:
@@ -63,9 +63,9 @@ def object_detection(points):
                 right_bound += 1
                 prev = close_arr[0, col]
             else:
-                objects.add((left_bound*cell_dim - 10000, (left_bound - right_bound) * cell_dim, close_arr[0, left_bound]))
+                objects.add((left_bound*cell_dim - width/2, close_arr[0, left_bound], right_bound * cell_dim - width/2, close_arr[0, right_bound]))
                 prev = 0
         elif prev != 0:
-            objects.add((left_bound*cell_dim - 10000, (left_bound - right_bound) * cell_dim, close_arr[0, left_bound]))
+            objects.add((left_bound*cell_dim - width/2, close_arr[0, left_bound], right_bound * cell_dim - width/2, close_arr[0, right_bound]))
             prev = 0
     return objects
