@@ -13,6 +13,7 @@ add_service_files(FILES
   RollAdj.srv
   GetData.srv
   Action.srv
+  DetectObjects.srv
 )
 generate_messages(DEPENDENCIES std_msgs)
 catkin_package(
@@ -36,7 +37,7 @@ target_link_libraries(fix_roll ${catkin_LIBRARIES})
 target_link_libraries(get_data ${catkin_LIBRARIES})
 target_link_libraries(read_serial ${catkin_LIBRARIES})
 target_link_libraries(send_action ${catkin_LIBRARIES})
-catkin_install_python(PROGRAMS bin/bezier_visualization bin/get_deltas
+catkin_install_python(PROGRAMS bin/bezier_visualization bin/get_deltas bin/object_detection
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 # TESTING FILES
