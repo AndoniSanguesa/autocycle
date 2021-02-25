@@ -58,5 +58,5 @@ def static_object_tracking():
 			new.append(Object(rotated[0,0], rotated[1,0] - distance, rotated[0,1], rotated[1,1] - distance))
 		objects = list(filter(lambda x: x.z1 >= 0 or x.z2 >= 0, new))
 
-	pub.publish(objects)
+		pub.publish(objects)
 
