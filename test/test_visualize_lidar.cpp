@@ -6,13 +6,14 @@
 #include <stdlib.h>
 #include <fstream>
 #include <iostream>
-
+#include <unistd.h>
 using namespace std;
 
 // Finds the range for x and y values of the points in a frame of data
 void get_max_min(vector<autocycle::Point> points, double x_range[2],double y_range[2]){
     for(int i = 0; i < points.size(); i++){
-        if(points[i].x < x_range[0]){
+        //ROS_INFO_STREAM("(" << points[i].x << ", " << points[i].y << ", " << points[i].z << ")");
+	if(points[i].x < x_range[0]){
             x_range[0] = points[i].x;
         } else if(points[i].x > x_range[1]){
             x_range[1] = points[i].x;
@@ -26,16 +27,17 @@ void get_max_min(vector<autocycle::Point> points, double x_range[2],double y_ran
 }
 
 char get_char(float z_val){
-    if(z_val < 1){
+
+    if(z_val < 300){
         return ' ';
-    } else if (z_val < 1.3){
-        return '░';
-    } else if (z_val < 1.6){
-        return '▒';
-    } else if (z_val < 2){
-        return '▓';
+    } else if (z_val <  500){
+        return '.';
+    } else if (z_val < 700){
+        return '*';
+    } else if (z_val < 900){
+        return '@';
     } else{
-        return '█';
+        return '#';
     }
 }
 
@@ -58,8 +60,8 @@ int main(int argc, char** argv){
     int height, width = 0;
 
     if(argc == 1){
-        width = 500;
-        height = 500;
+        width = 50;
+        height = 50;
     }else if(argc != 3){
         ROS_FATAL_STREAM("test_visualize_lidar must be run with no arguments or 2 arguments for width and height respectively!");
     }else{
@@ -122,16 +124,12 @@ int main(int argc, char** argv){
             bins[x_bin_ind][y_bin_ind] = (bins[x_bin_ind][y_bin_ind] * count + points[i].y) / (count+1);
         }
 
-        system("CLS");
-        cout << "bruh"
-        system("CLS")
         // Generates image
-        system ("CLS");
         for(int i = 0; i < height; i++){
             for(int j = 0; j < width; j++){
-                cout << get_char(bins[j][i]);
-            }
-            cout << endl;
+                //cout << get_char(bins[j][i]) << flush;
+	    }
+            cout << endl << flush;
         }
         f_done.open("f_done.lvx", std::ios::trunc);
         f_done.close();

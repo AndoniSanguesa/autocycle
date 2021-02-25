@@ -43,7 +43,7 @@ int main(int argc, char **argv){
     o.x2 = (rand() % 10) + ((double) rand() / (RAND_MAX));
     o.y1 = (rand() % 10) + ((double) rand() / (RAND_MAX));
     o.y2 = (rand() % 10) + ((double) rand() / (RAND_MAX));
-    ol.push_back(o);
+    ol.obj_lst.push_back(o);
     obj_pub.publish(ol);
     ROS_INFO_STREAM("OBJECT " << i << "--> (" << o.x1 << ", " << o.y1 << "), (" << o.x2 << ", " << o.y2 << ")");
   }

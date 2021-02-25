@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
   ros::service::waitForService("get_data");
 
   // Waits for the object detector service to be active
-  ros::service::waitForService("object_detection")
+  ros::service::waitForService("object_detection");
 
   // Wait for the fix_roll service to be active
   ros::service::waitForService("fix_roll");
@@ -117,8 +117,8 @@ int main(int argc, char **argv) {
 
     ROS_INFO_STREAM("Points have been adjusted for roll.");
 
-    ROS_INFO_STREAM("Sending LiDAR data to Object Detection")
-    detect_req.data = adj_roll_resp.out
+    ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
+    detect_req.data = adj_roll_resp.out;
     result = detection_client.call(detect_req, detect_resp);
 
     // Clears f_done.lvx file

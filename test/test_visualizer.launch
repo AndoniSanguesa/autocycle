@@ -13,4 +13,11 @@
         output="screen"
         required="true"
     />
+    <node
+        pkg="autocycle"
+        type="parse_lvx"
+        name="parse_lvx"
+        required="true"
+        output="screen"
+    />
 </launch>
