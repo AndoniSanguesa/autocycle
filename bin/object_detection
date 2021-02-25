@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-import autocycle_py.get_deltas
+import autocycle_py.object_detection
 
 if __name__ == '__main__':
-  autocycle_py.get_deltas.start()
+  autocycle_py.object_detection.start()

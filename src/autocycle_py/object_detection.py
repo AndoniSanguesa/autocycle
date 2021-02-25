@@ -17,7 +17,7 @@ same_obj_diff = 20      # maximum diff between horizontal cells to be considered
 
 
 def object_detection(points):
-    pub = rospy.Publisher('cycle/objects', Object, queue_size=1)
+    pub = rospy.Publisher('cycle/objects', Object, queue_size=25)
     cells = np.zeros((cell_row, cell_col))
 
     for p in points.data:
@@ -27,7 +27,7 @@ def object_detection(points):
         y = y//cell_row     # Add offset such that the points are translated to cords such as lidar mounting offset accounted for
 
         # Dictating the z value for the cell. Currently only finds the minimum value of the cell.
-        if x >= 0 and x < cell_col and y >= 0 and y < cell_row:
+        if 0 <= x < cell_col and 0 <= y < cell_row:
             cells[x, y] = z if cells[x, y] == 0 else min(z, cells[x, y])
 
     close_arr = np.zeros((1, cell_w))
@@ -65,10 +65,14 @@ def object_detection(points):
                 right_bound += 1
                 prev = close_arr[0, col]
             else:
-                pub.publish(left_bound*cell_dim - width/2, right_bound * cell_dim - width/2, close_arr[0, left_bound], close_arr[0, right_bound])
+                obj = Object(left_bound*cell_dim - width/2, right_bound * cell_dim - width/2, 
+                             close_arr[0, left_bound], close_arr[0, right_bound])
+                pub.publish(obj)
                 prev = 0
         elif prev != 0:
-            pub.publish(left_bound*cell_dim - width/2, right_bound * cell_dim - width/2, close_arr[0, left_bound], close_arr[0, right_bound])
+            obj = Object(left_bound * cell_dim - width / 2, right_bound * cell_dim - width / 2,
+                         close_arr[0, left_bound], close_arr[0, right_bound])
+            pub.publish(obj)
             prev = 0
     return True
 

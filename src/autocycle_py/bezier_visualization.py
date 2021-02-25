@@ -442,6 +442,12 @@ def start():
     # Initialize the node and register it with the master.
     rospy.init_node("bezier")
 
+    # Waits for data getter service
+    rospy.wait_for_service('get_data')
+
+    # Creates the service client that will collect data
+    data_getter = rospy.ServiceProxy("get_data", GetData)
+
     ## Sets desired heading (for now the intial heading)
     des_heading = data_getter("heading").data
 
