@@ -71,4 +71,11 @@
     name="fix_roll"
     respawn="true"
   />
+  </node
+    pkg="autocycle"
+    type="test_sim_sensors"
+    name="sim_sensors"
+    output="screen"
+    respawn="true"
+  />
 </launch>

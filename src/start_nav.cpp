@@ -92,7 +92,6 @@ int main(int argc, char **argv) {
       f_done.open("f_done.lvx", std::ios::app);
     }
     f_done.close();
-    start = high_resolution_clock::now();
 
     // Collects the latest roll data
     get_data_req.data_type = "roll";

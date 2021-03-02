@@ -28,7 +28,7 @@ def static_object_tracking():
 	rospy.Subscriber("cycle/objects", Object, new_object)
 
 	# Publishes objects to path topic
-	pub = rospy.Publisher("cycle/path", ObejctList, queue_size=1)
+	pub = rospy.Publisher("cycle/object_frame", ObejctList, queue_size=1)
 
 	heading = data_getter("heading").data
 	time = data_getter("met").data

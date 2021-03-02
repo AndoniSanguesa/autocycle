@@ -451,7 +451,7 @@ def start():
     ## Sets desired heading (for now the intial heading)
     des_heading = data_getter("heading").data
 
-    rospy.Subscriber("cycle/ObjectFrame", ObjectList, create_environment)
+    rospy.Subscriber("cycle/object_frame", ObjectList, create_environment)
 
     ## Closes this data getter
     data_getter.close()
