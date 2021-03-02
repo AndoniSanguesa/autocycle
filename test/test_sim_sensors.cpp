@@ -21,7 +21,7 @@ int main(int argc, char** argv){
     // Simulates sensor data
     while(ros::ok()){
         t1 = clock::now()
-        to_pub.data = std::chrono::duration_cast<ms>(t1 - t0);
+        to_pub.data = std::chrono::duration_cast<ms>(t1 - t0).count();
         t0 = t1;
         met_pub.publish(to_pub);
         to_pub.data = 0;
