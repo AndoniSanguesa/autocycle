@@ -53,19 +53,19 @@
     name="static_object_tracking"
     respawn="true"
   />
-  </node
+  <node
     pkg="autocycle"
     type="test_fake_send_action"
     name="test_fake_send_action"
     respawn="true"
   />
-  </node
+  <node
     pkg="autocycle"
     type="fix_roll"
     name="fix_roll"
     respawn="true"
   />
-  </node
+  <node
     pkg="autocycle"
     type="test_sim_sensors"
     name="sim_sensors"

@@ -1,14 +1,14 @@
 import numpy as np
 import rospy
 from autocycle.msg import Object
-from autocycle.srv import DetectObject
+from autocycle.srv import DetectObjects
 
 height = 10000              # vertical dimension in millimeters
 width = 20000               # horizontal dimension in millimeters
 cell_dim = 20               # dimension of cells in millimeters (cells are squares)
 
-cell_col = np.ceil(height/cell_dim)
-cell_row = np.ceil(width/cell_dim)
+cell_col = int(np.ceil(height/cell_dim))
+cell_row = int(np.ceil(width/cell_dim))
 
 # Tunable parameters to determine if something is an object.
 col_diff = 20           # Expected max difference between two adjacent cells in a column.
@@ -19,6 +19,7 @@ same_obj_diff = 20      # maximum diff between horizontal cells to be considered
 def object_detection(points):
     pub = rospy.Publisher('cycle/objects', Object, queue_size=25)
     cells = np.zeros((cell_row, cell_col))
+    to_pub = []
 
     for p in points.data:
         # creates list with x, y, and z coordinate
@@ -30,7 +31,7 @@ def object_detection(points):
         if 0 <= x < cell_col and 0 <= y < cell_row:
             cells[x, y] = z if cells[x, y] == 0 else min(z, cells[x, y])
 
-    close_arr = np.zeros((1, cell_w))
+    close_arr = np.zeros((1, cell_col))
 
     for col in range(cell_col):
         prev = 0        # Previous cell.
@@ -67,13 +68,14 @@ def object_detection(points):
             else:
                 obj = Object(left_bound*cell_dim - width/2, right_bound * cell_dim - width/2, 
                              close_arr[0, left_bound], close_arr[0, right_bound])
-                pub.publish(obj)
+                to_pub.append(obj)
                 prev = 0
         elif prev != 0:
             obj = Object(left_bound * cell_dim - width / 2, right_bound * cell_dim - width / 2,
                          close_arr[0, left_bound], close_arr[0, right_bound])
-            pub.publish(obj)
+            to_pub.append(obj)
             prev = 0
+    pub.publish(to_pub)
     return True
 
 def start():
@@ -81,7 +83,7 @@ def start():
     rospy.init_node("object_detection")
     
     # Creates Service to be called
-    rospy.Service("object_detection", DetectObject, object_detection)
+    rospy.Service("object_detection", DetectObjects, object_detection)
     
     # Waits to be called
     rospy.spin()

@@ -1,21 +1,25 @@
 import numpy as np
 import rospy
 from autocycle.msg import Object, ObjectList
+from autocycle.srv import GetData
 
 height = 10000              # vertical dimension in millimeters
 width = 20000               # horizontal dimension in millimeters
 object_length = 1000		# object length
 
 new_objects = []
+new_data = False
 objects = []
 heading = 0
 time = 0
 
-def new_object(obj):
-	new_objects.append(obj)
+def new_object(obj_lst):
+	global new_objects, new_data
+	new_objects = obj_lst.obj_lst
+	new_data = True
 
 def static_object_tracking():
-	global objects, heading, time
+	global objects, heading, time, new_data
 	# Registers the Node with the Master
 	rospy.init_node("static_object_tracking")
 
@@ -26,20 +30,22 @@ def static_object_tracking():
 	data_getter = rospy.ServiceProxy("get_data", GetData)
 
 	# Subscribes to the object topic
-	rospy.Subscriber("cycle/objects", Object, new_object)
+	rospy.Subscriber("cycle/objects", ObjectList, new_object)
 
 	# Publishes objects to path topic
-	pub = rospy.Publisher("cycle/object_frame", ObejctList, queue_size=1)
+	pub = rospy.Publisher("cycle/object_frame", ObjectList, queue_size=1)
 
 	heading = data_getter("heading").data
 	time = data_getter("met").data
 
 	# Picks up new objects
 	rospy.spin()
-
-	while rospy.ok():
+	
+	while not rospy.is_shutdown():
+		if new_data:
+			objects.extend(new_objects)
+		new_data = False
 		
-
 		# Collects data
 		new_heading = data_getter("heading").data
 		delta_angle = new_heading - heading
