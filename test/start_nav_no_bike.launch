@@ -55,14 +55,8 @@
   />
   </node
     pkg="autocycle"
-    type="read_serial"
-    name="read_serial"
-    respawn="true"
-  />
-  </node
-    pkg="autocycle"
-    type="send_action"
-    name="send_action"
+    type="test_fake_send_action"
+    name="test_fake_send_action"
     respawn="true"
   />
   </node
