@@ -4,7 +4,9 @@ from autocycle.msg import Curve
 from autocycle.srv import GetData, Action
 import time
 
+new_param = ""
 param = ""
+new_length = -1
 length = -1
 dist_travelled = 0
 
@@ -21,10 +23,10 @@ def derv(eq, x, acc=0.000001):
 
 
 def update_param(msg):
-    global param, length, dist_travelled
+    global new_param, new_length, dist_travelled
 
-    param = msg.param
-    length = msg.length
+    new_param = msg.param
+    new_length = msg.length
     dist_travelled = 0
 
 def update_distance(time):
@@ -71,7 +73,7 @@ def find_x_ind(li, x):
 
 
 def start():
-    global param, dist_travelled
+    global param, dist_travelled, length
     # Registers Node with the master
     rospy.init_node('get_deltas')
 
@@ -87,9 +89,14 @@ def start():
     # Creates the Service client that will send actions to the bike!
     action_sender = rospy.ServiceProxy("send_action", Action)
 
+    rospy.spin()
+
     # Waits for a curve to come in
-    while param == "":
-        rospy.spin_once()
+    while new_param == "":
+        continue
+        
+    param = new_param
+    length = new_length
 
     # Initial Time
     time_i = time.time()
@@ -104,8 +111,6 @@ def start():
 
         # Adjusts for distance travelled
         update_distance(time_f-time_i)
-        
-        
 
         # Updates initial time
         time_i = time_f
@@ -117,10 +122,12 @@ def start():
         action_sender([True, True, False], deltas[x_ind][0], 4.5, "")
 
         # If there is a new curve, we rerun `get_deltas()`
-        p_temp = param
-        rospy.spin_once()
-        if param != p_temp:
+        if param != new_param:
+            param = new_param
+            length = new_length
+            dist_travelled = 0
             deltas = get_deltas()
+            time_i = time.time()
         
         
 

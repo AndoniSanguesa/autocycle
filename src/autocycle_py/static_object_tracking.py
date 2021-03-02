@@ -6,12 +6,13 @@ height = 10000              # vertical dimension in millimeters
 width = 20000               # horizontal dimension in millimeters
 object_length = 1000		# object length
 
+new_objects = []
 objects = []
 heading = 0
 time = 0
 
 def new_object(obj):
-	objects.append(obj)
+	new_objects.append(obj)
 
 def static_object_tracking():
 	global objects, heading, time
@@ -33,9 +34,11 @@ def static_object_tracking():
 	heading = data_getter("heading").data
 	time = data_getter("met").data
 
+	# Picks up new objects
+	rospy.spin()
+
 	while rospy.ok():
-		# Picks up new objects
-		rospy.spinOnce()
+		
 
 		# Collects data
 		new_heading = data_getter("heading").data
