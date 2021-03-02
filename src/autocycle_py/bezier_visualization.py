@@ -5,8 +5,8 @@ import math
 from matplotlib.font_manager import FontProperties
 import time
 import rospy
-from autocycle.srv import ObjectList, ObjectListResponse, GetData
-from autocycle.msg import Curve
+from autocycle.srv import GetData
+from autocycle.msg import Curve, ObjectList
 
 
 def rotate_point(point, theta):

@@ -98,7 +98,7 @@ def start():
     deltas = get_deltas()
 
     # Continues sending commands to bike and updating deltas
-    while rospy.ok():
+    while not rospy.is_shutdown():
         # Time to adjust for
         time_f = time.time()
 

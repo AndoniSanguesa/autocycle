@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <std_msgs/Float64.h>
-#include <chrono
+#include <chrono>
 
 int main(int argc, char** argv){
     // Registers node with the master
@@ -16,13 +16,12 @@ int main(int argc, char** argv){
     std_msgs::Float64 to_pub;
     typedef std::chrono::high_resolution_clock clock;
     auto t0 = clock::now();
-    auto t1;
+    auto t1 = clock::now();
 
     // Simulates sensor data
     while(ros::ok()){
-        t1 = clock::now()
-        to_pub.data = std::chrono::duration_cast<ms>(t1 - t0).count();
-        t0 = t1;
+        t1 = clock::now();
+        to_pub.data = (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0)).count();
         met_pub.publish(to_pub);
         to_pub.data = 0;
         roll_pub.publish(to_pub);

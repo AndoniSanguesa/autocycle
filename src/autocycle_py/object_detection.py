@@ -1,14 +1,14 @@
 import numpy as np
 import rospy
 from autocycle.msg import Object
-from autocycle.srv import DetectObject
+from autocycle.srv import DetectObjects
 
 height = 10000              # vertical dimension in millimeters
 width = 20000               # horizontal dimension in millimeters
 cell_dim = 20               # dimension of cells in millimeters (cells are squares)
 
-cell_col = np.ceil(height/cell_dim)
-cell_row = np.ceil(width/cell_dim)
+cell_col = int(np.ceil(height/cell_dim))
+cell_row = int(np.ceil(width/cell_dim))
 
 # Tunable parameters to determine if something is an object.
 col_diff = 20           # Expected max difference between two adjacent cells in a column.
@@ -30,7 +30,7 @@ def object_detection(points):
         if 0 <= x < cell_col and 0 <= y < cell_row:
             cells[x, y] = z if cells[x, y] == 0 else min(z, cells[x, y])
 
-    close_arr = np.zeros((1, cell_w))
+    close_arr = np.zeros((1, cell_col))
 
     for col in range(cell_col):
         prev = 0        # Previous cell.
@@ -81,7 +81,7 @@ def start():
     rospy.init_node("object_detection")
     
     # Creates Service to be called
-    rospy.Service("object_detection", DetectObject, object_detection)
+    rospy.Service("object_detection", DetectObjects, object_detection)
     
     # Waits to be called
     rospy.spin()

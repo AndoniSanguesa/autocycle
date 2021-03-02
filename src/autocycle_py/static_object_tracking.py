@@ -1,6 +1,7 @@
 import numpy as np
 import rospy
 from autocycle.msg import Object, ObjectList
+from autocycle.srv import GetData
 
 height = 10000              # vertical dimension in millimeters
 width = 20000               # horizontal dimension in millimeters
@@ -28,12 +29,12 @@ def static_object_tracking():
 	rospy.Subscriber("cycle/objects", Object, new_object)
 
 	# Publishes objects to path topic
-	pub = rospy.Publisher("cycle/object_frame", ObejctList, queue_size=1)
+	pub = rospy.Publisher("cycle/object_frame", ObjectList, queue_size=1)
 
 	heading = data_getter("heading").data
 	time = data_getter("met").data
 
-	while rospy.ok():
+	while not rospy.is_shutdown():
 		# Picks up new objects
 		rospy.spinOnce()
 
