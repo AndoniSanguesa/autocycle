@@ -118,6 +118,8 @@ def start():
         # Gets closest x to the distance travelled
         x_ind = find_x_ind(deltas, dist_travelled)
 
+        rospy.loginfo(f"Delta Sent: {deltas[x_ind][0]}")
+
         # Sends commands to the `action` node
         action_sender([True, True, False], deltas[x_ind][0], 4.5, "")
 

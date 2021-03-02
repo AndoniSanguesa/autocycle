@@ -45,12 +45,14 @@
     pkg="autocycle"
     type="object_detection"
     name="object_detection"
+    output="screen"
     respawn="true"
   />
   <node
     pkg="autocycle"
     type="static_object_tracking"
     name="static_object_tracking"
+    output="screen"
     respawn="true"
   />
   <node

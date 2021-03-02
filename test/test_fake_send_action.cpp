@@ -6,6 +6,7 @@ bool SendAction(
         autocycle::Action::Response &resp
 
 ){
+    
     return true;
 }
 
@@ -16,4 +17,6 @@ int main(int argc, char **argv){
 
     // Registers fake Service Server with master.
     ros::ServiceServer act_srv = nh.advertiseService("send_action", &SendAction);
+
+    ros::spin();
 }

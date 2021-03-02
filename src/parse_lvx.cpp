@@ -83,7 +83,9 @@ bool parseLVX(
                         p.z = x;
                         p.x = y;
                         p.y = z;
-			ret.push_back(p);
+			if(!(x == 0 && y == 0 && z ==0)){
+			    ret.push_back(p);
+			}
                        // if(-50 < p.x and p.x < 50){
 		       //     ROS_INFO_STREAM(p.z);
 		       //}
