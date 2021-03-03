@@ -32,9 +32,10 @@ def object_detection(points):
             cells[y, x] = z if cells[y, x] == 0 else min(z, cells[y, x])
     close_arr = np.zeros((1, cell_col))
 
+    max_dist = 500000  # A really big number
     for col in range(cell_col):
         prev = 0        # Previous cell.
-        closest = 500000     # Minimum z value for an object in the column.
+        closest = max_dist     # Minimum z value for an object in the column.
         counter = 0     # Counts the instances in which adjacent cells do not exceed diff.
         min_obj = 0     # Minimum dist to detected object
         for row in range(cell_row):
@@ -55,10 +56,10 @@ def object_detection(points):
 
     left_bound = 0      # left most cord of object
     right_bound = 0     # right most cord of object
-    prev = 0            # previous cell's z value
+    prev = max_dist           # previous cell's z value
     for col in range(cell_col):
-        if close_arr[0, col] != 0:
-            if prev == 0:
+        if close_arr[0, col] != max_dist:
+            if prev < max_dist:
                 left_bound = col
                 right_bound = col
                 prev = close_arr[0, col]
@@ -70,20 +71,20 @@ def object_detection(points):
                              close_arr[0, left_bound], close_arr[0, right_bound])
                 to_pub.append(obj)
                 rospy.loginfo("BRUH at DETECTION")
-                if close_arr[0, col] != 0:
+                if close_arr[0, col] != max_dist:
                     left_bound = col
                     right_bound = col
                     prev = close_arr[0, col]
                 else:
-                    prev = 0
+                    prev = max_dist
                 
-        elif prev != 0:
+        elif prev < max_dist:
             obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                          close_arr[0, left_bound], close_arr[0, right_bound])
             to_pub.append(obj)
             rospy.loginfo("BRUH at DETECTION")
-            prev = 0
-    if prev != 0:
+            prev = max_dist
+    if prev < max_dist:
         obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                      close_arr[0, left_bound], close_arr[0, right_bound])
         to_pub.append(obj)

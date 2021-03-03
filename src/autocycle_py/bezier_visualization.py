@@ -284,7 +284,7 @@ fontP = FontProperties()
 fontP.set_size('small')
 labels = []
 # Distance to the end of the graph (our max viewing distance)
-end_dist = 10
+end_dist = 50000
 
 # The final x and y values of the Bezier plot
 x_vals = []

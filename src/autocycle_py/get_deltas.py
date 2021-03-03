@@ -52,9 +52,18 @@ def get_deltas():
 
     cosdelt = np.cos(0.08)
     step = 0.01  # decrease step size for greater precision
-    curve_deltas = [[subs(x, i) for i in np.arange(step, 1 + step, step)], [(num / (cosdelt * (
-            ((derv(x, i) ** 2 + derv(y, i) ** 2) ** (3 / 2)) / abs(
-        derv(x, i) * derv2(y, i) - derv(y, i) * derv2(x, i))))) for i in np.arange(step, 1 + step, step)]]
+    curve_deltas = [[0]*(int(1//step)), [0]*(int(1//step))]
+    cnt = 0
+    for i in np.arange(step, 1+step, step):
+        calc1 = abs(derv(x, i) * derv2(y, i) - derv(y, i) * derv2(x, i))
+        if calc1 != 0:
+            calc2 = (cosdelt * (((derv(x, i) ** 2 + derv(y, i) ** 2) ** (3 / 2)) / calc1))
+            if calc2 != 0:
+                deltas[0][cnt] = i
+                deltas[1][cnt] = num/calc2
+                cnt += 1
+        
+    curve_deltas = [curve_deltas[0][0:cnt], curve_deltas[1][0:cnt]]
 
     data_getter.close()
     return curve_deltas
