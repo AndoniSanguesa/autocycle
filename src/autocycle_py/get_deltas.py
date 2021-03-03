@@ -42,7 +42,7 @@ def get_deltas():
 
     ## The regex that will extract the info from the np matrix
     matchcase = re.match('Matrix\(\[\[([\S]*)\],\s\[([\S]*)\]\]\)', param)
-    print(param)
+    print(f"PARAMATERIZED CURVE: {param}")
     ## Splits the parametric curve into the x and y components
     x, y = [matchcase.group(1), matchcase.group(2)]
 
@@ -59,8 +59,8 @@ def get_deltas():
         if calc1 != 0:
             calc2 = (cosdelt * (((derv(x, i) ** 2 + derv(y, i) ** 2) ** (3 / 2)) / calc1))
             if calc2 != 0:
-                deltas[0][cnt] = i
-                deltas[1][cnt] = num/calc2
+                curve_deltas[0][cnt] = i
+                curve_deltas[1][cnt] = num/calc2
                 cnt += 1
         
     curve_deltas = [curve_deltas[0][0:cnt], curve_deltas[1][0:cnt]]
@@ -122,14 +122,17 @@ def start():
 
         # Updates initial time
         time_i = time_f
+        
+        try:
+            # Gets closest x to the distance travelled
+            x_ind = find_x_ind(deltas[0], dist_travelled)
 
-        # Gets closest x to the distance travelled
-        x_ind = find_x_ind(deltas, dist_travelled)
+            rospy.loginfo(f"Delta Sent: {deltas[1][x_ind]}")
 
-        rospy.loginfo(f"Delta Sent: {deltas[x_ind][0]}")
-
-        # Sends commands to the `action` node
-        action_sender([True, True, False], deltas[x_ind][0], 4.5, "")
+            # Sends commands to the `action` node
+            action_sender([True, True, False], deltas[1][x_ind], 4.5, "")
+        except ValueError:
+            pass
         
 
 

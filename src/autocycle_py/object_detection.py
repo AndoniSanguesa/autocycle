@@ -58,8 +58,8 @@ def object_detection(points):
     right_bound = 0     # right most cord of object
     prev = max_dist           # previous cell's z value
     for col in range(cell_col):
-        if close_arr[0, col] != max_dist:
-            if prev < max_dist:
+        if close_arr[0, col] < max_dist:
+            if prev == max_dist:
                 left_bound = col
                 right_bound = col
                 prev = close_arr[0, col]
@@ -71,7 +71,7 @@ def object_detection(points):
                              close_arr[0, left_bound], close_arr[0, right_bound])
                 to_pub.append(obj)
                 rospy.loginfo("BRUH at DETECTION")
-                if close_arr[0, col] != max_dist:
+                if close_arr[0, col] < max_dist:
                     left_bound = col
                     right_bound = col
                     prev = close_arr[0, col]
