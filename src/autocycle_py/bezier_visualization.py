@@ -433,7 +433,6 @@ def create_environment(req):
     rospy.loginfo("Path generated.")
     pub.publish(str(curveas.get_curve().to_symbolic()), curveas.get_curve().length)
     data_getter.close()
-    pub.close()
     return
 
 

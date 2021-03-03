@@ -41,11 +41,11 @@ int main(int argc, char **argv){
     autocycle::ObjectList ol;
     o.x1 = (rand() % 10) + ((double) rand() / (RAND_MAX));
     o.x2 = (rand() % 10) + ((double) rand() / (RAND_MAX));
-    o.y1 = (rand() % 10) + ((double) rand() / (RAND_MAX));
-    o.y2 = (rand() % 10) + ((double) rand() / (RAND_MAX));
+    o.z1 = (rand() % 10) + ((double) rand() / (RAND_MAX));
+    o.z2 = (rand() % 10) + ((double) rand() / (RAND_MAX));
     ol.obj_lst.push_back(o);
     obj_pub.publish(ol);
-    ROS_INFO_STREAM("OBJECT " << i << "--> (" << o.x1 << ", " << o.y1 << "), (" << o.x2 << ", " << o.y2 << ")");
+    ROS_INFO_STREAM("OBJECT " << i << "--> (" << o.x1 << ", " << o.z1 << "), (" << o.x2 << ", " << o.z2 << ")");
   }
 
   // Calls on path planning to do its work and listens for its response

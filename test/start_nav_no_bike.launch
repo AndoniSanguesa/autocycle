@@ -78,6 +78,7 @@
     pkg="autocycle"
     type="object_list_getter"
     name="object_list_getter"
+    output="screen"
     respawn="true"
   />
   <node

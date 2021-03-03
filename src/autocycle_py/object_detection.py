@@ -69,6 +69,7 @@ def object_detection(points):
                 obj = Object(left_bound*cell_dim - width/2, (right_bound + 1) * cell_dim - width/2, 
                              close_arr[0, left_bound], close_arr[0, right_bound])
                 to_pub.append(obj)
+                rospy.loginfo("BRUH at DETECTION")
                 if close_arr[0, col] != 0:
                     left_bound = col
                     right_bound = col
@@ -80,11 +81,13 @@ def object_detection(points):
             obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                          close_arr[0, left_bound], close_arr[0, right_bound])
             to_pub.append(obj)
+            rospy.loginfo("BRUH at DETECTION")
             prev = 0
     if prev != 0:
         obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                      close_arr[0, left_bound], close_arr[0, right_bound])
         to_pub.append(obj)
+        rospy.loginfo("BRUH at DETECTION")
     pub.publish(to_pub)
     return []
 

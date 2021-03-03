@@ -3,6 +3,7 @@ import re
 from autocycle.msg import Curve
 from autocycle.srv import GetData, Action, GetCurve
 import time
+import numpy as np
 
 param = ""
 length = -1
@@ -41,9 +42,9 @@ def get_deltas():
 
     ## The regex that will extract the info from the np matrix
     matchcase = re.match('Matrix\(\[\[([\S]*)\],\s\[([\S]*)\]\]\)', param)
-
+    print(param)
     ## Splits the parametric curve into the x and y components
-    x, y = [eval(matchcase.group(1)), eval(matchcase.group(2))]
+    x, y = [matchcase.group(1), matchcase.group(2)]
 
     ## Calls the data getter to give us the latest roll
     resp = data_getter("roll")
@@ -67,9 +68,6 @@ def start():
     global param, dist_travelled, length
     # Registers Node with the master
     rospy.init_node('get_deltas')
-
-    # Creates subscriber option that waits for a new
-    rospy.Subscriber("cycle/curve", Curve, update_param)
 
     # Waits for the data getter to be done setting up
     rospy.wait_for_service('get_data')

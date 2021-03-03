@@ -12,7 +12,7 @@ bool comp_curves(
         resp.param = curve.param;
         resp.length = curve.length;
     }
-    return true
+    return true;
 }
 
 void get_curve(const autocycle::Curve msg){
@@ -25,9 +25,9 @@ int main(int argc, char **argv){
     ros::NodeHandle nh;
 
     // Creates Service for getting curve
-    ros::ServiceServer("get_curve", &comp_curves);
+    ros::ServiceServer serv = nh.advertiseService("get_curve", &comp_curves);
 
     // Creates subscriber for the curve
-    ros::Subscriber("cycle/curve", 1, &get_curve);
+    ros::Subscriber sub = nh.subscribe("cycle/curve", 1, &get_curve);
     ros::spin();
 }

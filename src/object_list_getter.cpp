@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <autocycle/ObjectDetectionList.h>
-#include <autocycle/ObjectList>
+#include <autocycle/ObjectList.h>
+#include <autocycle/Object.h>
 
 autocycle::ObjectList obj_lst;
 
@@ -10,13 +11,13 @@ bool comp_data(
 ){
     if(req.obj_lst != obj_lst.obj_lst){
         resp.obj_lst = obj_lst.obj_lst;
-        return true;
     }
-    return false;
+    return true;
 }
 
-void get_data(autocycle::ObjectList msg){
-    obj_lst = msg.obj_lst;
+void get_data(const autocycle::ObjectList msg){
+    ROS_INFO_STREAM("BRUH at LISTENER");
+    obj_lst = msg;
 }
 
 int main(int argc, char **argv){
@@ -25,7 +26,7 @@ int main(int argc, char **argv){
     ros::NodeHandle nh;
 
     // Creates subscriber for Object Detection stuff
-    ros::Subscriber obj_dect_sub = nh.Subscribe("cycle/objects", 1, &get_data)
+    ros::Subscriber obj_dect_sub = nh.subscribe("cycle/objects", 1, &get_data);
 
     // Creates Service
     ros::ServiceServer serv = nh.advertiseService("object_list_getter", &comp_data);
