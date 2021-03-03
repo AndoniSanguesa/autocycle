@@ -1,12 +1,10 @@
 import rospy
 import re
 from autocycle.msg import Curve
-from autocycle.srv import GetData, Action
+from autocycle.srv import GetData, Action, GetCurve
 import time
 
-new_param = ""
 param = ""
-new_length = -1
 length = -1
 dist_travelled = 0
 
@@ -21,13 +19,6 @@ def derv2(eq, x, acc=0.000001):
 def derv(eq, x, acc=0.000001):
     return (subs(eq, x) - subs(eq, x+acc))/acc
 
-
-def update_param(msg):
-    global new_param, new_length, dist_travelled
-
-    new_param = msg.param
-    new_length = msg.length
-    dist_travelled = 0
 
 def update_distance(time):
     global dist_travelled, length
@@ -85,18 +76,20 @@ def start():
 
     # Waits for the send_action
     rospy.wait_for_service("send_action")
+    
+    # Waits for curve getter service
+    rospy.wait_for_service("get_curve")
 
     # Creates the Service client that will send actions to the bike!
     action_sender = rospy.ServiceProxy("send_action", Action)
+    
+    # Creates the service cline that will get the curve
+    curve_getter = rospy.ServiceProxy("get_curve", GetCurve)
 
-    rospy.spin()
-
-    # Waits for a curve to come in
-    while new_param == "":
-        continue
-        
-    param = new_param
-    length = new_length
+    while param == "":
+        result = curve_getter(param)
+        param = result.param
+        length = result.length
 
     # Initial Time
     time_i = time.time()
@@ -106,6 +99,14 @@ def start():
 
     # Continues sending commands to bike and updating deltas
     while not rospy.is_shutdown():
+        result = curve_getter(param)
+        if result.param != "":
+            param = result.param
+            length = result.length
+            dist_travelled = 0
+            deltas = get_deltas()
+            time_i = time.time()
+        
         # Time to adjust for
         time_f = time.time()
 
@@ -122,15 +123,6 @@ def start():
 
         # Sends commands to the `action` node
         action_sender([True, True, False], deltas[x_ind][0], 4.5, "")
-
-        # If there is a new curve, we rerun `get_deltas()`
-        if param != new_param:
-            param = new_param
-            length = new_length
-            dist_travelled = 0
-            deltas = get_deltas()
-            time_i = time.time()
-        
         
 
 

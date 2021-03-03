@@ -14,6 +14,8 @@ add_service_files(FILES
   GetData.srv
   Action.srv
   DetectObjects.srv
+  ObjectDetectionList.srv
+  GetCurve.srv
 )
 generate_messages(DEPENDENCIES std_msgs)
 catkin_package(
@@ -28,6 +30,8 @@ add_executable(fix_roll src/fix_roll.cpp)
 add_executable(get_data src/get_data.cpp)
 add_executable(read_serial src/read_serial.cpp)
 add_executable(send_action src/send_action.cpp)
+add_executable(object_list_getter src/object_list_getter.cpp)
+add_executable(get_curve src/get_curve.cpp)
 
 target_link_libraries(run_lidar ${catkin_LIBRARIES})
 target_link_libraries(run_lidar stdc++fs)
@@ -37,6 +41,9 @@ target_link_libraries(fix_roll ${catkin_LIBRARIES})
 target_link_libraries(get_data ${catkin_LIBRARIES})
 target_link_libraries(read_serial ${catkin_LIBRARIES})
 target_link_libraries(send_action ${catkin_LIBRARIES})
+target_link_libraries(object_list_getter ${catkin_LIBRARIES})
+target_link_libraries(get_curve ${catkin_LIBRARIES})
+
 catkin_install_python(PROGRAMS bin/bezier_visualization bin/get_deltas bin/object_detection bin/static_object_tracking
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 

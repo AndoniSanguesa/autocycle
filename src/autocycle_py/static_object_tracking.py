@@ -1,33 +1,33 @@
 import numpy as np
 import rospy
 from autocycle.msg import Object, ObjectList
-from autocycle.srv import GetData
+from autocycle.srv import GetData, ObjectDetectionList
 
 height = 100              # vertical dimension in millimeters
 width = 200               # horizontal dimension in millimeters
 object_length = 1000		# object length
 
 new_objects = []
-new_data = False
 objects = []
 heading = 0
 time = 0
 
-def new_object(obj_lst):
-    global new_objects, new_data
-    new_objects = obj_lst.obj_lst
-    new_data = True
-
 def static_object_tracking():
-    global objects, heading, time, new_data
+    global objects, heading, time, temp_objects
     # Registers the Node with the Master
     rospy.init_node("static_object_tracking")
 
     # Waits for data getter service
     rospy.wait_for_service('get_data')
+    
+    # Waits for the object list getter service
+    rospy.wait_for_service("object_list_getter")
 
     # Creates the service client that will collect data
     data_getter = rospy.ServiceProxy("get_data", GetData)
+    
+    # Creates the service client that will get the object lists
+    obj_lst_getter = rospy.ServiceProxy("object_list_getter")
 
     # Subscribes to the object topic
     rospy.Subscriber("cycle/objects", ObjectList, new_object)
@@ -38,17 +38,16 @@ def static_object_tracking():
     heading = data_getter("heading").data
     time = data_getter("met").data
 
-    # Picks up new objects
-    rospy.spin_once()
-
-    print("YEEEEET")
-	
+    while not new_objects:
+        temp_objects = obj_lst_getter(objects).obj_lst
+        
+    objects = new_objects.copy()
+        
     while not rospy.is_shutdown():
-        print("BRUIUHHHH")
-        if new_data:
-            objects.extend(new_objects)
-            new_data = False
-    	
+        temp_objects = obj_lst_getter(temp_objects).obj_lst
+        if temp_objects:
+            objects.extend(temp_objects)
+        
         # Collects data
         new_heading = data_getter("heading").data
         delta_angle = new_heading - heading

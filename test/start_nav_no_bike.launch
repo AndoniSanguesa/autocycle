@@ -74,4 +74,17 @@
     output="screen"
     respawn="true"
   />
+  <node
+    pkg="autocycle"
+    type="object_list_getter"
+    name="object_list_getter"
+    respawn="true"
+  />
+  <node
+    pkg="autocycle"
+    type="get_curve"
+    name="get_curve"
+    output="screen"
+    respawn="true"
+  />
 </launch>
