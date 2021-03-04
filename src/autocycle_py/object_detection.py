@@ -13,7 +13,7 @@ cell_col = int(np.ceil(width/cell_dim))
 # Tunable parameters to determine if something is an object.
 col_diff = 20           # Expected max difference between two adjacent cells in a column.
 counter_reps = 1        # Number of reps required to dictate it is an object.
-same_obj_diff = 20      # maximum diff between horizontal cells to be considered the same object
+same_obj_diff = 150      # maximum diff between horizontal cells to be considered the same object
 
 
 def object_detection(points):
@@ -53,7 +53,7 @@ def object_detection(points):
                 closest = min(min_obj, closest)
             prev = cells[row, col]
         close_arr[0, col] = closest
-
+    print(close_arr)
     left_bound = 0      # left most cord of object
     right_bound = 0     # right most cord of object
     prev = max_dist           # previous cell's z value
