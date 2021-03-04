@@ -39,12 +39,12 @@ def get_deltas():
 
     ## Creates the Service Client that will get phi data
     data_getter = rospy.ServiceProxy("get_data", GetData)
-
-    ## The regex that will extract the info from the np matrix
-    matchcase = re.match('Matrix\(\[\[([\S]*)\],\s\[([\S]*)\]\]\)', param)
+    
     print(f"PARAMATERIZED CURVE: {param}")
     ## Splits the parametric curve into the x and y components
-    x, y = [matchcase.group(1), matchcase.group(2)]
+    stripped = param[9:]
+    x_end_ind = stripped.index("]")
+    x, y = stripped[0:x_end_ind], stripped[x_end_ind + 4:-3]
 
     ## Calls the data getter to give us the latest roll
     resp = data_getter("roll")
