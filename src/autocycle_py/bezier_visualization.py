@@ -408,6 +408,7 @@ def create_environment(req):
     # Creates objects
     for o in req.obj_lst:
         curveas.create_obstacle(((o.z1/1000, o.z2/1000), (o.x1/1000, o.x2/1000)))
+    #    print(f"Object : ({o.z1}, {o.x1}, {o.z2}, {o.x2})")
     rospy.loginfo("Object data accepted. Generating Path")
     calculate_curve()
 

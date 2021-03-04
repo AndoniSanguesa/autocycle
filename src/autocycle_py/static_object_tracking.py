@@ -42,6 +42,8 @@ def static_object_tracking():
         
     while not rospy.is_shutdown():
         new_objects = obj_lst_getter(new_objects).obj_lst
+        #for o in new_objects:
+        #    print(f"OBJECT: ({o.x1}, {o.x2}, {o.z1}, {o.z2})")
         if new_objects:
             objects.extend(new_objects)
         
@@ -62,8 +64,10 @@ def static_object_tracking():
         distance = speed * delta_time
         new = []
         for obj in objects:
-            rotated = rotation_matrix @ np.array([[obj.x1, obj.x2], [obj.z1, obj.z2]])
+            rotated = rotation_matrix @ np.array([[obj.x1, obj.z1], [obj.x2, obj.z2]])
             new.append(Object(rotated[0,0], rotated[1,0] - distance, rotated[0,1], rotated[1,1] - distance))
         objects = list(filter(lambda x: x.z1 >= 0 or x.z2 >= 0, new))
+        #for o in objects:
+        #    print(f"OBJECT : ({o.x1}, {o.x2}, {o.z1}, {o.z2})")
         pub.publish(objects)
 

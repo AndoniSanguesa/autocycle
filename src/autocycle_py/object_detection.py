@@ -71,7 +71,7 @@ def object_detection(points):
                              close_arr[0, left_bound], close_arr[0, right_bound])
                 to_pub.append(obj)
                 rospy.loginfo("BRUH at DETECTION")
-                if close_arr[0, col] != max_dist:
+                if close_arr[0, col] < max_dist:
                     left_bound = col
                     right_bound = col
                     prev = close_arr[0, col]
