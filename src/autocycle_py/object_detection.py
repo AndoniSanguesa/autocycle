@@ -13,7 +13,7 @@ cell_col = int(np.ceil(width/cell_dim))
 # Tunable parameters to determine if something is an object.
 col_diff = 20           # Expected max difference between two adjacent cells in a column.
 counter_reps = 1        # Number of reps required to dictate it is an object.
-same_obj_diff = 150      # maximum diff between horizontal cells to be considered the same object
+same_obj_diff = 120      # maximum diff between horizontal cells to be considered the same object
 
 
 def object_detection(points):
@@ -59,7 +59,7 @@ def object_detection(points):
     prev = max_dist           # previous cell's z value
     for col in range(cell_col):
         if close_arr[0, col] < max_dist:
-            if prev < max_dist:
+            if prev == max_dist:
                 left_bound = col
                 right_bound = col
                 prev = close_arr[0, col]
@@ -90,6 +90,8 @@ def object_detection(points):
         to_pub.append(obj)
         rospy.loginfo("BRUH at DETECTION")
     pub.publish(to_pub)
+    for o in to_pub:
+        print(f"({o.x1}, {o.x2}, {o.z1}, {o.z2})")
     return []
 
 def start():
