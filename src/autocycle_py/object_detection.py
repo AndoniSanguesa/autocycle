@@ -59,7 +59,7 @@ def object_detection(points):
     prev = max_dist           # previous cell's z value
     for col in range(cell_col):
         if close_arr[0, col] < max_dist:
-            if prev == max_dist:
+            if prev < max_dist:
                 left_bound = col
                 right_bound = col
                 prev = close_arr[0, col]

@@ -36,7 +36,7 @@ class Obstacle:
 
     # Creates bounding box that will be used for intersection
     def get_bounding_box(self):
-        offset = 0.2
+        offset = 1.5
 
         # o1 is the point where o1.x < o2.x
         if self.points[0][1] >= self.points[0][0]:
@@ -119,7 +119,7 @@ class Obstacle:
         self.control_points.extend([cp1, cp2, cp3])
 
     def adjust_err(self):
-        self.err += 0.2
+        self.err += 0.8
         self.calculate_control_point()
 
     # Determines if a set of x and y coordinates at any point intersect with the obstacle
@@ -407,8 +407,8 @@ def create_environment(req):
 
     # Creates objects
     for o in req.obj_lst:
+        curveas.create_obstacle(((o.z1/1000, o.z2/1000), (o.x1/1000, o.x2/1000)))
     #    print(f"Object : ({o.z1}, {o.x1}, {o.z2}, {o.x2})")
-        curveas.create_obstacle(((o.z1, o.z2), (o.x1, o.x2)))
     rospy.loginfo("Object data accepted. Generating Path")
     calculate_curve()
 
