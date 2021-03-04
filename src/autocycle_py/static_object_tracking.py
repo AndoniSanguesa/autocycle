@@ -42,8 +42,8 @@ def static_object_tracking():
         
     while not rospy.is_shutdown():
         new_objects = obj_lst_getter(new_objects).obj_lst
-        #for o in new_objects:
-        #    print(f"OBJECT: ({o.x1}, {o.x2}, {o.z1}, {o.z2})")
+        for o in new_objects:
+            print(f"OBJECT: ({o.x1}, {o.x2}, {o.z1}, {o.z2})")
         if new_objects:
             objects.extend(new_objects)
         
