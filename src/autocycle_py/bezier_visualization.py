@@ -275,7 +275,7 @@ class CurveAssistant:
     def get_end_dist(self):
         return self.end_dist
 
-
+iden = 0
 resolution = 0.04
 
 ## OPEN TESTDATA FILE. ONLY FOR TESTING UNTIL INTEGRATION ##
@@ -388,9 +388,45 @@ def is_obstacle_block():
             obst_block.append(obstacle)
     return obst_block
 
+def get_dervs(x, acc=0.000001):
+    curve = curveas.get_curve()
+    subs = lambda x: list(map(lambda x: x[0], curve.evaluate(x)))
+    this_val = subs(x)
+    next_val = subs(x+acc)
+    prev_val = subs(x-acc)
+    return (((next_val[0] - 2 * this_val[0] + prev_val[0]) / (acc ** 2),
+            (next_val[1] - 2 * this_val[1] + prev_val[1]) / (acc ** 2)),
+            ((this_val[0] - next_val[0]) / acc,
+            (this_val[1] - next_val[1]) / acc))
+
+
+
+def get_deltas():
+    global step
+    ## Calls the data getter to give us the latest roll
+    num = 1.02 * np.cos(0)
+    step = 0.01  # decrease step size for greater precision
+    dervs = [get_dervs(i) for i in np.arange(step, 1 + step, step)]
+    cosdelt = np.cos(0.08)
+    curve_deltas = [[i for i in np.arange(step, 1+step, step)], [0] * (int(1 / step))]
+    cnt = 0
+    for i in range(int(1/step)):
+        derv = dervs[i]
+        calc1 = abs(derv[1][0] * derv[0][1] - derv[1][1] * derv[0][0])
+        if calc1 != 0:
+            calc2 = (cosdelt * (((derv[1][0] ** 2 + derv[1][1] ** 2) ** (3 / 2)) / calc1))
+            if calc2 != 0:
+                curve_deltas[1][cnt] = num / calc2
+                cnt += 1
+
+    curve_deltas = [curve_deltas[0][0:cnt], curve_deltas[1][0:cnt]]
+
+    return curve_deltas
 
 def create_environment(req):
-    global resolution, des_heading
+    global resolution, des_heading, iden
+    
+    start_time = time.time()
 
     resolution = 0.05
 
@@ -431,7 +467,10 @@ def create_environment(req):
         block_list = is_obstacle_block()
     # plot()
     rospy.loginfo("Path generated.")
-    pub.publish(str(curveas.get_curve().to_symbolic()), curveas.get_curve().length)
+    deltas = get_deltas()
+    end_time = time.time()
+    pub.publish(deltas[0], deltas[1], curveas.get_curve().length, iden, end_time-start_time)
+    iden += 1
     data_getter.close()
     pub.close()
     return
