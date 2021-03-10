@@ -36,7 +36,7 @@ class Obstacle:
 
     # Creates bounding box that will be used for intersection
     def get_bounding_box(self):
-        offset = 0.2
+        offset = 1.5
 
         # o1 is the point where o1.x < o2.x
         if self.points[0][1] >= self.points[0][0]:
@@ -84,42 +84,50 @@ class Obstacle:
     def calculate_control_point(self):
         self.control_points.clear()
         # o1 is the point where o1.x < o2.x
-        if self.points[0][1] >= self.points[0][0]:
+        if self.side == 0:
             o1 = (self.points[0][0], self.points[1][0])
             o2 = (self.points[0][1], self.points[1][1])
         else:
-            o1 = (self.points[0][0], self.points[1][0])
-            o2 = (self.points[0][1], self.points[1][1])
+            o1 = (self.points[0][1], self.points[1][1])
+            o2 = (self.points[0][0], self.points[1][0])
 
         # Translates points so that 'o2' is centered on 0,0
         mov = o2
         o1 = (o1[0] - mov[0], o1[1] - mov[1])
 
         # Rotates o1 about o2/origin so that o1 is directly above o2
-        if o1[1] == 0:
-            theta = (1 / 2) * np.pi if o1[0] > 0 else -(1 / 2) * np.pi
+        if not o1[0] == 0 and (o1[1] == 0 or abs(np.arctan(o1[1] / o1[0])) < (1 / 4) * np.pi):
+            cp1 = (o1[0] / 2, self.err + 0.5)
+            cp2 = (cp1[0] - 0.5, cp1[1] - 0.5)
+            cp3 = (cp1[0] + 0.5, cp1[1] - 0.5)
+
+            # Translates control points to their original location
+            cp1 = trans_point(cp1, mov)
+            cp2 = trans_point(cp2, mov)
+            cp3 = trans_point(cp3, mov)
+
         else:
             theta = np.arctan(o1[0] / o1[1]) if o1[1] > 0 else np.arctan(o1[0] / o1[1]) + np.pi
 
-        o1 = rotate_point(o1, theta)
-        cp1 = (o1[0], o1[1] + self.err)
-        cp2 = (cp1[0] - 0.5, cp1[1] - 0.5)
-        cp3 = (cp1[0] + 0.5, cp1[1] - 0.5)
+            o1 = rotate_point(o1, theta)
+            cp1 = (o1[0], o1[1] + self.err)
+            cp2 = (cp1[0] - 0.5, cp1[1] - 0.5)
+            cp3 = (cp1[0] + 0.5, cp1[1] - 0.5)
 
-        # Rotates control points back to original orientation
-        cp1 = rotate_point(cp1, -theta)
-        cp2 = rotate_point(cp2, -theta)
-        cp3 = rotate_point(cp3, -theta)
+            # Rotates control points back to original orientation
+            cp1 = rotate_point(cp1, -theta)
+            cp2 = rotate_point(cp2, -theta)
+            cp3 = rotate_point(cp3, -theta)
 
-        # Translates control points to their original location
-        cp1 = trans_point(cp1, mov)
-        cp2 = trans_point(cp2, mov)
-        cp3 = trans_point(cp3, mov)
+            # Translates control points to their original location
+            cp1 = trans_point(cp1, mov)
+            cp2 = trans_point(cp2, mov)
+            cp3 = trans_point(cp3, mov)
 
-        self.control_points.extend([cp1, cp2, cp3])
+        self.control_points = [cp1, cp2, cp3]
 
     def adjust_err(self):
-        self.err += 0.2
+        self.err += 0.8
         self.calculate_control_point()
 
     # Determines if a set of x and y coordinates at any point intersect with the obstacle
@@ -284,7 +292,7 @@ fontP = FontProperties()
 fontP.set_size('small')
 labels = []
 # Distance to the end of the graph (our max viewing distance)
-end_dist = 10
+end_dist = 50000
 
 # The final x and y values of the Bezier plot
 x_vals = []
@@ -441,9 +449,11 @@ def create_environment(req):
 
     pub = rospy.Publisher('cycle/curve', Curve, queue_size=1)
 
+    obj_lst = sorted(req.obj_lst, key=lambda o: (o.x1 + o.x2) / 2)
     # Creates objects
-    for o in req.obj_lst:
-        curveas.create_obstacle(((o.x1, o.x2), (o.y1, o.y2)))
+    for o in obj_lst:
+        curveas.create_obstacle(((o.z1/1000, o.z2/1000), (o.x1/1000, o.x2/1000)))
+    #    print(f"Object : ({o.z1}, {o.x1}, {o.z2}, {o.x2})")
     rospy.loginfo("Object data accepted. Generating Path")
     calculate_curve()
 
@@ -472,7 +482,6 @@ def create_environment(req):
     pub.publish(deltas[0], deltas[1], curveas.get_curve().length, iden, end_time-start_time)
     iden += 1
     data_getter.close()
-    pub.close()
     return
 
 

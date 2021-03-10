@@ -11,9 +11,9 @@ cell_row = int(np.ceil(height / cell_dim))
 cell_col = int(np.ceil(width / cell_dim))
 
 # Tunable parameters to determine if something is an object.
-col_diff = 20  # Expected max difference between two adjacent cells in a column.
-counter_reps = 1  # Number of reps required to dictate it is an object.
-same_obj_diff = 20  # maximum diff between horizontal cells to be considered the same object
+col_diff = 20           # Expected max difference between two adjacent cells in a column.
+counter_reps = 1        # Number of reps required to dictate it is an object.
+same_obj_diff = 120      # maximum diff between horizontal cells to be considered the same object
 
 box_dist = 20  # distance in each dimesion surrounding line segment
 trans_mat = np.eye(3)  # translation matrix
@@ -140,11 +140,14 @@ def object_detection(points):
             cells[y, x] = z if cells[y, x] == 0 else min(z, cells[y, x])
     close_arr = np.zeros((1, cell_col))
 
+    max_dist = 500000  # A really big number
     for col in range(cell_col):
+
         prev = 0                # Previous cell.
         closest = 500000        # Minimum z value for an object in the column.
         counter = 0             # Counts the instances in which adjacent cells do not exceed diff.
         min_obj = 0             # Minimum dist to detected object
+
         for row in range(cell_row):
             if cells[row, col] == 0:
                 continue
@@ -160,13 +163,13 @@ def object_detection(points):
                 closest = min(min_obj, closest)
             prev = cells[row, col]
         close_arr[0, col] = closest
-
+    print(close_arr)
     left_bound = 0      # left most cord of object
     right_bound = 0     # right most cord of object
-    prev = 0            # previous cell's z value
+    prev = max_dist           # previous cell's z value
     for col in range(cell_col):
-        if close_arr[0, col] != 0:
-            if prev == 0:
+        if close_arr[0, col] < max_dist:
+            if prev == max_dist:
                 left_bound = col
                 right_bound = col
                 prev = close_arr[0, col]
@@ -179,26 +182,28 @@ def object_detection(points):
                     obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                                 close_arr[0, left_bound], close_arr[0, right_bound])
                     to_pub.append(obj)
-                if close_arr[0, col] != 0:
+                if close_arr[0, col] < max_dist:
                     left_bound = col
                     right_bound = col
                     prev = close_arr[0, col]
                 else:
-                    prev = 0
-        elif prev != 0:
+                    prev = max_dist
+        elif prev < max_dist:
             if not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                          close_arr[0, left_bound], close_arr[0, right_bound], objects):
                 obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                             close_arr[0, left_bound], close_arr[0, right_bound])
                 to_pub.append(obj)
-            prev = 0
-    if prev != 0:
+            prev = max_dist
+    if prev < max_dist:
         if not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                          close_arr[0, left_bound], close_arr[0, right_bound], objects):
                 obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                             close_arr[0, left_bound], close_arr[0, right_bound])
                 to_pub.append(obj)
     pub.publish(to_pub)
+    for o in to_pub:
+        print(f"({o.x1}, {o.x2}, {o.z1}, {o.z2})")
     return []
 
 def start():
