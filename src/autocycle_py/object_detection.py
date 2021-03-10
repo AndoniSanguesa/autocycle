@@ -85,6 +85,7 @@ def box_verts(x1, x2, z1, z2):
 
 
 def intersection(x1, x2, z1, z2, objects):
+    objects = map(lambda o: (o.x1, o.x2, o.z1, o.z2), objects)
     if x1 < x2:
         points = box_verts(x1, x2, z1, z2)
     elif x1 > x2:
@@ -125,6 +126,7 @@ def intersection(x1, x2, z1, z2, objects):
     return False
 
 started = False
+iden = 0
 
 def object_detection(points):
     global iden, started
@@ -132,7 +134,9 @@ def object_detection(points):
     tracking_frame_getter = rospy.ServiceProxy("get_tracking_frame", GetTrackingFrame)
 
     if started:
-        new_tracking = tracking_frame_getter()
+        new_tracking = tracking_frame_getter(iden)
+        iden = new_tracking.iden
+        print(f" LOOK HERER ER ER ER E RE R E RE R {iden}")
         objects = new_tracking.obj_lst
     else:
         objects = []
