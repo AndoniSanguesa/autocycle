@@ -16,7 +16,7 @@ bool comp_curves(
         resp.deltas = curve.deltas
         resp.time = curve.time
     } else{
-        resp.id = -1
+        resp.id = -1;
     }
     return true;
 }

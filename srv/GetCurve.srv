@@ -1,4 +1,7 @@
-string param
+int64 id
 ---
-string param
+int64 id
 float64 length
+float64 time
+float64[] xs
+float64[] deltas
