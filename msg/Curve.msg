@@ -1,5 +1,5 @@
 float64[] xs
 float64[] deltas
 float64 length
-int id
+int64 id
 float64 time

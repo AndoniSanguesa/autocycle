@@ -9,13 +9,13 @@ bool comp_curves(
     autocycle::GetCurve::Response &resp
 ){
     if(req.id != curve.id){
-        resp.id = curve.id
-        resp.length = curve.length
-        resp.xs = curve.xs
-        resp.deltas = curve.deltas
-        resp.time = curve.time
+        resp.id = curve.id;
+        resp.length = curve.length;
+        resp.xs = curve.xs;
+        resp.deltas = curve.deltas;
+        resp.time = curve.time;
     } else{
-        resp.id = -1
+        resp.id = -1;
     }
     return true;
 }
