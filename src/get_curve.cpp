@@ -3,12 +3,13 @@
 #include <autocycle/Curve.h>
 
 autocycle::Curve curve;
+id = -1;
 
 bool comp_curves(
     autocycle::GetCurve::Request &req,
     autocycle::GetCurve::Response &resp
 ){
-    if(req.id != curve.id){
+    if(req.id != id){
         resp.id = curve.id
         resp.length = curve.length
         resp.xs = curve.xs
@@ -22,6 +23,7 @@ bool comp_curves(
 
 void get_curve(const autocycle::Curve msg){
     curve = msg;
+    id = msg.id;
 }
 
 int main(int argc, char **argv){

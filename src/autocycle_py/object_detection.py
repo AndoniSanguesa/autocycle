@@ -124,16 +124,32 @@ def intersection(x1, x2, z1, z2, objects):
                         return True
     return False
 
+started = False
+iden = -1
+
 def object_detection(points):
+    global iden, started
     pub = rospy.Publisher('cycle/objects', ObjectList, queue_size=1)
+    tracking_frame_getter = rospy.ServiceProxy("get_tracking_frame", ObjectList)
+
+    if started:
+        new_tracking = tracking_frame_getter(iden)
+        while new_tracking.id == -1:
+            new_tracking = tracking_frame_getter(iden)
+        objects = new_tracking.obj_lst
+        iden = new_tracking.iden
+    else:
+        objects = []
+        started = True
+    
     cells = np.zeros((cell_row, cell_col))
     to_pub = []
 
     for p in points.data:
         # creates list with x, y, and z coordinate
         x, y, z = p.x, p.y, p.z
-        x = int((x + (width//2))//cell_dim)
-        y = int((y + (height//2))//cell_dim)
+        x = int((x + (width // 2)) // cell_dim)
+        y = int((y + (height // 2)) // cell_dim)
 
         # Dictating the z value for the cell. Currently only finds the minimum value of the cell.
         if 0 <= x < cell_col and 0 <= y < cell_row:
@@ -142,7 +158,6 @@ def object_detection(points):
 
     max_dist = 500000  # A really big number
     for col in range(cell_col):
-
         prev = 0                # Previous cell.
         closest = 500000        # Minimum z value for an object in the column.
         counter = 0             # Counts the instances in which adjacent cells do not exceed diff.
@@ -211,8 +226,10 @@ def start():
     rospy.init_node("object_detection")
     
     # Creates Service to be called
-    # Creates Service to be called
     rospy.Service("object_detection", DetectObjects, object_detection)
+
+    # Waits for the tracking frame getter service to be active
+    rospy.wait_for_service("get_tracking_frame")
     
     # Waits to be called
     rospy.spin()
