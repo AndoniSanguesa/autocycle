@@ -1,24 +1,14 @@
 import rospy
 import re
-from autocycle.msg import Curve
 from autocycle.srv import GetData, Action, GetCurve
 import time
 import numpy as np
 
-param = ""
+id = -1
+xs = []
+deltas = []
 length = -1
 dist_travelled = 0
-
-def subs(eq, x):
-    return eval(eq.replace("s", str(x)))
-
-
-def derv2(eq, x, acc=0.000001):
-    return (subs(eq, x) - 2*subs(eq, x) + subs(eq, x-acc))/(acc**2)
-
-
-def derv(eq, x, acc=0.000001):
-    return (subs(eq, x) - subs(eq, x+acc))/acc
 
 
 def update_distance(time):
@@ -33,48 +23,12 @@ def update_distance(time):
     ## Closes the getter
     data_getter.close()
 
-
-def get_deltas():
-    global param
-
-    ## Creates the Service Client that will get phi data
-    data_getter = rospy.ServiceProxy("get_data", GetData)
-    
-    print(f"PARAMATERIZED CURVE: {param}")
-    ## Splits the parametric curve into the x and y components
-    stripped = param[9:]
-    x_end_ind = stripped.index("]")
-    x, y = stripped[0:x_end_ind], stripped[x_end_ind + 4:-3]
-
-    ## Calls the data getter to give us the latest roll
-    resp = data_getter("roll")
-    num = 1.02 * np.cos(resp.data)
-
-    cosdelt = np.cos(0.08)
-    step = 0.01  # decrease step size for greater precision
-    curve_deltas = [[0]*(int(1/step)), [0]*(int(1/step))]
-    cnt = 0
-    for i in np.arange(step, 1+step, step):
-        calc1 = abs(derv(x, i) * derv2(y, i) - derv(y, i) * derv2(x, i))
-        if calc1 != 0:
-            calc2 = (cosdelt * (((derv(x, i) ** 2 + derv(y, i) ** 2) ** (3 / 2)) / calc1))
-            if calc2 != 0:
-                curve_deltas[0][cnt] = i
-                curve_deltas[1][cnt] = num/calc2
-                cnt += 1
-        
-    curve_deltas = [curve_deltas[0][0:cnt], curve_deltas[1][0:cnt]]
-
-    data_getter.close()
-    return curve_deltas
-
-
 def find_x_ind(li, x):
     return li.index(min(li, key=lambda t:abs(t-x)))
 
 
 def start():
-    global param, dist_travelled, length
+    global param, dist_travelled, length, id, xs, deltas
     # Registers Node with the master
     rospy.init_node('get_deltas')
 
@@ -93,25 +47,26 @@ def start():
     # Creates the service cline that will get the curve
     curve_getter = rospy.ServiceProxy("get_curve", GetCurve)
 
-    while param == "":
-        result = curve_getter(param)
-        param = result.param
+    while id == -1:
+        result = curve_getter(id)
+        xs = result.xs
+        deltas = result.deltas
+        id = result.id
         length = result.length
 
     # Initial Time
     time_i = time.time()
 
-    # Grabs the first deltas
-    deltas = get_deltas()
 
     # Continues sending commands to bike and updating deltas
     while not rospy.is_shutdown():
-        result = curve_getter(param)
-        if result.param != "":
-            param = result.param
+        result = curve_getter(id)
+        if result.id != -1:
+            id = result.id
             length = result.length
             dist_travelled = 0
-            deltas = get_deltas()
+            update_distance(result.time)
+            deltas = result.deltas
             time_i = time.time()
         
         # Time to adjust for
