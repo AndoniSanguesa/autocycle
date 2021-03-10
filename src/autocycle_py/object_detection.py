@@ -1,7 +1,7 @@
 import numpy as np
 import rospy
 from autocycle.msg import ObjectList, Object
-from autocycle.srv import DetectObjects
+from autocycle.srv import DetectObjects, GetTrackingFrame
 
 height = 100  # vertical dimension in millimeters
 width = 200  # horizontal dimension in millimeters
@@ -129,7 +129,7 @@ started = False
 def object_detection(points):
     global iden, started
     pub = rospy.Publisher('cycle/objects', ObjectList, queue_size=1)
-    tracking_frame_getter = rospy.ServiceProxy("get_tracking_frame", ObjectList)
+    tracking_frame_getter = rospy.ServiceProxy("get_tracking_frame", GetTrackingFrame)
 
     if started:
         new_tracking = tracking_frame_getter()
@@ -189,7 +189,7 @@ def object_detection(points):
                 prev = close_arr[0, col]
             else:
                 if not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
-                         close_arr[0, left_bound], close_arr[0, right_bound], objects):
+                    close_arr[0, left_bound], close_arr[0, right_bound], objects):
                     obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                                 close_arr[0, left_bound], close_arr[0, right_bound])
                     to_pub.append(obj)
@@ -212,7 +212,8 @@ def object_detection(points):
                 obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                             close_arr[0, left_bound], close_arr[0, right_bound])
                 to_pub.append(obj)
-    pub.publish(to_pub)
+    print("THIS SHOULD BE PUBLISHING")
+    pub.publish(to_pub, 0)
     for o in to_pub:
         print(f"({o.x1}, {o.x2}, {o.z1}, {o.z2})")
     return []
@@ -226,6 +227,9 @@ def start():
 
     # Waits for the tracking frame getter service to be active
     rospy.wait_for_service("get_tracking_frame")
-    
+   
+    # Waits for the get object list service to be active
+    rospy.wait_for_service("object_list_getter")
+
     # Waits to be called
     rospy.spin()

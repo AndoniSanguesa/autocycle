@@ -3,18 +3,18 @@
 #include <autocycle/Curve.h>
 
 autocycle::Curve curve;
-id = -1;
+int id = -1;
 
 bool comp_curves(
     autocycle::GetCurve::Request &req,
     autocycle::GetCurve::Response &resp
 ){
     if(req.id != id){
-        resp.id = curve.id
-        resp.length = curve.length
-        resp.xs = curve.xs
-        resp.deltas = curve.deltas
-        resp.time = curve.time
+        resp.id = curve.id;
+        resp.length = curve.length;
+        resp.xs = curve.xs;
+        resp.deltas = curve.deltas;
+        resp.time = curve.time;
     } else{
         resp.id = -1;
     }

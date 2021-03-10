@@ -11,9 +11,11 @@ new_objects = []
 objects = []
 heading = 0
 time = 0
+iden = 0
 
 def static_object_tracking():
-    global objects, heading, time, new_objects
+    global objects, heading, time, new_objects, iden
+
     # Registers the Node with the Master
     rospy.init_node("static_object_tracking")
 
@@ -39,13 +41,14 @@ def static_object_tracking():
         new_objects = obj_lst_getter(objects).obj_lst
         
     objects = new_objects.copy()
-        
+    print("IM BEGGING")
     while not rospy.is_shutdown():
         new_objects = obj_lst_getter(new_objects).obj_lst
         #for o in new_objects:
         #    print(f"OBJECT: ({o.x1}, {o.x2}, {o.z1}, {o.z2})")
         if new_objects:
             objects.extend(new_objects)
+            print("I GOT THE OBJECTS")
         
         # Collects data
         new_heading = data_getter("heading").data
@@ -69,5 +72,8 @@ def static_object_tracking():
         objects = list(filter(lambda x: x.z1 >= 0 or x.z2 >= 0, new))
         #for o in objects:
         #    print(f"OBJECT : ({o.x1}, {o.x2}, {o.z1}, {o.z2})")
-        pub.publish(objects)
+
+        pub.publish(objects, iden)
+        iden += 1
+
 

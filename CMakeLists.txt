@@ -12,6 +12,7 @@ add_service_files(FILES
   LvxData.srv
   RollAdj.srv
   GetData.srv
+  GetTrackingFrame.srv
   Action.srv
   DetectObjects.srv
   ObjectDetectionList.srv
@@ -52,7 +53,6 @@ catkin_install_python(PROGRAMS bin/bezier_visualization bin/get_deltas bin/objec
 
 # TESTING FILES
 add_executable(test_roll_adj test/test_roll_adj.cpp)
-add_executable(test_gen_param test/test_gen_param.cpp)
 add_executable(test_serial_read test/test_serial_read.cpp)
 add_executable(test_sim_sensors test/test_sim_sensors.cpp)
 add_executable(test_serial_write test/test_serial_write.cpp)
@@ -61,7 +61,6 @@ add_executable(test_visualize_lidar test/test_visualize_lidar.cpp)
 add_executable(test_fake_send_action test/test_fake_send_action.cpp)
 
 target_link_libraries(test_roll_adj ${catkin_LIBRARIES})
-target_link_libraries(test_gen_param ${catkin_LIBRARIES})
 target_link_libraries(test_serial_read ${catkin_LIBRARIES})
 target_link_libraries(test_sim_sensors ${catkin_LIBRARIES})
 target_link_libraries(test_serial_write ${catkin_LIBRARIES})
