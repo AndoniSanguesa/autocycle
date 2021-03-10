@@ -125,7 +125,6 @@ def intersection(x1, x2, z1, z2, objects):
     return False
 
 started = False
-iden = -1
 
 def object_detection(points):
     global iden, started
@@ -133,11 +132,8 @@ def object_detection(points):
     tracking_frame_getter = rospy.ServiceProxy("get_tracking_frame", ObjectList)
 
     if started:
-        new_tracking = tracking_frame_getter(iden)
-        while new_tracking.id == -1:
-            new_tracking = tracking_frame_getter(iden)
+        new_tracking = tracking_frame_getter()
         objects = new_tracking.obj_lst
-        iden = new_tracking.iden
     else:
         objects = []
         started = True

@@ -11,10 +11,9 @@ new_objects = []
 objects = []
 heading = 0
 time = 0
-id = 0
 
 def static_object_tracking():
-    global objects, heading, time, new_objects, id
+    global objects, heading, time, new_objects
     # Registers the Node with the Master
     rospy.init_node("static_object_tracking")
 
@@ -70,6 +69,5 @@ def static_object_tracking():
         objects = list(filter(lambda x: x.z1 >= 0 or x.z2 >= 0, new))
         #for o in objects:
         #    print(f"OBJECT : ({o.x1}, {o.x2}, {o.z1}, {o.z2})")
-        pub.publish(objects, id)
-        id += 1
+        pub.publish(objects)
 
