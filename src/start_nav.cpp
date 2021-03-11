@@ -11,11 +11,17 @@
 #include <fstream>
 #include <iostream>
 #include <std_msgs/String.h>
+#include <std_msgs/Bool.h>
+#include <std_msgs/Empty.h>
 
 using namespace std::chrono;
 
 std::string path_to_lvx = "f_done.lvx";
+bool ready = false;
 
+void update_ready(const std_msgs::Empty msg){
+    ready = true
+}
 
 int main(int argc, char **argv) {
   // Will contain the status of service calls
@@ -37,6 +43,8 @@ int main(int argc, char **argv) {
   // Wait for the fix_roll service to be active
   ros::service::waitForService("fix_roll");
 
+  // Creates the subscriber that checks for when it is safe to continue
+  ros::Subscriber read_sub = nh.subscribe("cycle/ready", 1, &update_ready)
 
   // TEMPRORARY UNTIL LVX ANALYSIS ALGORITHM IS COMPLETE.
   // ONLY TO TEST THAT FRAMES ARE BEING RECORDED.
@@ -74,6 +82,9 @@ int main(int argc, char **argv) {
   high_resolution_clock::time_point end;
   double duration, distance;
   float velocity;
+  int frame_cnt = 0;
+
+  start = high_resolution_clock::now();
 
   // Navigation loop
   while(ros::ok()){
@@ -120,9 +131,16 @@ int main(int argc, char **argv) {
     detect_req.data = adj_roll_resp.out;
     result = detection_client.call(detect_req, detect_resp);
 
-    // Clears f_done.lvx file
+    // Clears f_done.lvx file while waiting for the rest of the loop to be ready
     f_done.open(path_to_lvx, std::ios::trunc);
     f_done.close();
+    end = high_resolution_clock::now();
+    frame_cnt += 1;
+    ROS_INFO_STREAM("FRAMES PER SECOND: " << frame_cnt/duration_cast<duration<double>>(end - start));
+    while(!ready){
+        f_done.open(path_to_lvx, std::ios::trunc);
+        f_done.close();
+    }
   }
   f_done.open(path_to_lvx, std::ios::trunc);
   f_done.write("done", 4);
