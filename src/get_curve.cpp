@@ -3,27 +3,27 @@
 #include <autocycle/Curve.h>
 
 autocycle::Curve curve;
-int id = -1;
+int iden = -1;
 
 bool comp_curves(
     autocycle::GetCurve::Request &req,
     autocycle::GetCurve::Response &resp
 ){
-    if(req.id != id){
-        resp.id = curve.id;
+    if(req.iden != iden){
+        resp.iden = curve.iden;
         resp.length = curve.length;
         resp.xs = curve.xs;
         resp.deltas = curve.deltas;
         resp.time = curve.time;
     } else{
-        resp.id = -1;
+        resp.iden = -1;
     }
     return true;
 }
 
 void get_curve(const autocycle::Curve msg){
     curve = msg;
-    id = msg.id;
+    iden = msg.iden;
 }
 
 int main(int argc, char **argv){

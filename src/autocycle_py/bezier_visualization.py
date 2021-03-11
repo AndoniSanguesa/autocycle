@@ -453,7 +453,7 @@ def create_environment(req):
     # Creates objects
     for o in obj_lst:
         curveas.create_obstacle(((o.z1/1000, o.z2/1000), (o.x1/1000, o.x2/1000)))
-    #    print(f"Object : ({o.z1}, {o.x1}, {o.z2}, {o.x2})")
+        print(f"Object : ({o.z1}, {o.x1}, {o.z2}, {o.x2})")
     rospy.loginfo("Object data accepted. Generating Path")
     calculate_curve()
 
@@ -477,8 +477,9 @@ def create_environment(req):
         block_list = is_obstacle_block()
     # plot()
     rospy.loginfo("Path generated.")
-    deltas = get_deltas()
     end_time = time.time()
+    deltas = get_deltas()
+    rospy.loginfo(f"TIME TO PROCESS: {end_time-start_time}")
     pub.publish(deltas[0], deltas[1], curveas.get_curve().length, iden, end_time-start_time)
     iden += 1
     data_getter.close()

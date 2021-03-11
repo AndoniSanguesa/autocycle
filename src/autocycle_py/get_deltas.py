@@ -4,7 +4,7 @@ from autocycle.srv import GetData, Action, GetCurve
 import time
 import numpy as np
 
-id = -1
+iden = -1
 xs = []
 deltas = []
 length = -1
@@ -28,7 +28,7 @@ def find_x_ind(li, x):
 
 
 def start():
-    global param, dist_travelled, length, id, xs, deltas
+    global param, dist_travelled, length, iden, xs, deltas
     # Registers Node with the master
     rospy.init_node('get_deltas')
 
@@ -47,11 +47,11 @@ def start():
     # Creates the service cline that will get the curve
     curve_getter = rospy.ServiceProxy("get_curve", GetCurve)
 
-    while id == -1:
-        result = curve_getter(id)
+    while iden == -1:
+        result = curve_getter(iden)
         xs = result.xs
         deltas = result.deltas
-        id = result.id
+        iden = result.iden
         length = result.length
 
     # Initial Time
@@ -60,9 +60,9 @@ def start():
 
     # Continues sending commands to bike and updating deltas
     while not rospy.is_shutdown():
-        result = curve_getter(id)
-        if result.id != -1:
-            id = result.id
+        result = curve_getter(iden)
+        if result.iden != -1:
+            iden = result.iden
             length = result.length
             dist_travelled = 0
             update_distance(result.time)
@@ -82,10 +82,10 @@ def start():
             # Gets closest x to the distance travelled
             x_ind = find_x_ind(xs, dist_travelled)
 
-            rospy.loginfo(f"Delta Sent: {deltas[1][x_ind]}")
+            rospy.loginfo(f"Delta Sent: {deltas[x_ind]}")
 
             # Sends commands to the `action` node
-            action_sender([True, True, False], deltas[1][x_ind], 4.5, "")
+            action_sender([True, True, False], deltas[x_ind], 4.5, "")
         except ValueError:
             pass
         
