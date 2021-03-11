@@ -52,6 +52,7 @@ catkin_install_python(PROGRAMS bin/bezier_visualization bin/get_deltas bin/objec
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 # TESTING FILES
+add_executable(test_bezier test/test_bezier.cpp)
 add_executable(test_roll_adj test/test_roll_adj.cpp)
 add_executable(test_serial_read test/test_serial_read.cpp)
 add_executable(test_sim_sensors test/test_sim_sensors.cpp)
@@ -60,6 +61,7 @@ add_executable(test_roll_publisher test/test_roll_publisher.cpp)
 add_executable(test_visualize_lidar test/test_visualize_lidar.cpp)
 add_executable(test_fake_send_action test/test_fake_send_action.cpp)
 
+target_link_libraries(test_bezier ${catkin_LIBRARIES})
 target_link_libraries(test_roll_adj ${catkin_LIBRARIES})
 target_link_libraries(test_serial_read ${catkin_LIBRARIES})
 target_link_libraries(test_sim_sensors ${catkin_LIBRARIES})
