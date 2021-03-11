@@ -114,11 +114,11 @@ def intersection(x1, x2, z1, z2, objects):
             x4, z4 = temp
         diffs_obj = (x3 - x4, z3 - z4, x3 * z4 - x4 * z3)
 
-        for x in range(4):
-            if (D := point_diffs[x][0] * diffs_obj[1] - point_diffs[x][1] * diffs_obj[0]) != 0:
-                x = (point_diffs[x][2] * diffs_obj[1] - point_diffs[x][1] * diffs_obj[2]) / D
+        for doni in range(4):
+            if (D := point_diffs[doni][0] * diffs_obj[1] - point_diffs[doni][1] * diffs_obj[0]) != 0:
+                x = (point_diffs[doni][2] * diffs_obj[1] - point_diffs[doni][1] * diffs_obj[2]) / D
                 if x3 <= x <= x4:
-                    y = (point_diffs[x][0] * diffs_obj[2] - point_diffs[x][2] * diffs_obj[0]) / D
+                    y = (point_diffs[doni][0] * diffs_obj[2] - point_diffs[doni][2] * diffs_obj[0]) / D
                     p2m = (x - points[0][0], y - points[0][1])
                     if 0 <= np.dot(p2m, p2p3) < np.dot(p2p3, p2p3) and 0 <= np.dot(p2m, p2p1) < np.dot(p2p1, p2p1):
                         return True
