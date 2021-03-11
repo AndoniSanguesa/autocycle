@@ -9,7 +9,7 @@ bool get_tracking_frame(
     autocycle::GetTrackingFrame::Request &req,
     autocycle::GetTrackingFrame::Response &resp
 ){
-    while req.iden == iden{
+    while(req.iden == iden){
         ros::spinOnce();
     }
     resp.iden = ol.iden;
