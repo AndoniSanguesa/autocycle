@@ -80,7 +80,7 @@ def start():
         
         try:
             # Gets closest x to the distance travelled
-            x_ind = find_x_ind(deltas[0], dist_travelled)
+            x_ind = find_x_ind(xs, dist_travelled)
 
             rospy.loginfo(f"Delta Sent: {deltas[1][x_ind]}")
 
