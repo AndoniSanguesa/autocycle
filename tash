@@ -1,0 +1,99 @@
+[1mdiff --git a/Livox-SDK b/Livox-SDK[m
+[1m--- a/Livox-SDK[m
+[1m+++ b/Livox-SDK[m
+[36m@@ -1 +1 @@[m
+[31m-Subproject commit 7cf759a760ac674b7032c48b46ef8aaadab90383[m
+[32m+[m[32mSubproject commit 7cf759a760ac674b7032c48b46ef8aaadab90383-dirty[m
+[1mdiff --git a/src/Livox-SDK b/src/Livox-SDK[m
+[1m--- a/src/Livox-SDK[m
+[1m+++ b/src/Livox-SDK[m
+[36m@@ -1 +1 @@[m
+[31m-Subproject commit 7cf759a760ac674b7032c48b46ef8aaadab90383[m
+[32m+[m[32mSubproject commit 7cf759a760ac674b7032c48b46ef8aaadab90383-dirty[m
+[1mdiff --git a/src/autocycle_py/bezier_visualization.py b/src/autocycle_py/bezier_visualization.py[m
+[1mindex 25eca7b..ec868d3 100644[m
+[1m--- a/src/autocycle_py/bezier_visualization.py[m
+[1m+++ b/src/autocycle_py/bezier_visualization.py[m
+[36m@@ -442,10 +442,10 @@[m [mdef create_environment(req):[m
+     curveas.obstacles = [][m
+ [m
+     ## Creates the Service Client that will get speed data[m
+[31m-    data_getter = rospy.ServiceProxy("get_data", GetData)[m
+[32m+[m[32m    #data_getter = rospy.ServiceProxy("get_data", GetData)[m
+ [m
+[31m-    heading = des_heading - data_getter("heading").data[m
+[31m-    curveas.heading = heading[m
+[32m+[m[32m    #heading = des_heading - data_getter("heading").data[m
+[32m+[m[32m    #curveas.heading = heading[m
+ [m
+     pub = rospy.Publisher('cycle/curve', Curve, queue_size=1)[m
+ [m
+[36m@@ -482,7 +482,7 @@[m [mdef create_environment(req):[m
+     rospy.loginfo(f"TIME TO PROCESS: {end_time-start_time}")[m
+     pub.publish(deltas[0], deltas[1], curveas.get_curve().length, iden, end_time-start_time)[m
+     iden += 1[m
+[31m-    data_getter.close()[m
+[32m+[m[32m    #data_getter.close()[m
+     return[m
+ [m
+ [m
+[36m@@ -492,17 +492,17 @@[m [mdef start():[m
+     rospy.init_node("bezier")[m
+ [m
+     # Waits for data getter service[m
+[31m-    rospy.wait_for_service('get_data')[m
+[32m+[m[32m    #rospy.wait_for_service('get_data')[m
+ [m
+     # Creates the service client that will collect data[m
+[31m-    data_getter = rospy.ServiceProxy("get_data", GetData)[m
+[32m+[m[32m    #data_getter = rospy.ServiceProxy("get_data", GetData)[m
+ [m
+     ## Sets desired heading (for now the intial heading)[m
+[31m-    des_heading = data_getter("heading").data[m
+[32m+[m[32m    #des_heading = data_getter("heading").data[m
+ [m
+     rospy.Subscriber("cycle/object_frame", ObjectList, create_environment)[m
+ [m
+     ## Closes this data getter[m
+[31m-    data_getter.close()[m
+[32m+[m[32m    #data_getter.close()[m
+ [m
+     rospy.spin()[m
+[1mdiff --git a/test/test_bezier.cpp b/test/test_bezier.cpp[m
+[1mindex b7c2c03..2ca4c2f 100644[m
+[1m--- a/test/test_bezier.cpp[m
+[1m+++ b/test/test_bezier.cpp[m
+[36m@@ -8,7 +8,7 @@[m [mint main(int argc, char **argv){[m
+     ros::NodeHandle nh;[m
+ [m
+     // Creates Publisher that will publish the object list[m
+[31m-    ros::Publisher obj_pub = nh.advertise<autocycle::ObjectList>("cycle/ObjectFrame", 1);[m
+[32m+[m[32m    ros::Publisher obj_pub = nh.advertise<autocycle::ObjectList>("cycle/object_frame", 1);[m
+ [m
+     // Creates Object and publishes it[m
+     autocycle::ObjectList ol;[m
+[36m@@ -18,5 +18,8 @@[m [mint main(int argc, char **argv){[m
+     o.z1 = 5000;[m
+     o.z2 = 7000;[m
+     ol.obj_lst.push_back(o);[m
+[31m-    obj_pub.publish(ol);[m
+[31m-}[m
+\ No newline at end of file[m
+[32m+[m[32m    ROS_INFO_STREAM(ol);[m
+[32m+[m[32m    while(ros::ok()){[m
+[32m+[m[32m        obj_pub.publish(ol);[m
+[32m+[m[32m    }[m
+[32m+[m[32m}[m
+[1mdiff --git a/test/test_bezier.launch b/test/test_bezier.launch[m
+[1mindex 1e60888..0e5c73d 100644[m
+[1m--- a/test/test_bezier.launch[m
+[1m+++ b/test/test_bezier.launch[m
+[36m@@ -11,6 +11,5 @@[m
+     type="test_bezier"[m
+     name="test_bezier"[m
+     output="screen"[m
+[31m-    respawn="true"[m
+   />[m
+[31m-</launch>[m
+\ No newline at end of file[m
+[32m+[m[32m</launch>[m

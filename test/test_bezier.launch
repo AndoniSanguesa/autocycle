@@ -11,6 +11,5 @@
     type="test_bezier"
     name="test_bezier"
     output="screen"
-    respawn="true"
   />
 </launch>

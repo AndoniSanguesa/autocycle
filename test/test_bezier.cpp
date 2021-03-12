@@ -8,7 +8,7 @@ int main(int argc, char **argv){
     ros::NodeHandle nh;
 
     // Creates Publisher that will publish the object list
-    ros::Publisher obj_pub = nh.advertise<autocycle::ObjectList>("cycle/ObjectFrame", 1);
+    ros::Publisher obj_pub = nh.advertise<autocycle::ObjectList>("cycle/object_frame", 1);
 
     // Creates Object and publishes it
     autocycle::ObjectList ol;
@@ -18,5 +18,8 @@ int main(int argc, char **argv){
     o.z1 = 5000;
     o.z2 = 7000;
     ol.obj_lst.push_back(o);
-    obj_pub.publish(ol);
+    ROS_INFO_STREAM(ol);
+    while(ros::ok()){
+        obj_pub.publish(ol);
+    }
 }

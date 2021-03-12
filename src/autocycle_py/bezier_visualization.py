@@ -442,10 +442,10 @@ def create_environment(req):
     curveas.obstacles = []
 
     ## Creates the Service Client that will get speed data
-    data_getter = rospy.ServiceProxy("get_data", GetData)
+    #data_getter = rospy.ServiceProxy("get_data", GetData)
 
-    heading = des_heading - data_getter("heading").data
-    curveas.heading = heading
+    #heading = des_heading - data_getter("heading").data
+    #curveas.heading = heading
 
     pub = rospy.Publisher('cycle/curve', Curve, queue_size=1)
 
@@ -482,7 +482,7 @@ def create_environment(req):
     rospy.loginfo(f"TIME TO PROCESS: {end_time-start_time}")
     pub.publish(deltas[0], deltas[1], curveas.get_curve().length, iden, end_time-start_time)
     iden += 1
-    data_getter.close()
+    #data_getter.close()
     return
 
 
@@ -492,17 +492,17 @@ def start():
     rospy.init_node("bezier")
 
     # Waits for data getter service
-    rospy.wait_for_service('get_data')
+    #rospy.wait_for_service('get_data')
 
     # Creates the service client that will collect data
-    data_getter = rospy.ServiceProxy("get_data", GetData)
+    #data_getter = rospy.ServiceProxy("get_data", GetData)
 
     ## Sets desired heading (for now the intial heading)
-    des_heading = data_getter("heading").data
+    #des_heading = data_getter("heading").data
 
     rospy.Subscriber("cycle/object_frame", ObjectList, create_environment)
 
     ## Closes this data getter
-    data_getter.close()
+    #data_getter.close()
 
     rospy.spin()
