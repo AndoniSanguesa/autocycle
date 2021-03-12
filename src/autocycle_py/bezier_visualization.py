@@ -7,6 +7,7 @@ import time
 import rospy
 from autocycle.srv import GetData
 from autocycle.msg import Curve, ObjectList
+from std_msg.msg import Empty
 
 
 def rotate_point(point, theta):
@@ -448,6 +449,7 @@ def create_environment(req):
     #curveas.heading = heading
 
     pub = rospy.Publisher('cycle/curve', Curve, queue_size=1)
+    ready_pub = rospy.Publisher('cycle/ready', Empty, queue_size=1)
 
     obj_lst = sorted(req.obj_lst, key=lambda o: (o.x1 + o.x2) / 2)
     # Creates objects
@@ -481,6 +483,7 @@ def create_environment(req):
     deltas = get_deltas()
     rospy.loginfo(f"TIME TO PROCESS: {end_time-start_time}")
     pub.publish(deltas[0], deltas[1], curveas.get_curve().length, iden, end_time-start_time)
+    ready_pub.publish(Empty)
     iden += 1
     #data_getter.close()
     return
