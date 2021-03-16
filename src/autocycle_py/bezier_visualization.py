@@ -7,7 +7,7 @@ import time
 import rospy
 from autocycle.srv import GetData
 from autocycle.msg import Curve, ObjectList
-from std_msg.msg import Empty
+from std_srv.srv import Empty
 
 
 def rotate_point(point, theta):
@@ -308,6 +308,8 @@ curveas = CurveAssistant(end_dist)
 # The coordinate of the final control point at the end of the graph
 lastpoint = curveas.get_last_control_point()
 
+tot_time = 0
+
 
 def plot():
     for obstacle in curveas.obstacles:
@@ -433,7 +435,7 @@ def get_deltas():
     return curve_deltas
 
 def create_environment(req):
-    global resolution, des_heading, iden
+    global resolution, des_heading, iden, tot_time
     
     start_time = time.time()
 
@@ -445,11 +447,12 @@ def create_environment(req):
     ## Creates the Service Client that will get speed data
     data_getter = rospy.ServiceProxy("get_data", GetData)
 
+    new_data = rospy.ServiceProxy("collect_data", Empty)
+
     heading = des_heading - data_getter("heading").data
     curveas.heading = heading
 
     pub = rospy.Publisher('cycle/curve', Curve, queue_size=1)
-    ready_pub = rospy.Publisher('cycle/ready', Empty, queue_size=1)
 
     obj_lst = sorted(req.obj_lst, key=lambda o: (o.x1 + o.x2) / 2)
     # Creates objects
@@ -482,10 +485,13 @@ def create_environment(req):
     end_time = time.time()
     deltas = get_deltas()
     rospy.loginfo(f"TIME TO PROCESS: {end_time-start_time}")
+    tot_time += end_time-start_time
     pub.publish(deltas[0], deltas[1], curveas.get_curve().length, iden, end_time-start_time)
-    ready_pub.publish(Empty)
     iden += 1
+    rospy.loginfo(f"FRAMES PER SECOND: {iden/tot_time}")
     data_getter.close()
+    new_data()
+    new_data.close()
     return
 
 
@@ -496,9 +502,13 @@ def start():
 
     # Waits for data getter service
     rospy.wait_for_service('get_data')
+    
+    rospy.wait_for_service("collect_data")
 
     # Creates the service client that will collect data
     data_getter = rospy.ServiceProxy("get_data", GetData)
+    
+    new_data = rospy.ServiceProxy("collect_data", Empty)
 
     ## Sets desired heading (for now the intial heading)
     des_heading = data_getter("heading").data
@@ -507,5 +517,7 @@ def start():
 
     ## Closes this data getter
     data_getter.close()
+    
+    new_data()
 
     rospy.spin()
