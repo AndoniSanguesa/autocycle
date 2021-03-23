@@ -60,13 +60,15 @@ std::string path_to_lvx = "f_done.lvx";
 bool ready = false;
 
 void update_ready(const std_msgs::Empty msg){
-    ready = true
+    ready = true;
 }
 
 bool collect_data(
     std_srvs::Empty::Request &req,
     std_srvs::Empty::Response &resp
     ){
+    bool result;
+    ros::NodeHandle nh;
     ROS_INFO_STREAM("Sending request for LVX file.");
 
     // Waits until f_done.lvx has been populated
@@ -117,9 +119,6 @@ bool collect_data(
 }
 
 int main(int argc, char **argv) {
-  // Will contain the status of service calls
-  bool result;
-
   // Initializes the Node and registers it with the master.
   ros::init(argc, argv, "navigation_communicator");
   ros::NodeHandle nh;
