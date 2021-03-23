@@ -1,13 +1,13 @@
 #include <ros/ros.h>
-#include <autocycle/ObjectList.h>
-#include <autocycle/GetTrackingFrame.h>
+#include <autocycle_extras/ObjectList.h>
+#include <autocycle_extras/GetTrackingFrame.h>
 
-autocycle::ObjectList ol;
+autocycle_extras::ObjectList ol;
 int iden = -1;
 
 bool get_tracking_frame(
-    autocycle::GetTrackingFrame::Request &req,
-    autocycle::GetTrackingFrame::Response &resp
+    autocycle_extras::GetTrackingFrame::Request &req,
+    autocycle_extras::GetTrackingFrame::Response &resp
 ){
     while(req.iden == iden){
         ros::spinOnce();
@@ -17,7 +17,7 @@ bool get_tracking_frame(
     return true;
 }
 
-void get_new_frame(const autocycle::ObjectList new_ol){
+void get_new_frame(const autocycle_extras::ObjectList new_ol){
     ol = new_ol;
     iden = new_ol.iden;
     ROS_INFO_STREAM(iden);

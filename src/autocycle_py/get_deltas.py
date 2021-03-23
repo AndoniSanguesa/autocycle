@@ -1,6 +1,6 @@
 import rospy
 import re
-from autocycle.srv import GetData, Action, GetCurve
+from autocycle_extras.srv import GetData, Action, GetCurve
 import time
 import numpy as np
 

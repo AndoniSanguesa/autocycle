@@ -1,13 +1,13 @@
 #include <ros/ros.h>
-#include <autocycle/GetCurve.h>
-#include <autocycle/Curve.h>
+#include <autocycle_extras/GetCurve.h>
+#include <autocycle_extras/Curve.h>
 
-autocycle::Curve curve;
+autocycle_extras::Curve curve;
 int iden = -1;
 
 bool comp_curves(
-    autocycle::GetCurve::Request &req,
-    autocycle::GetCurve::Response &resp
+    autocycle_extras::GetCurve::Request &req,
+    autocycle_extras::GetCurve::Response &resp
 ){
     if(req.iden != iden){
         resp.iden = curve.iden;
@@ -21,7 +21,7 @@ bool comp_curves(
     return true;
 }
 
-void get_curve(const autocycle::Curve msg){
+void get_curve(const autocycle_extras::Curve msg){
     curve = msg;
     iden = msg.iden;
 }

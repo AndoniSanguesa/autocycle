@@ -1,7 +1,7 @@
 import numpy as np
 import rospy
-from autocycle.msg import Object, ObjectList
-from autocycle.srv import GetData, ObjectDetectionList
+from autocycle_extras.msg import Object, ObjectList
+from autocycle_extras.srv import GetData, ObjectDetectionList
 
 height = 100              # vertical dimension in millimeters
 width = 200               # horizontal dimension in millimeters
@@ -12,9 +12,10 @@ objects = []
 heading = 0
 time = 0
 iden = 0
+iden2 = -1
 
 def static_object_tracking():
-    global objects, heading, time, new_objects, iden
+    global objects, heading, time, new_objects, iden, iden2
 
     # Registers the Node with the Master
     rospy.init_node("static_object_tracking")
@@ -38,16 +39,18 @@ def static_object_tracking():
     time = data_getter("met").data
 
     while not new_objects:
-        new_objects = obj_lst_getter(objects).obj_lst
+        new_objects = obj_lst_getter(iden2)
         
-    objects = new_objects.copy()
+    iden2 = new_objects.iden
+    objects = new_objects.obj_lst.copy()
     print("IM BEGGING")
     while not rospy.is_shutdown():
-        new_objects = obj_lst_getter(new_objects).obj_lst
-        #for o in new_objects:
+        new_objects = obj_lst_getter(iden2)
+        #for o in new_objects.obj_lst:
         #    print(f"OBJECT: ({o.x1}, {o.x2}, {o.z1}, {o.z2})")
-        if new_objects:
-            objects.extend(new_objects)
+        if new_objects.obj_lst:
+            objects.extend(new_objects.obj_lst)
+            iden2 = new_objects.iden
             print("I GOT THE OBJECTS")
         
         # Collects data

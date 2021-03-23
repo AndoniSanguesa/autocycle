@@ -1,6 +1,6 @@
 #include <ros/ros.h>
-#include <autocycle/Point.h>
-#include <autocycle/LvxData.h>
+#include <autocycle_extras/Point.h>
+#include <autocycle_extras/LvxData.h>
 #include <string>
 #include <cmath>
 #include <stdlib.h>
@@ -10,7 +10,7 @@
 using namespace std;
 
 // Finds the range for x and y values of the points in a frame of data
-void get_max_min(vector<autocycle::Point> points, double x_range[2],double y_range[2]){
+void get_max_min(vector<autocycle_extras::Point> points, double x_range[2],double y_range[2]){
     for(int i = 0; i < points.size(); i++){
         //ROS_INFO_STREAM("(" << points[i].x << ", " << points[i].y << ", " << points[i].z << ")");
 	if(points[i].x < x_range[0]){
@@ -50,11 +50,11 @@ int main(int argc, char** argv){
     ros::service::waitForService("parse_lvx");
 
     // Creates the service that will fetch the latest data
-    ros::ServiceClient lvx_client = nh.serviceClient<autocycle::LvxData>("parse_lvx");
+    ros::ServiceClient lvx_client = nh.serviceClient<autocycle_extras::LvxData>("parse_lvx");
 
     // The response and request objects that will contain data regarding the lvx file
-    autocycle::LvxData::Request lvx_req;
-    autocycle::LvxData::Response lvx_resp;
+    autocycle_extras::LvxData::Request lvx_req;
+    autocycle_extras::LvxData::Response lvx_resp;
 
     // Sets variables for visualization
     int height, width = 0;
@@ -76,7 +76,7 @@ int main(int argc, char** argv){
     int x_bin_ind, y_bin_ind, count;
     double bin_count[width][height];
     double bins [width][height];
-    vector<autocycle::Point> points;
+    vector<autocycle_extras::Point> points;
     std::ofstream f_done;
 
     while(ros::ok()){

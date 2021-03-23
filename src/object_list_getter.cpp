@@ -1,21 +1,22 @@
 #include <ros/ros.h>
-#include <autocycle/ObjectDetectionList.h>
-#include <autocycle/ObjectList.h>
-#include <autocycle/Object.h>
+#include <autocycle_extras/ObjectDetectionList.h>
+#include <autocycle_extras/ObjectList.h>
+#include <autocycle_extras/Object.h>
 
-autocycle::ObjectList obj_lst;
+autocycle_extras::ObjectList obj_lst;
 
 bool comp_data(
-    autocycle::ObjectDetectionList::Request &req,
-    autocycle::ObjectDetectionList::Response &resp
+    autocycle_extras::ObjectDetectionList::Request &req,
+    autocycle_extras::ObjectDetectionList::Response &resp
 ){
-    if(req.obj_lst != obj_lst.obj_lst){
+    if(req.iden != obj_lst.iden){
         resp.obj_lst = obj_lst.obj_lst;
+	resp.iden = obj_lst.iden;
     }
     return true;
 }
 
-void get_data(const autocycle::ObjectList msg){
+void get_data(const autocycle_extras::ObjectList msg){
     ROS_INFO_STREAM("BRUH at LISTENER");
     obj_lst = msg;
 }
@@ -26,8 +27,8 @@ int main(int argc, char **argv){
     ros::NodeHandle nh;
 
     // Creates subscriber for Object Detection stuff
-    ros::Subscriber obj_dect_sub = nh.subscribe("cycle/objects", 1, &get_data);
-
+    ros::Subscriber obj_dect_sub = nh.subscribe("cycle/objects", 1, get_data);
+    
     // Creates Service
     ros::ServiceServer serv = nh.advertiseService("object_list_getter", &comp_data);
     ros::spin();

@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <ros/ros.h>
-#include <autocycle/LvxData.h>
-#include <autocycle/Point.h>
+#include <autocycle_extras/LvxData.h>
+#include <autocycle_extras/Point.h>
 #include <chrono>
 #include <math.h>
 #include <cstring>
@@ -11,15 +11,15 @@ using namespace std;
 using namespace std::chrono;
 
 bool parseLVX(
-        autocycle::LvxData::Request &req,
-        autocycle::LvxData::Response &resp
+        autocycle_extras::LvxData::Request &req,
+        autocycle_extras::LvxData::Response &resp
 ) {
     auto start = high_resolution_clock::now();
     streampos size;
     int data_type, x, y, z;
     char * buff;
     long long next;
-    vector<autocycle::Point> ret;
+    vector<autocycle_extras::Point> ret;
 
    ifstream file (req.path, ios::in|ios::binary|ios::ate);
     if (file.is_open()) {
@@ -79,7 +79,7 @@ bool parseLVX(
                         // Ignores tag and reflexivity
                         file.ignore(2);
 
-                        autocycle::Point p;
+                        autocycle_extras::Point p;
                         p.z = x;
                         p.x = y;
                         p.y = z;

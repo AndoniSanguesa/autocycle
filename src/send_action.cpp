@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <autocycle/Action.h>
+#include <autocycle_extras/Action.h>
 #include <serial/serial.h>
 
 using namespace std;
@@ -8,8 +8,8 @@ using namespace std;
 serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
 bool SendAction(
-        autocycle::Action::Request &req,
-        autocycle::Action::Response &resp
+        autocycle_extras::Action::Request &req,
+        autocycle_extras::Action::Response &resp
 
 ){
     string to_write = "";

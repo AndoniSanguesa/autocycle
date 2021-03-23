@@ -1,7 +1,7 @@
 import numpy as np
 import rospy
-from autocycle.msg import ObjectList, Object
-from autocycle.srv import DetectObjects, GetTrackingFrame
+from autocycle_extras.msg import ObjectList, Object
+from autocycle_extras.srv import DetectObjects, GetTrackingFrame
 
 height = 100  # vertical dimension in millimeters
 width = 200  # horizontal dimension in millimeters
@@ -127,10 +127,11 @@ def intersection(x1, x2, z1, z2, objects):
 
 started = False
 iden = 0
+iden2 = 0
+pub = rospy.Publisher('cycle/objects', ObjectList, queue_size=1)
 
 def object_detection(points):
-    global iden, started
-    pub = rospy.Publisher('cycle/objects', ObjectList, queue_size=1)
+    global iden, iden2, started, pub
     tracking_frame_getter = rospy.ServiceProxy("get_tracking_frame", GetTrackingFrame)
 
     if started:
@@ -217,7 +218,9 @@ def object_detection(points):
                             close_arr[0, left_bound], close_arr[0, right_bound])
                 to_pub.append(obj)
     print("THIS SHOULD BE PUBLISHING")
-    pub.publish(to_pub, 0)
+    bruh = pub.publish(to_pub, iden2)
+    iden2 += 1
+    print(bruh)
     for o in to_pub:
         print(f"({o.x1}, {o.x2}, {o.z1}, {o.z2})")
     return []

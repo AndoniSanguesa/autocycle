@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <autocycle/GetData.h>
+#include <autocycle_extras/GetData.h>
 #include <std_msgs/Float64.h>
 
 using namespace std;
@@ -13,8 +13,8 @@ void readTopic(const std_msgs::Float64 topic_data){
 }
 
 bool get_data(
-    autocycle::GetData::Request &req,
-    autocycle::GetData::Response &resp
+    autocycle_extras::GetData::Request &req,
+    autocycle_extras::GetData::Response &resp
 ) {
   ros::NodeHandle nh;
 

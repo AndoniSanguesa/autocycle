@@ -1,12 +1,12 @@
 // This program handles the communication between different parts of
 // Autocycle's navigation systems.
 #include <ros/ros.h>
-#include <autocycle/LvxData.h>
-#include <autocycle/ObjectList.h>
-#include <autocycle/Object.h>
-#include <autocycle/GetData.h>
-#include <autocycle/RollAdj.h>
-#include <autocycle/DetectObjects.h>
+#include <autocycle_extras/LvxData.h>
+#include <autocycle_extras/ObjectList.h>
+#include <autocycle_extras/Object.h>
+#include <autocycle_extras/GetData.h>
+#include <autocycle_extras/RollAdj.h>
+#include <autocycle_extras/DetectObjects.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -24,7 +24,7 @@ void update_ready(const std_msgs::Empty msg){
 }
 
 // Creates the subscriber that checks for when it is safe to continue
-ros::Subscriber read_sub = nh.subscribe("cycle/ready", 1, &update_ready)
+ros::Subscriber read_sub;
 
 // TEMPRORARY UNTIL LVX ANALYSIS ALGORITHM IS COMPLETE.
 // ONLY TO TEST THAT FRAMES ARE BEING RECORDED.
@@ -39,20 +39,20 @@ ros::ServiceClient detection_client;
 ros::ServiceClient roll_client;
 
 // The response and request objects that will contain data regarding the lvx file
-autocycle::LvxData::Request lvx_req;
-autocycle::LvxData::Response lvx_resp;
+autocycle_extras::LvxData::Request lvx_req;
+autocycle_extras::LvxData::Response lvx_resp;
 
 // The response and request objects that will handle fetching data
-autocycle::GetData::Request get_data_req;
-autocycle::GetData::Response get_data_resp;
+autocycle_extras::GetData::Request get_data_req;
+autocycle_extras::GetData::Response get_data_resp;
 
 // The response and request objects that will handle object detection
-autocycle::DetectObjects::Request detect_req;
-autocycle::DetectObjects::Response detect_resp;
+autocycle_extras::DetectObjects::Request detect_req;
+autocycle_extras::DetectObjects::Response detect_resp;
 
 // The response and requests objects that will contain the non roll-adjusted points and the adjusted ones
-autocycle::RollAdj::Request adj_roll_req;
-autocycle::RollAdj::Response adj_roll_resp;
+autocycle_extras::RollAdj::Request adj_roll_req;
+autocycle_extras::RollAdj::Response adj_roll_resp;
 
 // Initializes the variable that will hold the lvx file
 std::ofstream f_done;
@@ -135,19 +135,19 @@ int main(int argc, char **argv) {
   ros::service::waitForService("fix_roll");
 
   // Creates the subscriber that checks for when it is safe to continue
-  ros::Subscriber read_sub = nh.subscribe("cycle/ready", 1, &update_ready)
+  read_sub = nh.subscribe("cycle/ready", 1, &update_ready);
 
   // TEMPRORARY UNTIL LVX ANALYSIS ALGORITHM IS COMPLETE.
   // ONLY TO TEST THAT FRAMES ARE BEING RECORDED.
-  lvx_client = nh.serviceClient<autocycle::LvxData>("parse_lvx");
+  lvx_client = nh.serviceClient<autocycle_extras::LvxData>("parse_lvx");
 
   // Creates the service that will fetch the latest data
-  get_data_client = nh.serviceClient<autocycle::GetData>("get_data");
+  get_data_client = nh.serviceClient<autocycle_extras::GetData>("get_data");
 
-  detection_client = nh.serviceClient<autocycle::DetectObjects>("object_detection");
+  detection_client = nh.serviceClient<autocycle_extras::DetectObjects>("object_detection");
 
   // Creates service client that will call on the fix_roll service to fix the roll...
-  roll_client = nh.serviceClient<autocycle::RollAdj>("fix_roll");
+  roll_client = nh.serviceClient<autocycle_extras::RollAdj>("fix_roll");
 
   ros::ServiceServer data_server = nh.advertiseService("collect_data", &collect_data);
 

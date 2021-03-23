@@ -1,26 +1,10 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(autocycle)
-find_package(catkin REQUIRED COMPONENTS serial message_generation roscpp std_msgs)
+find_package(catkin REQUIRED COMPONENTS autocycle_extras serial roscpp std_msgs)
 catkin_python_setup()
-add_message_files(FILES
-  Object.msg
-  Point.msg
-  Curve.msg
-  ObjectList.msg
-)
-add_service_files(FILES
-  LvxData.srv
-  RollAdj.srv
-  GetData.srv
-  GetTrackingFrame.srv
-  Action.srv
-  DetectObjects.srv
-  ObjectDetectionList.srv
-  GetCurve.srv
-)
-generate_messages(DEPENDENCIES std_msgs)
+
 catkin_package(
-  CATKIN_DEPENDS message_runtime std_msgs serial
+  CATKIN_DEPENDS  std_msgs serial
 )
 include_directories(include ${catkin_INCLUDE_DIRS})
 # PROJECT FILES
@@ -35,6 +19,16 @@ add_executable(send_action src/send_action.cpp)
 add_executable(object_list_getter src/object_list_getter.cpp)
 add_executable(get_tracking_frame src/get_tracking_frame.cpp)
 
+add_dependencies(fix_roll ${catkin_EXPORTED_TARGETS})
+add_dependencies(get_data ${catkin_EXPORTED_TARGETS})
+add_dependencies(run_lidar ${catkin_EXPORTED_TARGETS})
+add_dependencies(start_nav ${catkin_EXPORTED_TARGETS})
+add_dependencies(parse_lvx ${catkin_EXPORTED_TARGETS})
+add_dependencies(get_curve ${catkin_EXPORTED_TARGETS})
+add_dependencies(read_serial ${catkin_EXPORTED_TARGETS})
+add_dependencies(send_action ${catkin_EXPORTED_TARGETS})
+add_dependencies(object_list_getter ${catkin_EXPORTED_TARGETS})
+add_dependencies(get_tracking_frame ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(run_lidar stdc++fs)
 target_link_libraries(fix_roll ${catkin_LIBRARIES})

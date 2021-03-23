@@ -1,7 +1,7 @@
 #include <ros/ros.h>
-#include <autocycle/GetData.h>
-#include <autocycle/RollAdj.h>
-#include <autocycle/Point.h>
+#include <autocycle_extras/GetData.h>
+#include <autocycle_extras/RollAdj.h>
+#include <autocycle_extras/Point.h>
 #include <std_msgs/Float64.h>
 #include <time.h>
 #include <stdlib.h>
@@ -24,16 +24,16 @@ int main(int argc, char **argv){
   ros::service::waitForService("get_data");
 
   // Creates the needed clients to get data and adjust for roll
-  ros::ServiceClient get_data_cli = nh.serviceClient<autocycle::GetData>("get_data");
-  ros::ServiceClient fix_roll_cli = nh.serviceClient<autocycle::RollAdj>("fix_roll");
+  ros::ServiceClient get_data_cli = nh.serviceClient<autocycle_extras::GetData>("get_data");
+  ros::ServiceClient fix_roll_cli = nh.serviceClient<autocycle_extras::RollAdj>("fix_roll");
 
   // Creates the request and response objects that will adjust for roll
-  autocycle::RollAdj::Request fix_roll_req;
-  autocycle::RollAdj::Response fix_roll_resp;
+  autocycle_extras::RollAdj::Request fix_roll_req;
+  autocycle_extras::RollAdj::Response fix_roll_resp;
 
   // Creates request and Response objects that will contain data
-  autocycle::GetData::Request get_data_req;
-  autocycle::GetData::Response get_data_resp;
+  autocycle_extras::GetData::Request get_data_req;
+  autocycle_extras::GetData::Response get_data_resp;
 
   // Sets rand seed
   srand(time(NULL));
@@ -46,8 +46,8 @@ int main(int argc, char **argv){
   float exp_x = 0;
   float exp_y = 0;
   float roll = 0;
-  vector<autocycle::Point> vec;
-  autocycle::Point p;
+  vector<autocycle_extras::Point> vec;
+  autocycle_extras::Point p;
   for(i=0;i<100;i++){
     vec.clear();
     p.x = rand() % 200 - 100;
