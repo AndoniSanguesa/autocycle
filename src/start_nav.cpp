@@ -17,20 +17,26 @@
 
 using namespace std::chrono;
 
+bool ready = false;
+
+void update_ready(const std_msgs::Empty msg){
+    ready = true;
+}
+
 // Creates the subscriber that checks for when it is safe to continue
 ros::Subscriber read_sub = nh.subscribe("cycle/ready", 1, &update_ready)
 
 // TEMPRORARY UNTIL LVX ANALYSIS ALGORITHM IS COMPLETE.
 // ONLY TO TEST THAT FRAMES ARE BEING RECORDED.
-ros::ServiceClient lvx_client = nh.serviceClient<autocycle::LvxData>("parse_lvx");
+ros::ServiceClient lvx_client;
 
 // Creates the service that will fetch the latest data
-ros::ServiceClient get_data_client = nh.serviceClient<autocycle::GetData>("get_data");
+ros::ServiceClient get_data_client;
 
-ros::ServiceClient detection_client = nh.serviceClient<autocycle::DetectObjects>("object_detection");
+ros::ServiceClient detection_client;
 
 // Creates service client that will call on the fix_roll service to fix the roll...
-ros::ServiceClient roll_client = nh.serviceClient<autocycle::RollAdj>("fix_roll");
+ros::ServiceClient roll_client;
 
 // The response and request objects that will contain data regarding the lvx file
 autocycle::LvxData::Request lvx_req;
@@ -54,21 +60,14 @@ std::ofstream f_done;
 // Initializes variables for time
 double distance;
 float velocity;
+bool result;
 
 std::string path_to_lvx = "f_done.lvx";
-
-bool ready = false;
-
-void update_ready(const std_msgs::Empty msg){
-    ready = true;
-}
 
 bool collect_data(
     std_srvs::Empty::Request &req,
     std_srvs::Empty::Response &resp
     ){
-    bool result;
-    ros::NodeHandle nh;
     ROS_INFO_STREAM("Sending request for LVX file.");
 
     // Waits until f_done.lvx has been populated
@@ -134,6 +133,21 @@ int main(int argc, char **argv) {
 
   // Wait for the fix_roll service to be active
   ros::service::waitForService("fix_roll");
+
+  // Creates the subscriber that checks for when it is safe to continue
+  ros::Subscriber read_sub = nh.subscribe("cycle/ready", 1, &update_ready)
+
+  // TEMPRORARY UNTIL LVX ANALYSIS ALGORITHM IS COMPLETE.
+  // ONLY TO TEST THAT FRAMES ARE BEING RECORDED.
+  lvx_client = nh.serviceClient<autocycle::LvxData>("parse_lvx");
+
+  // Creates the service that will fetch the latest data
+  get_data_client = nh.serviceClient<autocycle::GetData>("get_data");
+
+  detection_client = nh.serviceClient<autocycle::DetectObjects>("object_detection");
+
+  // Creates service client that will call on the fix_roll service to fix the roll...
+  roll_client = nh.serviceClient<autocycle::RollAdj>("fix_roll");
 
   ros::ServiceServer data_server = nh.advertiseService("collect_data", &collect_data);
 
