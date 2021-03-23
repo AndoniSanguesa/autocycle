@@ -465,7 +465,7 @@ def create_environment(req):
     # Plots obstacles if they intersect the Bezier curve
     ind = 1
     count = 0
-    lim = 1000
+    lim = 20
     for obstacle in curveas.obstacles:
         # Allows for computation of control points if and only if the curve intersects the object
         labels.append("Object " + str(ind))

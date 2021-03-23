@@ -20,7 +20,6 @@ bool get_tracking_frame(
 void get_new_frame(const autocycle_extras::ObjectList new_ol){
     ol = new_ol;
     iden = new_ol.iden;
-    ROS_INFO_STREAM(iden);
 }
 
 int main(int argc, char **argv){

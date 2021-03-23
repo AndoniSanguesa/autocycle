@@ -17,7 +17,6 @@ bool comp_data(
 }
 
 void get_data(const autocycle_extras::ObjectList msg){
-    ROS_INFO_STREAM("BRUH at LISTENER");
     obj_lst = msg;
 }
 

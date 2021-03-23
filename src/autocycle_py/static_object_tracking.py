@@ -43,7 +43,6 @@ def static_object_tracking():
         
     iden2 = new_objects.iden
     objects = new_objects.obj_lst.copy()
-    print("IM BEGGING")
     while not rospy.is_shutdown():
         new_objects = obj_lst_getter(iden2)
         #for o in new_objects.obj_lst:
