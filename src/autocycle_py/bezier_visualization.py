@@ -37,7 +37,7 @@ class Obstacle:
 
     # Creates bounding box that will be used for intersection
     def get_bounding_box(self):
-        offset = 1.5
+        offset = 0.3
 
         # o1 is the point where o1.x < o2.x
         if self.points[0][1] >= self.points[0][0]:
@@ -128,7 +128,7 @@ class Obstacle:
         self.control_points = [cp1, cp2, cp3]
 
     def adjust_err(self):
-        self.err += 0.8
+        self.err += 0.4
         self.calculate_control_point()
 
     # Determines if a set of x and y coordinates at any point intersect with the obstacle

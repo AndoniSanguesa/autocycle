@@ -13,9 +13,9 @@ cell_col = int(np.ceil(width / cell_dim))
 # Tunable parameters to determine if something is an object.
 col_diff = 20           # Expected max difference between two adjacent cells in a column.
 counter_reps = 1        # Number of reps required to dictate it is an object.
-same_obj_diff = 120      # maximum diff between horizontal cells to be considered the same object
+same_obj_diff = 150      # maximum diff between horizontal cells to be considered the same object
 
-box_dist = 100  # distance in each dimesion surrounding line segment
+box_dist = 10000  # distance in each dimesion surrounding line segment
 trans_mat = np.eye(3)  # translation matrix
 rot_mat = np.zeros((3, 3))  # rotation matrix
 rot_mat[2, 2] = 1
@@ -131,7 +131,7 @@ iden2 = 0
 pub = rospy.Publisher('cycle/objects', ObjectList, queue_size=1)
 
 ## TEMPORARY UNTIL WE DEAL WITH OBJECT CLUSTERING
-min_length = 50 # (mm) minimum length of object in order to be recorded
+min_length = 120 # (mm) minimum length of object in order to be recorded
 def is_long(obj):
     if (((obj.x2-obj.x1)**2) + ((obj.z2-obj.z1)**2))**(1/2) < min_length:
         return False
@@ -144,7 +144,6 @@ def object_detection(points):
     if started:
         new_tracking = tracking_frame_getter(iden)
         iden = new_tracking.iden
-        print(f" LOOK HERER ER ER ER E RE R E RE R {iden}")
         objects = new_tracking.obj_lst
     else:
         objects = []
