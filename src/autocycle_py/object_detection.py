@@ -130,6 +130,13 @@ iden = 0
 iden2 = 0
 pub = rospy.Publisher('cycle/objects', ObjectList, queue_size=1)
 
+## TEMPORARY UNTIL WE DEAL WITH OBJECT CLUSTERING
+min_length = 50 # (mm) minimum length of object in order to be recorded
+def is_long(obj):
+    if (((obj.x2-obj.x1)**2) + ((obj.z2-obj.z1)**2))**(1/2) < min_length:
+        return False
+    return True
+
 def object_detection(points):
     global iden, iden2, started, pub
     tracking_frame_getter = rospy.ServiceProxy("get_tracking_frame", GetTrackingFrame)
@@ -197,7 +204,7 @@ def object_detection(points):
                     close_arr[0, left_bound], close_arr[0, right_bound], objects):
                     obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                                 close_arr[0, left_bound], close_arr[0, right_bound])
-                    to_pub.append(obj)
+                    to_pub.append(obj) if is_long(obj) else ()
                 if close_arr[0, col] < max_dist:
                     left_bound = col
                     right_bound = col
@@ -209,14 +216,14 @@ def object_detection(points):
                          close_arr[0, left_bound], close_arr[0, right_bound], objects):
                 obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                             close_arr[0, left_bound], close_arr[0, right_bound])
-                to_pub.append(obj)
+                to_pub.append(obj) if is_long(obj) else ()
             prev = max_dist
     if prev < max_dist:
         if not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                          close_arr[0, left_bound], close_arr[0, right_bound], objects):
                 obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                             close_arr[0, left_bound], close_arr[0, right_bound])
-                to_pub.append(obj)
+                to_pub.append(obj) if is_long(obj) else ()
     print("THIS SHOULD BE PUBLISHING")
     bruh = pub.publish(to_pub, iden2)
     iden2 += 1
