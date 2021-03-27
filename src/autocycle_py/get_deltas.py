@@ -65,6 +65,7 @@ def start():
             iden = result.iden
             length = result.length
             dist_travelled = 0
+            xs = result.xs
             update_distance(result.time)
             deltas = result.deltas
             time_i = time.time()

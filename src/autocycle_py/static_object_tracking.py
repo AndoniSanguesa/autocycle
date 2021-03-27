@@ -3,8 +3,8 @@ import rospy
 from autocycle_extras.msg import Object, ObjectList
 from autocycle_extras.srv import GetData, ObjectDetectionList
 
-height = 100              # vertical dimension in millimeters
-width = 200               # horizontal dimension in millimeters
+height = 10000              # vertical dimension in millimeters
+width = 20000               # horizontal dimension in millimeters
 object_length = 1000		# object length
 
 new_objects = []

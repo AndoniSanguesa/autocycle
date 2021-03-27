@@ -3,8 +3,8 @@ import rospy
 from autocycle_extras.msg import ObjectList, Object
 from autocycle_extras.srv import DetectObjects, GetTrackingFrame
 
-height = 100  # vertical dimension in millimeters
-width = 200  # horizontal dimension in millimeters
+height = 10000  # vertical dimension in millimeters
+width = 20000  # horizontal dimension in millimeters
 cell_dim = 20  # dimension of cells in millimeters (cells are squares)
 
 cell_row = int(np.ceil(height / cell_dim))
@@ -15,7 +15,7 @@ col_diff = 20           # Expected max difference between two adjacent cells in 
 counter_reps = 1        # Number of reps required to dictate it is an object.
 same_obj_diff = 120      # maximum diff between horizontal cells to be considered the same object
 
-box_dist = 20  # distance in each dimesion surrounding line segment
+box_dist = 100  # distance in each dimesion surrounding line segment
 trans_mat = np.eye(3)  # translation matrix
 rot_mat = np.zeros((3, 3))  # rotation matrix
 rot_mat[2, 2] = 1
@@ -179,7 +179,7 @@ def object_detection(points):
                 closest = min(min_obj, closest)
             prev = cells[row, col]
         close_arr[0, col] = closest
-    print(close_arr)
+    #print(close_arr)
     left_bound = 0      # left most cord of object
     right_bound = 0     # right most cord of object
     prev = max_dist           # previous cell's z value
