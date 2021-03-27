@@ -98,7 +98,6 @@ bool collect_data(
     if(!result){
         exit(1);
     }
-
     ROS_INFO_STREAM("LVX file analyzed.");
 
     adj_roll_req.in = lvx_resp.data;

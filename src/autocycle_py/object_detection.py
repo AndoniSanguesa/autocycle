@@ -5,14 +5,14 @@ from autocycle_extras.srv import DetectObjects, GetTrackingFrame
 
 height = 10000  # vertical dimension in millimeters
 width = 20000  # horizontal dimension in millimeters
-cell_dim = 20  # dimension of cells in millimeters (cells are squares)
+cell_dim = 50  # dimension of cells in millimeters (cells are squares)
 
 cell_row = int(np.ceil(height / cell_dim))
 cell_col = int(np.ceil(width / cell_dim))
 
 # Tunable parameters to determine if something is an object.
-col_diff = 20           # Expected max difference between two adjacent cells in a column.
-counter_reps = 1        # Number of reps required to dictate it is an object.
+col_diff = 10000 # Expected max difference between two adjacent cells in a column.
+counter_reps = 3        # Number of reps required to dictate it is an object.
 same_obj_diff = 150      # maximum diff between horizontal cells to be considered the same object
 
 box_dist = 10000  # distance in each dimesion surrounding line segment
@@ -152,6 +152,7 @@ def object_detection(points):
     cells = np.zeros((cell_row, cell_col))
     to_pub = []
 
+
     for p in points.data:
         # creates list with x, y, and z coordinate
         x, y, z = p.x, p.y, p.z
@@ -162,11 +163,13 @@ def object_detection(points):
         if 0 <= x < cell_col and 0 <= y < cell_row:
             cells[y, x] = z if cells[y, x] == 0 else min(z, cells[y, x])
     close_arr = np.zeros((1, cell_col))
-
-    max_dist = 500000  # A really big number
+    bruh = open("/home/ubuntu/Autocycle/bet.txt", "w")
+    bruh.write(str(cells.tolist()))
+    bruh.close()
+    max_dist = 200000  # A really big number
     for col in range(cell_col):
         prev = 0                # Previous cell.
-        closest = 500000        # Minimum z value for an object in the column.
+        closest = max_dist        # Minimum z value for an object in the column.
         counter = 0             # Counts the instances in which adjacent cells do not exceed diff.
         min_obj = 0             # Minimum dist to detected object
 
@@ -204,12 +207,7 @@ def object_detection(points):
                     obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                                 close_arr[0, left_bound], close_arr[0, right_bound])
                     to_pub.append(obj) if is_long(obj) else ()
-                if close_arr[0, col] < max_dist:
-                    left_bound = col
-                    right_bound = col
-                    prev = close_arr[0, col]
-                else:
-                    prev = max_dist
+                prev = max_dist
         elif prev < max_dist:
             if not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                          close_arr[0, left_bound], close_arr[0, right_bound], objects):
