@@ -1,7 +1,7 @@
 import numpy as np
-import rospy
-from autocycle_extras.msg import ObjectList, Object
-from autocycle_extras.srv import DetectObjects, GetTrackingFrame
+#import rospy
+#from autocycle_extras.msg import ObjectList, Object
+#from autocycle_extras.srv import DetectObjects, GetTrackingFrame
 
 height = 10000  # vertical dimension in millimeters
 width = 20000  # horizontal dimension in millimeters
@@ -125,32 +125,33 @@ def intersection(x1, x2, z1, z2, objects):
                         return True
     return False
 
-started = False
-iden = 0
-iden2 = 0
-pub = rospy.Publisher('cycle/objects', ObjectList, queue_size=1)
+#started = False
+#iden = 0
+#iden2 = 0
+#pub = rospy.Publisher('cycle/objects', ObjectList, queue_size=1)
 
 ## TEMPORARY UNTIL WE DEAL WITH OBJECT CLUSTERING
-min_length = 120 # (mm) minimum length of object in order to be recorded
+#min_length = 120 # (mm) minimum length of object in order to be recorded
 def is_long(obj):
     if (((obj.x2-obj.x1)**2) + ((obj.z2-obj.z1)**2))**(1/2) < min_length:
         return False
     return True
 
 def object_detection(points):
-    global iden, iden2, started, pub
-    tracking_frame_getter = rospy.ServiceProxy("get_tracking_frame", GetTrackingFrame)
+    #global iden, iden2, started, pub
+    #tracking_frame_getter = rospy.ServiceProxy("get_tracking_frame", GetTrackingFrame)
 
-    if started:
-        new_tracking = tracking_frame_getter(iden)
-        iden = new_tracking.iden
-        objects = new_tracking.obj_lst
-    else:
-        objects = []
-        started = True
+    # if started:
+    #     new_tracking = tracking_frame_getter(iden)
+    #     iden = new_tracking.iden
+    #     objects = new_tracking.obj_lst
+    # else:
+    #     objects = []
+    #     started = True
     
+    objects = []
     cells = np.zeros((cell_row, cell_col))
-    to_pub = []
+    #to_pub = []
 
 
     for p in points.data:
@@ -163,13 +164,13 @@ def object_detection(points):
         if 0 <= x < cell_col and 0 <= y < cell_row:
             cells[y, x] = z if cells[y, x] == 0 else min(z, cells[y, x])
     close_arr = np.zeros((1, cell_col))
-    bruh = open("/home/ubuntu/Autocycle/bet.txt", "w")
-    bruh.write(str(cells.tolist()))
-    bruh.close()
+    #bruh = open("/home/ubuntu/Autocycle/bet.txt", "w")
+    #bruh.write(str(cells.tolist()))
+    #bruh.close()
     max_dist = 200000  # A really big number
     for col in range(cell_col):
         prev = 0                # Previous cell.
-        closest = max_dist        # Minimum z value for an object in the column.
+        closest = max_dist      # Minimum z value for an object in the column.
         counter = 0             # Counts the instances in which adjacent cells do not exceed diff.
         min_obj = 0             # Minimum dist to detected object
 
@@ -204,43 +205,50 @@ def object_detection(points):
             else:
                 if not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                     close_arr[0, left_bound], close_arr[0, right_bound], objects):
-                    obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
-                                close_arr[0, left_bound], close_arr[0, right_bound])
-                    to_pub.append(obj) if is_long(obj) else ()
+                    # obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                    #             close_arr[0, left_bound], close_arr[0, right_bound])
+                    # to_pub.append(obj) if is_long(obj) else ()
+                    objects.append((left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                                    close_arr[0, left_bound], close_arr[0, right_bound], objects))
                 prev = max_dist
         elif prev < max_dist:
             if not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                          close_arr[0, left_bound], close_arr[0, right_bound], objects):
-                obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
-                            close_arr[0, left_bound], close_arr[0, right_bound])
-                to_pub.append(obj) if is_long(obj) else ()
+                # obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                #             close_arr[0, left_bound], close_arr[0, right_bound])
+                # to_pub.append(obj) if is_long(obj) else ()
+                objects.append((left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                                close_arr[0, left_bound], close_arr[0, right_bound], objects))
+
             prev = max_dist
     if prev < max_dist:
         if not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                          close_arr[0, left_bound], close_arr[0, right_bound], objects):
-                obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
-                            close_arr[0, left_bound], close_arr[0, right_bound])
-                to_pub.append(obj) if is_long(obj) else ()
-    print("THIS SHOULD BE PUBLISHING")
-    bruh = pub.publish(to_pub, iden2)
-    iden2 += 1
-    print(bruh)
-    for o in to_pub:
-        print(f"({o.x1}, {o.x2}, {o.z1}, {o.z2})")
-    return []
+            # obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+            #             close_arr[0, left_bound], close_arr[0, right_bound])
+            # to_pub.append(obj) if is_long(obj) else ()
+            objects.append((left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                            close_arr[0, left_bound], close_arr[0, right_bound], objects))
+    # print("THIS SHOULD BE PUBLISHING")
+    # bruh = pub.publish(to_pub, iden2)
+    # iden2 += 1
+    # print(bruh)
+    # for o in to_pub:
+    #     print(f"({o.x1}, {o.x2}, {o.z1}, {o.z2})")
+    return objects
 
-def start():
-    # Registers node with the master
-    rospy.init_node("object_detection")
+# def start():
+#     # Registers node with the master
+#     rospy.init_node("object_detection")
     
-    # Creates Service to be called
-    rospy.Service("object_detection", DetectObjects, object_detection)
+#     # Creates Service to be called
+#     rospy.Service("object_detection", DetectObjects, object_detection)
 
-    # Waits for the tracking frame getter service to be active
-    rospy.wait_for_service("get_tracking_frame")
+#     # Waits for the tracking frame getter service to be active
+#     rospy.wait_for_service("get_tracking_frame")
    
-    # Waits for the get object list service to be active
-    rospy.wait_for_service("object_list_getter")
+#     # Waits for the get object list service to be active
+#     rospy.wait_for_service("object_list_getter")
 
-    # Waits to be called
-    rospy.spin()
+#     # Waits to be called
+#     rospy.spin()
