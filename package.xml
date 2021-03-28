@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>autocycle</name>
+  <version>0.1.0</version>
+  <description>This package is responsible for managing communication between different aspects of navigation for Otto Von Cycle</description>
+  <maintainer email="andoniesanguesa@gmail.com">ubuntu</maintainer>
+  <license>TODO</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>std_msgs</build_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <build_depend>filesystem</build_depend>
+  <exec_depend>filesystem</exec_depend>
+  <build_depend>unistd.h</build_depend>
+  <exec_depend>unistd.h</exec_depend>
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_generation</exec_depend>
+  <build_depend>message_runtime</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>bezier</exec_depend>
+  <exec_depend>sympy</exec_depend>
+  <build_depend>serial</build_depend>
+  <exec_depend>serial</exec_depend>
+  <export>
+  </export>
+</package>
