@@ -216,7 +216,7 @@ def object_detection(points):
                          close_arr[0, left_bound], close_arr[0, right_bound], objects):
                 # obj = Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                 #             close_arr[0, left_bound], close_arr[0, right_bound])
-                # to_pub.append(obj) if is_long(obj) else ()
+                to_pub.append(obj) if is_long(obj) else None
                 objects.append((left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                                 close_arr[0, left_bound], close_arr[0, right_bound], objects))
 
