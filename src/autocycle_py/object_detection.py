@@ -25,13 +25,6 @@ point_mat[2, :] = [1, 1, 1, 1]
 
 group_dist = 1500
 
-class obj:
-    def __init__(self, x1, x2, z1, z2):
-        self.x1 = x1
-        self.x2 = x2
-        self.z1 = z1
-        self.z2 = z2
-
 class Graph:
     def __init__(self, V):
         self.v = V
@@ -125,7 +118,7 @@ def conv_hull(objects):
     objects = []
     prev = -1
     for ind in range(len(hull)):
-        objects.append(obj(points[hull[prev]][0],points[hull[ind]][0], points[hull[prev]][1], points[hull[ind]][1]))
+        objects.append(Object(points[hull[prev]][0],points[hull[ind]][0], points[hull[prev]][1], points[hull[ind]][1]))
         prev = ind
     return objects
 
@@ -327,25 +320,23 @@ def object_detection(points):
             else:
                 if not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                     close_arr[0, left_bound], close_arr[0, right_bound], objects):
-                    z_boys.append(obj(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                    z_boys.append(Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                                 close_arr[0, left_bound], close_arr[0, right_bound]))
                 prev = max_dist
         elif prev < max_dist:
             if not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                          close_arr[0, left_bound], close_arr[0, right_bound], objects):
-                z_boys.append(obj(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                z_boys.append(Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                                 close_arr[0, left_bound], close_arr[0, right_bound]))
             prev = max_dist
     if prev < max_dist:
         if not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                          close_arr[0, left_bound], close_arr[0, right_bound], objects):
-                z_boys.append(obj(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                z_boys.append(Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                                 close_arr[0, left_bound], close_arr[0, right_bound]))
     print("THIS SHOULD BE PUBLISHING")
     z_boys = condense_objects(z_boys)
-    for thing in z_boys:
-        to_pub.append(Object(thing.x1, thing.x2, thing.z1, thing.z2))
-    bruh = pub.publish(to_pub, iden2)
+    bruh = pub.publish(z_boys, iden2)
     iden2 += 1
     print(bruh)
     for o in to_pub:
