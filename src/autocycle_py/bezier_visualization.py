@@ -32,12 +32,12 @@ class Obstacle:
         self.get_bounding_box()
         self.p2p3 = (self.bound_box[2][0] - self.bound_box[1][0], self.bound_box[2][1] - self.bound_box[1][1])
         self.p2p1 = (self.bound_box[0][0] - self.bound_box[1][0], self.bound_box[0][1] - self.bound_box[1][1])
-        self.next_side(0, 0)
+        self.next_side([0], [0])
         self.calculate_control_point()
 
     # Creates bounding box that will be used for intersection
     def get_bounding_box(self):
-        offset = 0.3
+        offset = 0.6
 
         # o1 is the point where o1.x < o2.x
         if self.points[0][1] >= self.points[0][0]:
@@ -128,7 +128,7 @@ class Obstacle:
         self.control_points = [cp1, cp2, cp3]
 
     def adjust_err(self):
-        self.err += 0.4
+        self.err += 0.8
         self.calculate_control_point()
 
     # Determines if a set of x and y coordinates at any point intersect with the obstacle
@@ -151,8 +151,12 @@ class Obstacle:
 
     # Determines which end point of the obstacle is closest to the provided x and y value
     def next_side(self, x, y):
-        diff_s1 = (self.points[0][0] - x) ** 2 + (self.points[1][0] - y) ** 2
-        diff_s2 = (self.points[0][1] - x) ** 2 + (self.points[1][1] - y) ** 2
+        s1_pnt_ind = find_x_ind(xs, self.points[0][0])
+        s2_pnt_ind = find_x_ind(xs, self.points[0][1])
+
+        diff_s1 = (self.points[0][0] - xs[s1_pnt_ind]) ** 2 + (self.points[1][0] - ys[s1_pnt_ind]) ** 2
+        diff_s2 = (self.points[0][1] - xs[s2_pnt_ind]) ** 2 + (self.points[1][1] - ys[s2_pnt_ind]) ** 2
+        # (diff_s1, diff_s2)
         if diff_s1 <= diff_s2:
             self.side = 0
         else:
@@ -204,7 +208,6 @@ class CurveAssistant:
         self.heading = 0
         self.coordinates = [[], []]
         self.compute_control_points()
-        self.extrema = [0, 0]
 
     # Updates obstacle coordinates contained in the curve graph
     def obstacle_coordinates(self):
@@ -283,6 +286,7 @@ class CurveAssistant:
     # Returns the end distance
     def get_end_dist(self):
         return self.end_dist
+
 
 iden = 0
 resolution = 0.04
@@ -364,24 +368,10 @@ def calculate_curve():
     # This command creates a curve object which allows us to check the characteristics of the curve
     curve = bezier.Curve(nodes, curveas.get_num_control_points() - 1)
 
-    # Variables keep track of x/y values and help in determining extrema
-    curpoint = [[0]]
     index = 0
-    diff = [0, 0]
-    ys = [0, 0]
 
     while index <= 1.001:
         curpoint = curve.evaluate(index * 1.00)
-        x = curpoint[0][0]
-        y = curpoint[1][0]
-
-        # To determine where the extrema occurs on the bezier curve
-        ys[0] = ys[1]
-        ys[1] = y
-        diff[0] = diff[1]
-        diff[1] = ys[1] - ys[0]
-        if diff[1] * diff[0] < 0:
-            curveas.extrema = [x, y]
 
         # Adds x and y values to their respective array
         x_vals.append(curpoint[0][0])
@@ -399,17 +389,17 @@ def is_obstacle_block():
             obst_block.append(obstacle)
     return obst_block
 
+
 def get_dervs(x, acc=0.000001):
     curve = curveas.get_curve()
     subs = lambda x: list(map(lambda x: x[0], curve.evaluate(x)))
     this_val = subs(x)
-    next_val = subs(x+acc)
-    prev_val = subs(x-acc)
+    next_val = subs(x + acc)
+    prev_val = subs(x - acc)
     return (((next_val[0] - 2 * this_val[0] + prev_val[0]) / (acc ** 2),
-            (next_val[1] - 2 * this_val[1] + prev_val[1]) / (acc ** 2)),
+             (next_val[1] - 2 * this_val[1] + prev_val[1]) / (acc ** 2)),
             ((this_val[0] - next_val[0]) / acc,
-            (this_val[1] - next_val[1]) / acc))
-
+             (this_val[1] - next_val[1]) / acc))
 
 
 def get_deltas():
@@ -419,9 +409,9 @@ def get_deltas():
     step = 0.01  # decrease step size for greater precision
     dervs = [get_dervs(i) for i in np.arange(step, 1 + step, step)]
     cosdelt = np.cos(0.08)
-    curve_deltas = [[i for i in np.arange(step, 1+step, step)], [0] * (int(1 / step))]
+    curve_deltas = [[i for i in np.arange(step, 1 + step, step)], [0] * (int(1 / step))]
     cnt = 0
-    for i in range(int(1/step)):
+    for i in range(int(1 / step)):
         derv = dervs[i]
         calc1 = abs(derv[1][0] * derv[0][1] - derv[1][1] * derv[0][0])
         if calc1 != 0:
@@ -434,12 +424,13 @@ def get_deltas():
 
     return curve_deltas
 
+
 def create_environment(req):
     global resolution, des_heading, iden, tot_time
-    
+
     start_time = time.time()
 
-    resolution = 0.05
+    resolution = 0.03
 
     ## Resets obstacle list for the current curve object
     curveas.obstacles = []
@@ -457,7 +448,7 @@ def create_environment(req):
     obj_lst = sorted(req.obj_lst, key=lambda o: (o.x1 + o.x2) / 2)
     # Creates objects
     for o in obj_lst:
-        curveas.create_obstacle(((o.z1/1000, o.z2/1000), (o.x1/1000, o.x2/1000)))
+        curveas.create_obstacle(((o.z1 / 1000, o.z2 / 1000), (o.x1 / 1000, o.x2 / 1000)))
         print(f"Object : ({o.z1}, {o.x1}, {o.z2}, {o.x2})")
     rospy.loginfo("Object data accepted. Generating Path")
     calculate_curve()
@@ -469,7 +460,7 @@ def create_environment(req):
     for obstacle in curveas.obstacles:
         # Allows for computation of control points if and only if the curve intersects the object
         labels.append("Object " + str(ind))
-        obstacle.next_side(curveas.extrema[0], curveas.extrema[1])
+        obstacle.next_side(x_vals, y_vals)
         ind += 1
     block_list = is_obstacle_block()
     while block_list:
@@ -481,14 +472,15 @@ def create_environment(req):
             break
         block_list = is_obstacle_block()
     # plot()
+    resolution = 0.001
     rospy.loginfo("Path generated.")
     end_time = time.time()
     deltas = get_deltas()
-    rospy.loginfo(f"TIME TO PROCESS: {end_time-start_time}")
-    tot_time += end_time-start_time
-    pub.publish(deltas[0], deltas[1], curveas.get_curve().length, iden, end_time-start_time)
+    rospy.loginfo(f"TIME TO PROCESS: {end_time - start_time}")
+    tot_time += end_time - start_time
+    pub.publish(deltas[0], deltas[1], curveas.get_curve().length, iden, end_time - start_time)
     iden += 1
-    rospy.loginfo(f"FRAMES PER SECOND: {iden/tot_time}")
+    rospy.loginfo(f"FRAMES PER SECOND: {iden / tot_time}")
     data_getter.close()
     new_data()
     new_data.close()
@@ -502,12 +494,12 @@ def start():
 
     # Waits for data getter service
     rospy.wait_for_service('get_data')
-    
+
     rospy.wait_for_service("collect_data")
 
     # Creates the service client that will collect data
     data_getter = rospy.ServiceProxy("get_data", GetData)
-    
+
     new_data = rospy.ServiceProxy("collect_data", Empty)
 
     ## Sets desired heading (for now the intial heading)
@@ -517,7 +509,7 @@ def start():
 
     ## Closes this data getter
     data_getter.close()
-    
+
     new_data()
 
     rospy.spin()
