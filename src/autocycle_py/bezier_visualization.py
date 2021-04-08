@@ -32,12 +32,12 @@ class Obstacle:
         self.get_bounding_box()
         self.p2p3 = (self.bound_box[2][0] - self.bound_box[1][0], self.bound_box[2][1] - self.bound_box[1][1])
         self.p2p1 = (self.bound_box[0][0] - self.bound_box[1][0], self.bound_box[0][1] - self.bound_box[1][1])
-        self.next_side(0, 0)
+        self.next_side([0], [0])
         self.calculate_control_point()
 
     # Creates bounding box that will be used for intersection
     def get_bounding_box(self):
-        offset = 0.3
+        offset = 0.6
 
         # o1 is the point where o1.x < o2.x
         if self.points[0][1] >= self.points[0][0]:
@@ -128,7 +128,7 @@ class Obstacle:
         self.control_points = [cp1, cp2, cp3]
 
     def adjust_err(self):
-        self.err += 0.4
+        self.err += 0.8
         self.calculate_control_point()
 
     # Determines if a set of x and y coordinates at any point intersect with the obstacle
@@ -151,8 +151,12 @@ class Obstacle:
 
     # Determines which end point of the obstacle is closest to the provided x and y value
     def next_side(self, x, y):
-        diff_s1 = (self.points[0][0] - x) ** 2 + (self.points[1][0] - y) ** 2
-        diff_s2 = (self.points[0][1] - x) ** 2 + (self.points[1][1] - y) ** 2
+        s1_pnt_ind = find_x_ind(xs, self.points[0][0])
+        s2_pnt_ind = find_x_ind(xs, self.points[0][1])
+
+        diff_s1 = (self.points[0][0] - xs[s1_pnt_ind]) ** 2 + (self.points[1][0] - ys[s1_pnt_ind]) ** 2
+        diff_s2 = (self.points[0][1] - xs[s2_pnt_ind]) ** 2 + (self.points[1][1] - ys[s2_pnt_ind]) ** 2
+        # (diff_s1, diff_s2)
         if diff_s1 <= diff_s2:
             self.side = 0
         else:
@@ -164,6 +168,12 @@ class Obstacle:
             self.dir = 1
 
         self.calculate_control_point()
+
+    def get_obst_points(self):
+        return self.points
+
+    def get_control_points(self):
+        return self.control_points
 
     def get_obst_points(self):
         return self.points
@@ -204,7 +214,6 @@ class CurveAssistant:
         self.heading = 0
         self.coordinates = [[], []]
         self.compute_control_points()
-        self.extrema = [0, 0]
 
     # Updates obstacle coordinates contained in the curve graph
     def obstacle_coordinates(self):
@@ -365,23 +374,12 @@ def calculate_curve():
     curve = bezier.Curve(nodes, curveas.get_num_control_points() - 1)
 
     # Variables keep track of x/y values and help in determining extrema
-    curpoint = [[0]]
     index = 0
-    diff = [0, 0]
-    ys = [0, 0]
 
     while index <= 1.001:
         curpoint = curve.evaluate(index * 1.00)
         x = curpoint[0][0]
         y = curpoint[1][0]
-
-        # To determine where the extrema occurs on the bezier curve
-        ys[0] = ys[1]
-        ys[1] = y
-        diff[0] = diff[1]
-        diff[1] = ys[1] - ys[0]
-        if diff[1] * diff[0] < 0:
-            curveas.extrema = [x, y]
 
         # Adds x and y values to their respective array
         x_vals.append(curpoint[0][0])
@@ -469,7 +467,7 @@ def create_environment(req):
     for obstacle in curveas.obstacles:
         # Allows for computation of control points if and only if the curve intersects the object
         labels.append("Object " + str(ind))
-        obstacle.next_side(curveas.extrema[0], curveas.extrema[1])
+        obstacle.next_side(x_vals, y_vals)
         ind += 1
     block_list = is_obstacle_block()
     while block_list:
