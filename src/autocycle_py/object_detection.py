@@ -3,7 +3,7 @@ import rospy
 from autocycle_extras.msg import ObjectList, Object
 from autocycle_extras.srv import DetectObjects, GetTrackingFrame
 
-height = 10000  # vertical dimension in millimeters
+height = 3000  # vertical dimension in millimeters
 width = 20000  # horizontal dimension in millimeters
 cell_dim = 50  # dimension of cells in millimeters (cells are squares)
 
@@ -258,9 +258,8 @@ def object_detection(points):
     else:
         objects = []
         started = True
-    
+    objects = []
     cells = np.zeros((cell_row, cell_col))
-    to_pub = []
 
 
     for p in points.data:
@@ -338,8 +337,7 @@ def object_detection(points):
     z_boys = condense_objects(z_boys)
     bruh = pub.publish(z_boys, iden2)
     iden2 += 1
-    print(bruh)
-    for o in to_pub:
+    for o in z_boys:
         print(f"({o.x1}, {o.x2}, {o.z1}, {o.z2})")
     return []
 

@@ -150,7 +150,7 @@ class Obstacle:
         return False
 
     # Determines which end point of the obstacle is closest to the provided x and y value
-    def next_side(self, x, y):
+    def next_side(self, xs, ys):
         s1_pnt_ind = find_x_ind(xs, self.points[0][0])
         s2_pnt_ind = find_x_ind(xs, self.points[0][1])
 
@@ -314,6 +314,8 @@ lastpoint = curveas.get_last_control_point()
 
 tot_time = 0
 
+def find_x_ind(li, x):
+    return li.index(min(li, key=lambda t:abs(t-x)))
 
 def plot():
     for obstacle in curveas.obstacles:
@@ -449,7 +451,7 @@ def create_environment(req):
     # Creates objects
     for o in obj_lst:
         curveas.create_obstacle(((o.z1 / 1000, o.z2 / 1000), (o.x1 / 1000, o.x2 / 1000)))
-        print(f"Object : ({o.z1}, {o.x1}, {o.z2}, {o.x2})")
+    print(f"I GOT {len(obj_lst)}")
     rospy.loginfo("Object data accepted. Generating Path")
     calculate_curve()
 

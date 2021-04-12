@@ -10,12 +10,13 @@ object_length = 1000		# object length
 new_objects = []
 objects = []
 heading = 0
+ready = False
 time = 0
 iden = 0
 iden2 = -1
 
 def static_object_tracking():
-    global objects, heading, time, new_objects, iden, iden2
+    global objects, heading, time, new_objects, iden, iden2, ready
 
     # Registers the Node with the Master
     rospy.init_node("static_object_tracking")
@@ -38,9 +39,9 @@ def static_object_tracking():
     heading = data_getter("heading").data
     time = data_getter("met").data
 
-    while not new_objects:
+    while not ready:
         new_objects = obj_lst_getter(iden2)
-        print("I GOT THE OBJECTS")
+        ready = len(new_objects.obj_lst) != 0
         
     iden2 = new_objects.iden
     objects = new_objects.obj_lst.copy()

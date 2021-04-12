@@ -42,7 +42,7 @@ target_link_libraries(send_action ${catkin_LIBRARIES})
 target_link_libraries(object_list_getter ${catkin_LIBRARIES})
 target_link_libraries(get_tracking_frame ${catkin_LIBRARIES})
 
-catkin_install_python(PROGRAMS bin/bezier_visualization bin/get_deltas bin/object_detection bin/static_object_tracking
+catkin_install_python(PROGRAMS bin/read_rosbag bin/bezier_visualization bin/get_deltas bin/object_detection bin/static_object_tracking
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 # TESTING FILES
