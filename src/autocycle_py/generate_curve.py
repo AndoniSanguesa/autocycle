@@ -289,15 +289,14 @@ def generate_curve(req):
 
     tck = interpolated_path[1]
     pub.publish(tck[0], tck[1], tck[2], iden, end_time - start_time)
-    new_data()
-    new_data.close()
     iden += 1
     end = time.time()
     dur = end - start
     tot += dur
     rospy.loginfo(f"Path Generated in {dur} seconds")
     rospy.loginfo(f"Currently running at {tot/(iden+1)} FPS")
-    
+    new_data()
+    new_data.close()
     return
 
 
