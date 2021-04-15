@@ -258,8 +258,9 @@ def update_end_node(theta):
 
 def generate_curve(req):
     """Creates the curve around objects"""
-    global blocked_nodes, path, interpolated_path, iden
+    global blocked_nodes, path, interpolated_path, iden, tot
 
+    start = time.time()
     reset_vars()
 
     ## Creates the Service Client that will get speed data
@@ -276,7 +277,6 @@ def generate_curve(req):
 
     obj_lst = list(map(lambda x: (x.z1 / 1000, x.z2 / 1000, x.x1 / 1000, x.x2 / 1000), req))
 
-    start = time.time()
     for o in obj_lst:
         blocked_nodes = blocked_nodes.union(get_blocked_nodes(o))
 
@@ -285,7 +285,6 @@ def generate_curve(req):
     interpolated_path = inter_path()
 
     end = time.time()
-    print(end - start)
     #plot(obj_lst, theta, 0, 1)
 
     tck = interpolated_path[1]
@@ -293,6 +292,12 @@ def generate_curve(req):
     new_data()
     new_data.close()
     iden += 1
+    end = time.time()
+    dur = end - start
+    tot += dur
+    rospy.loginfo(f"Path Generated in {dur} seconds")
+    rospy.loginfo(f"Currently running at {tot/(iden+1)} FPS")
+    
     return
 
 
