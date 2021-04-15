@@ -316,7 +316,7 @@ def start():
     new_data = rospy.ServiceProxy("collect_data", Empty)
 
     ## Sets desired heading (for now the intial heading)
-    des_heading = data_getter("heading").data
+    des_heading = data_getter(1).data
 
     rospy.Subscriber("cycle/object_frame", ObjectList, generate_curve)
 

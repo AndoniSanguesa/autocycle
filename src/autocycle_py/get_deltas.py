@@ -22,11 +22,11 @@ def get_dervs(x, acc=0.000001):
              (this_val[1] - next_val[1]) / acc))
 
 
-def get_delta(i):
+def get_delta(i, roll):
     """Calculates steering angle"""
     global step
     ## Calls the data getter to give us the latest roll
-    num = 1.02 * np.cos(0)
+    num = 1.02 * np.cos(roll)
     step = 0.01  # decrease step size for greater precision
     cosdelt = np.cos(0.08)
     derv = get_dervs(i)
@@ -39,9 +39,6 @@ def get_delta(i):
 
 def update_distance(time):
     global dist_travelled, length
-
-    ## Creates the Service Client that will get speed data
-    data_getter = rospy.ServiceProxy("get_data", GetData)
 
     ## Updates the dist_travelled
     dist_travelled += (data_getter(0).data*time)
@@ -69,6 +66,9 @@ def start():
     
     # Creates the service cline that will get the curve
     curve_getter = rospy.ServiceProxy("get_curve", GetCurve)
+    
+    ## Creates the Service Client that will get speed data
+    data_getter = rospy.ServiceProxy("get_data", GetData)
 
     while iden == -1:
         result = curve_getter(iden)
@@ -99,7 +99,7 @@ def start():
         time_i = time_f
         
         # Gets closest x to the distance travelled
-        delta = get_delta(dist_travelled)
+        delta = get_delta(dist_travelled, data_getter(2).data)
 
         rospy.loginfo(f"Delta Sent: {delta}")
 
