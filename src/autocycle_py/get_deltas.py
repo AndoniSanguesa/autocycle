@@ -37,14 +37,11 @@ def get_delta(i, roll):
             return num / calc2
 
 
-def update_distance(time):
+def update_distance(time, vel):
     global dist_travelled, length
 
     ## Updates the dist_travelled
-    dist_travelled += (data_getter(0).data*time)
-
-    ## Closes the getter
-    data_getter.close()
+    dist_travelled += (vel*time)
 
 
 def start():
@@ -93,7 +90,7 @@ def start():
         time_f = time.time()
 
         # Adjusts for distance travelled
-        update_distance(time_f-time_i)
+        update_distance(time_f-time_i, data_getter(0).data)
 
         # Updates initial time
         time_i = time_f
