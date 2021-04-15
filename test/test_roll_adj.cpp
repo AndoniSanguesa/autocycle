@@ -55,7 +55,7 @@ int main(int argc, char **argv){
     p.z = rand() % 200 - 100;
     vec.push_back(p);
     fix_roll_req.in = vec;
-    get_data_req.data_type = "roll";
+    get_data_req.data_type = 2;
     get_data_cli.call(get_data_req, get_data_resp);
     roll = get_data_resp.data;
     fix_roll_req.roll = roll;
