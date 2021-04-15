@@ -115,7 +115,6 @@ def conv_hull(objects):
         p = q
         if(p == l):
             break
-    objects = []
     prev = -1
     for ind in range(len(hull)):
         objects.append(Object(points[hull[prev]][0],points[hull[ind]][0], points[hull[prev]][1], points[hull[ind]][1]))

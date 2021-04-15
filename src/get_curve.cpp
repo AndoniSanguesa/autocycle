@@ -11,10 +11,9 @@ bool comp_curves(
 ){
     if(req.iden != iden){
         resp.iden = curve.iden;
-        resp.length = curve.length;
-        resp.xs = curve.xs;
-        resp.deltas = curve.deltas;
-        resp.time = curve.time;
+        resp.t = curve.t
+        resp.c = curve.c
+        resp.k = curve.k
     } else{
         resp.iden = -1;
     }

@@ -5,10 +5,35 @@ import time
 import numpy as np
 
 iden = -1
-xs = []
-deltas = []
-length = -1
+tck = []
 dist_travelled = 0
+
+
+def get_dervs(x, acc=0.000001):
+    """Calculates the derivatives of the curve"""
+    subs = lambda x: interp.splev(x, tck)
+    this_val = subs(x)
+    next_val = subs(x + acc)
+    prev_val = subs(x - acc)
+    return (((next_val[0] - 2 * this_val[0] + prev_val[0]) / (acc ** 2),
+             (next_val[1] - 2 * this_val[1] + prev_val[1]) / (acc ** 2)),
+            ((this_val[0] - next_val[0]) / acc,
+             (this_val[1] - next_val[1]) / acc))
+
+
+def get_delta(i):
+    """Calculates steering angle"""
+    global step
+    ## Calls the data getter to give us the latest roll
+    num = 1.02 * np.cos(0)
+    step = 0.01  # decrease step size for greater precision
+    cosdelt = np.cos(0.08)
+    derv = get_dervs(i)
+    calc1 = abs(derv[1][0] * derv[0][1] - derv[1][1] * derv[0][0])
+    if calc1 != 0:
+        calc2 = (cosdelt * (((derv[1][0] ** 2 + derv[1][1] ** 2) ** (3 / 2)) / calc1))
+        if calc2 != 0:
+            return num / calc2
 
 
 def update_distance(time):
@@ -18,17 +43,14 @@ def update_distance(time):
     data_getter = rospy.ServiceProxy("get_data", GetData)
 
     ## Updates the dist_travelled
-    dist_travelled += (data_getter("vel").data*time)/length
+    dist_travelled += (data_getter("vel").data*time)
 
     ## Closes the getter
     data_getter.close()
 
-def find_x_ind(li, x):
-    return li.index(min(li, key=lambda t:abs(t-x)))
-
 
 def start():
-    global param, dist_travelled, length, iden, xs, deltas
+    global dist_travelled, iden, tck
     # Registers Node with the master
     rospy.init_node('get_deltas')
 
@@ -49,10 +71,9 @@ def start():
 
     while iden == -1:
         result = curve_getter(iden)
-        xs = result.xs
-        deltas = result.deltas
         iden = result.iden
-        length = result.length
+        tck = [result.t, result.c, result.k]
+
 
     # Initial Time
     time_i = time.time()
@@ -63,11 +84,8 @@ def start():
         result = curve_getter(iden)
         if result.iden != -1:
             iden = result.iden
-            length = result.length
             dist_travelled = 0
-            xs = result.xs
-            update_distance(result.time)
-            deltas = result.deltas
+            tck = [result.t, result.c, result.k]
             time_i = time.time()
         
         # Time to adjust for
@@ -79,16 +97,13 @@ def start():
         # Updates initial time
         time_i = time_f
         
-        try:
-            # Gets closest x to the distance travelled
-            x_ind = find_x_ind(xs, dist_travelled)
+        # Gets closest x to the distance travelled
+        delta = get_delta(dist_travelled)
 
-            rospy.loginfo(f"Delta Sent: {deltas[x_ind]}")
+        rospy.loginfo(f"Delta Sent: {delta}")
 
-            # Sends commands to the `action` node
-            action_sender([True, True, False], deltas[x_ind], 4.5, "")
-        except ValueError:
-            pass
+        # Sends commands to the `action` node
+        action_sender([True, True, False], delta, 4.5, "")
         
 
 
