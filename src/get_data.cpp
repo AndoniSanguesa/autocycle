@@ -4,10 +4,25 @@
 
 using namespace std;
 
-float data = -1;
+float vel = 0;
+float head = 0;
+float roll = 0;
+float met = 0;
 
-void readTopic(const std_msgs::Float64 topic_data){
-  data = topic_data.data;
+void get_vel(const std_msgs::Float64 data){
+    vel = data.data;
+}
+
+void get_head(const std_msgs::Float64 data){
+    head = data.data;
+}
+
+void get_roll(const std_msgs::Float64 data){
+    roll = data.data;
+}
+
+void get_met(const std_msgs::Float64 data){
+    met = data.data;
 }
 
 bool get_data(
@@ -16,17 +31,17 @@ bool get_data(
 ) {
   ros::NodeHandle nh;
 
-  // Creates subscriber for the data, collects that data and deletes subscriber
-  ros::Subscriber data_sub = nh.subscribe("sensors/" + req.data_type, 1, &readTopic);
-  while(data == -1){
-    ROS_INFO_STREAM("BRUH");
-    ros::spinOnce();
+  switch(req.data_type){
+    case(0):
+        resp.data = vel;
+    case(1):
+        resp.data = head;
+    case(2):
+        resp.data = roll;
+    case(3):
+        resp.data = met;
   }
-  data_sub.shutdown();
 
-  // Stores data in the response variable
-  resp.data = data;
-  data = -1;
   return true;
 }
 
@@ -37,6 +52,11 @@ int main(int argc, char **argv){
 
   // Register Service Server with the master
   ros::ServiceServer get_data_serv = nh.advertiseService("get_data", &get_data);
+
+  ros::Subscriber vel_sub = nh.subscribe("sensors/vel", 1, &get_vel);
+  ros::Subscriber head_sub = nh.subscribe("sensors/heading", 1, &get_head);
+  ros::Subscriber roll_sub = nh.subscribe("sensors/roll", 1, &get_roll);
+  ros::Subscriber met_sub = nh.subscribe("sensors/met", 1, &get_met);
 
   // Constantly checks for data requests
   ros::spin();

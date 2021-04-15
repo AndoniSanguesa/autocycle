@@ -36,8 +36,8 @@ def static_object_tracking():
     # Publishes objects to path topic
     pub = rospy.Publisher("cycle/object_frame", ObjectList, queue_size=1)
 
-    heading = data_getter("heading").data
-    time = data_getter("met").data
+    heading = data_getter(1).data
+    time = data_getter(3).data
 
     while not ready:
         new_objects = obj_lst_getter(iden2)
@@ -55,15 +55,15 @@ def static_object_tracking():
             print("I GOT THE OBJECTS")
         
         # Collects data
-        new_heading = data_getter("heading").data
+        new_heading = data_getter(1).data
         delta_angle = new_heading - heading
         heading = new_heading
 
-        new_time = data_getter("met").data
+        new_time = data_getter(3).data
         delta_time = new_time - time
         time = new_time
 		
-        speed = data_getter("vel").data
+        speed = data_getter(0).data
 
         theta = delta_angle
         c, s = np.cos(theta), np.sin(theta)
@@ -76,7 +76,7 @@ def static_object_tracking():
         objects = list(filter(lambda x: x.z1 >= 0 or x.z2 >= 0, new))
         #for o in objects:
         #    print(f"OBJECT : ({o.x1}, {o.x2}, {o.z1}, {o.z2})")
-        #pub.publish(objects, iden)
+        # pub.publish(objects, iden)
         iden += 1
 
 

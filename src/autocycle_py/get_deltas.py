@@ -44,7 +44,7 @@ def update_distance(time):
     data_getter = rospy.ServiceProxy("get_data", GetData)
 
     ## Updates the dist_travelled
-    dist_travelled += (data_getter("vel").data*time)
+    dist_travelled += (data_getter(0).data*time)
 
     ## Closes the getter
     data_getter.close()

@@ -270,7 +270,7 @@ def generate_curve(req):
      
     pub = rospy.Publisher('cycle/curve', Curve, queue_size=1) 
 
-    theta = desired_heading - data_getter("heading").data
+    theta = desired_heading - data_getter(2).data
 
     update_end_node(theta)
     print(end_node)
