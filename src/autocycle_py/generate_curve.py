@@ -14,7 +14,7 @@ width = 20
 height = 20
 
 # Size of each node
-node_size = 1
+node_size = 2
 
 # The dimensions of the graph (how many nodes in each direction)
 x_dim = int(width / node_size)
@@ -267,20 +267,19 @@ def generate_curve(req):
     data_getter = rospy.ServiceProxy("get_data", GetData)
 
     new_data = rospy.ServiceProxy("collect_data", Empty)
+     
+    pub = rospy.Publisher('cycle/curve', Curve, queue_size=1) 
 
     theta = desired_heading - data_getter("heading").data
-
-    pub = rospy.Publisher('cycle/curve', Curve, queue_size=1)
 
     update_end_node(theta)
     print(end_node)
 
-    obj_lst = list(map(lambda x: (x.z1 / 1000, x.z2 / 1000, x.x1 / 1000, x.x2 / 1000), req))
+    obj_lst = list(map(lambda x: (x.z1 / 1000, x.z2 / 1000, x.x1 / 1000, x.x2 / 1000), req.obj_lst))
 
     for o in obj_lst:
         blocked_nodes = blocked_nodes.union(get_blocked_nodes(o))
-
-    path = augment_path(bfs())
+    path = augment_path(augment_path(bfs()))
 
     interpolated_path = inter_path()
 
@@ -288,13 +287,13 @@ def generate_curve(req):
     #plot(obj_lst, theta, 0, 1)
 
     tck = interpolated_path[1]
-    pub.publish(tck[0], tck[1], tck[2], iden, end_time - start_time)
+    pub.publish(tck[0].tolist(), tck[1][0].tolist(), tck[1][1].tolist(), tck[2], iden)
     iden += 1
     end = time.time()
     dur = end - start
     tot += dur
     rospy.loginfo(f"Path Generated in {dur} seconds")
-    rospy.loginfo(f"Currently running at {tot/(iden+1)} FPS")
+    rospy.loginfo(f"Currently running at {(iden+1)/tot} FPS")
     new_data()
     new_data.close()
     return
@@ -319,7 +318,7 @@ def start():
     ## Sets desired heading (for now the intial heading)
     des_heading = data_getter("heading").data
 
-    rospy.Subscriber("cycle/object_frame", ObjectList, create_environment)
+    rospy.Subscriber("cycle/object_frame", ObjectList, generate_curve)
 
     ## Closes this data getter
     data_getter.close()

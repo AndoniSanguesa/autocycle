@@ -244,19 +244,19 @@ def intersection(x1, x2, z1, z2, objects):
 started = False
 iden = 0
 iden2 = 0
-pub = rospy.Publisher('cycle/objects', ObjectList, queue_size=1)
+pub = rospy.Publisher('cycle/object_frame', ObjectList, queue_size=1)
 
 def object_detection(points):
     global iden, iden2, started, pub
     tracking_frame_getter = rospy.ServiceProxy("get_tracking_frame", GetTrackingFrame)
 
-    if started:
-        new_tracking = tracking_frame_getter(iden)
-        iden = new_tracking.iden
-        objects = new_tracking.obj_lst
-    else:
-        objects = []
-        started = True
+    #if started:
+    #    new_tracking = tracking_frame_getter(iden)
+    #    iden = new_tracking.iden
+    #    objects = new_tracking.obj_lst
+    #else:
+    #    objects = []
+    #    started = True
     objects = []
     cells = np.zeros((cell_row, cell_col))
 

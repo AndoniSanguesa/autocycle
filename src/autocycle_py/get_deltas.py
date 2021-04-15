@@ -3,6 +3,7 @@ import re
 from autocycle_extras.srv import GetData, Action, GetCurve
 import time
 import numpy as np
+from scipy import interpolate as interp
 
 iden = -1
 tck = []
@@ -72,7 +73,7 @@ def start():
     while iden == -1:
         result = curve_getter(iden)
         iden = result.iden
-        tck = [result.t, result.c, result.k]
+        tck = [result.t, [result.c1, result.c2], result.k]
 
 
     # Initial Time
@@ -85,7 +86,7 @@ def start():
         if result.iden != -1:
             iden = result.iden
             dist_travelled = 0
-            tck = [result.t, result.c, result.k]
+            tck = [result.t, [result.c1, result.c2], result.k]
             time_i = time.time()
         
         # Time to adjust for
