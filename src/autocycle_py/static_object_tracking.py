@@ -76,7 +76,7 @@ def static_object_tracking():
         objects = list(filter(lambda x: x.z1 >= 0 or x.z2 >= 0, new))
         #for o in objects:
         #    print(f"OBJECT : ({o.x1}, {o.x2}, {o.z1}, {o.z2})")
-        # pub.publish(objects, iden)
+        pub.publish(objects, iden)
         iden += 1
 
 
