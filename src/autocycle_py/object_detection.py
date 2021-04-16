@@ -268,14 +268,14 @@ def object_detection(points):
     def speed(p):
         global cells
         # creates list with x, y, and z coordinate
-        x, y, z = p
+        x, y, z = p.x, p.y, p.z
         x = int((x + (half_width)) / cell_dim)
         y = int((y + (half_height)) / cell_dim)
         # Dictating the z value for the cell. Currently only finds the minimum value of the cell.
         if z < cells[y][x]:
             cells[y][x] = z
 
-    set(map(speed, points))
+    set(map(speed, points.data))
     close_arr = np.zeros((1, cell_col))
     end = time.time()
     # bruh = open("/home/ubuntu/Autocycle/bet.txt", "w")
