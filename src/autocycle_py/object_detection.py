@@ -23,7 +23,7 @@ rot_mat = np.zeros((3, 3))  # rotation matrix
 rot_mat[2, 2] = 1
 point_mat = np.zeros((3, 4))  # matrix with point 1 in col 0 and point 2 in col 1
 point_mat[2, :] = [1, 1, 1, 1]
-
+a
 group_dist = 1500
 
 class Graph:
@@ -258,24 +258,18 @@ def object_detection(points):
     else:
         objects = []
         started = True
+    cells = np.zeros((cell_row, cell_col))
 
-    half_width = width // 2
-    half_height = height // 2
-
-    cells = [[30000 for _ in range(cell_col)] for _ in range(cell_row)]
-    
     start = time.time()
-    def speed(p):
-        global cells
+    for p in points.data:
         # creates list with x, y, and z coordinate
         x, y, z = p.x, p.y, p.z
-        x = int((x + (half_width)) / cell_dim)
-        y = int((y + (half_height)) / cell_dim)
-        # Dictating the z value for the cell. Currently only finds the minimum value of the cell.
-        if z < cells[y][x]:
-            cells[y][x] = z
+        x = int((x + (width // 2)) // cell_dim)
+        y = int((y + (height // 2)) // cell_dim)
 
-    set(map(speed, points.data))
+        # Dictating the z value for the cell. Currently only finds the minimum value of the cell.
+        if 0 <= x < cell_col and 0 <= y < cell_row:
+            cells[y, x] = z if cells[y, x] == 0 else min(z, cells[y, x])
     close_arr = np.zeros((1, cell_col))
     end = time.time()
     # bruh = open("/home/ubuntu/Autocycle/bet.txt", "w")
