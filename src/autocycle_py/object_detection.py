@@ -1,5 +1,6 @@
 import numpy as np
 import rospy
+import time
 from autocycle_extras.msg import ObjectList, Object
 from autocycle_extras.srv import DetectObjects, GetTrackingFrame
 
@@ -249,7 +250,7 @@ pub = rospy.Publisher('cycle/objects', ObjectList, queue_size=1)
 def object_detection(points):
     global iden, iden2, started, pub
     tracking_frame_getter = rospy.ServiceProxy("get_tracking_frame", GetTrackingFrame)
-
+    
     if started:
         new_tracking = tracking_frame_getter(iden)
         iden = new_tracking.iden
@@ -257,10 +258,9 @@ def object_detection(points):
     else:
         objects = []
         started = True
-    
     cells = np.zeros((cell_row, cell_col))
 
-
+    start = time.time()
     for p in points.data:
         # creates list with x, y, and z coordinate
         x, y, z = p.x, p.y, p.z
@@ -271,11 +271,10 @@ def object_detection(points):
         if 0 <= x < cell_col and 0 <= y < cell_row:
             cells[y, x] = z if cells[y, x] == 0 else min(z, cells[y, x])
     close_arr = np.zeros((1, cell_col))
-
+    end = time.time()
     # bruh = open("/home/ubuntu/Autocycle/bet.txt", "w")
     # bruh.write(str(cells.tolist()))
     # bruh.close()
-
     max_dist = 200000  # A really big number
     for col in range(cell_col):
         prev = 0                # Previous cell.
@@ -330,14 +329,13 @@ def object_detection(points):
     if prev < max_dist:
         if not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                          close_arr[0, left_bound], close_arr[0, right_bound], objects):
-                z_boys.append(Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+            z_boys.append(Object(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
                                 close_arr[0, left_bound], close_arr[0, right_bound]))
-    print("THIS SHOULD BE PUBLISHING")
     z_boys = condense_objects(z_boys)
     bruh = pub.publish(z_boys, iden2)
     iden2 += 1
-    for o in z_boys:
-        print(f"({o.x1}, {o.x2}, {o.z1}, {o.z2})")
+    #for o in z_boys:
+    rospy.loginfo(f"OBJECT DETECTION RUNNING IN {end - start} seconds")
     return []
 
 def start():
