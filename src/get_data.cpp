@@ -29,17 +29,19 @@ bool get_data(
     autocycle_extras::GetData::Request &req,
     autocycle_extras::GetData::Response &resp
 ) {
-  ros::NodeHandle nh;
-
   switch(req.data_type){
     case(0):
         resp.data = vel;
+	break;
     case(1):
         resp.data = head;
+	break;
     case(2):
         resp.data = roll;
+	break;
     case(3):
         resp.data = met;
+	break;
   }
 
   return true;

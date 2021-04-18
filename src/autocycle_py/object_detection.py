@@ -23,7 +23,7 @@ rot_mat = np.zeros((3, 3))  # rotation matrix
 rot_mat[2, 2] = 1
 point_mat = np.zeros((3, 4))  # matrix with point 1 in col 0 and point 2 in col 1
 point_mat[2, :] = [1, 1, 1, 1]
-a
+
 group_dist = 1500
 
 class Graph:
@@ -335,7 +335,8 @@ def object_detection(points):
     bruh = pub.publish(z_boys, iden2)
     iden2 += 1
     #for o in z_boys:
-    rospy.loginfo(f"OBJECT DETECTION RUNNING IN {end - start} seconds")
+    #    print(f"({o.x1}, {o.x2}, {o.z1}, {o.z2})")
+    #rospy.loginfo(f"OBJECT DETECTION RUNNING IN {end - start} seconds")
     return []
 
 def start():

@@ -259,8 +259,6 @@ def update_end_node(theta):
 def generate_curve(req):
     """Creates the curve around objects"""
     global blocked_nodes, path, interpolated_path, iden, tot
-
-    start = time.time()
     reset_vars()
 
     ## Creates the Service Client that will get speed data
@@ -269,14 +267,12 @@ def generate_curve(req):
     new_data = rospy.ServiceProxy("collect_data", Empty)
      
     pub = rospy.Publisher('cycle/curve', Curve, queue_size=1) 
-
+    
     theta = desired_heading - data_getter(2).data
-
+    start = time.time()
     update_end_node(theta)
-    print(end_node)
 
     obj_lst = list(map(lambda x: (x.z1 / 1000, x.z2 / 1000, x.x1 / 1000, x.x2 / 1000), req.obj_lst))
-
     for o in obj_lst:
         blocked_nodes = blocked_nodes.union(get_blocked_nodes(o))
     path = augment_path(augment_path(bfs()))
@@ -291,11 +287,10 @@ def generate_curve(req):
     iden += 1
     new_data()
     new_data.close()
-    end = time.time()
     dur = end - start
     tot += dur
-    rospy.loginfo(f"Path Generated in {dur} seconds")
-    rospy.loginfo(f"Currently running at {(iden + 1) / tot} FPS")
+    #rospy.loginfo(f"Path Generated in {dur} seconds")
+    #rospy.loginfo(f"Currently running at {(iden + 1) / tot} FPS")
     return
 
 
