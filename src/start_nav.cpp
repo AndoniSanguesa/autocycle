@@ -85,7 +85,7 @@ bool collect_data(
     f_done.close();
 
     // Collects the latest roll data
-    get_data_req.data_type = "roll";
+    get_data_req.data_type = 2;
     result = get_data_client.call(get_data_req, get_data_resp);
 
     ROS_INFO_STREAM("LVX file generated.");

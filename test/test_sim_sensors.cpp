@@ -23,6 +23,7 @@ int main(int argc, char** argv){
         t1 = clock::now();
         to_pub.data = (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0)).count();
         met_pub.publish(to_pub);
+	std_msgs::Float64 to_pub;
         to_pub.data = 0;
         roll_pub.publish(to_pub);
         heading_pub.publish(to_pub);
