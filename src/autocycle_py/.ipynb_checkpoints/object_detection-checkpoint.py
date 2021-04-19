@@ -228,10 +228,8 @@ def intersection(x1, x2, z1, z2, objects):
     p2p3 = (points[2][0] - points[1][0], points[2][1] - points[1][1])
     p2p1 = (points[0][0] - points[1][0], points[0][1] - points[1][1])
 
-    point_diffs = (diff(points[0], points[1]),
-                   diff(points[0], points[2]),
-                   diff(points[1], points[3]),
-                   diff(points[2], points[3]))
+    point_diffs = (
+    diff(points[0], points[1]), diff(points[0], points[2]), diff(points[1], points[3]), diff(points[2], points[3]))
 
     for x3, x4, z3, z4 in objects:
         # intersection = []
@@ -270,12 +268,13 @@ def object_detection(points):
     
     cells = np.zeros((cell_row, cell_col))
     to_pub = []
-    
+
+
     for p in points.data:
         # creates list with x, y, and z coordinate
-        z = p.z
-        x = int((p.x + (width // 2)) // cell_dim)
-        y = int((p.y + (height // 2)) // cell_dim)
+        x, y, z = p.x, p.y, p.z
+        x = int((x + (width // 2)) // cell_dim)
+        y = int((y + (height // 2)) // cell_dim)
 
         # Dictating the z value for the cell. Currently only finds the minimum value of the cell.
         if 0 <= x < cell_col and 0 <= y < cell_row:
@@ -289,7 +288,7 @@ def object_detection(points):
     max_dist = 200000  # A really big number
     for col in range(cell_col):
         prev = 0                # Previous cell.
-        closest = max_dist      # Minimum z value for an object in the column.
+        closest = max_dist        # Minimum z value for an object in the column.
         counter = 0             # Counts the instances in which adjacent cells do not exceed diff.
         min_obj = 0             # Minimum dist to detected object
 
