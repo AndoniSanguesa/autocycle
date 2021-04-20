@@ -272,7 +272,7 @@ def object_detection(points):
     # bruh.write(str(cells.tolist()))
     # bruh.close()
 
-    max_dist = 200000  # A really big number
+    max_dist = 20000  # A really big number
     for col in range(cell_col):
         prev = 0                # Previous cell.
         closest = max_dist      # Minimum z value for an object in the column.
