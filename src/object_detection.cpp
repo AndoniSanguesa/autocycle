@@ -1,8 +1,11 @@
 #include <math.h> 
 #include <vector>
 #include <tuple>
-#include <autocycle/Object.h>
+#include <ros/ros.h>
+#include <autocycle_extras/Object.h>
 #include <autocycle_extras/Point.h>
+#include <autocycle_extras/DetectObjects.h>
+#include <autocycle_extras/ObjectList.h>
 
 using namespace std;
 
@@ -13,6 +16,10 @@ int cell_dim = 50;    // dimension of cells in millimeters (cells are squares)
 
 int cell_row = ceil((1.0 * height) / cell_dim);
 int cell_col = ceil((1.0 * width) / cell_dim);
+int old_tracking_id = -1;
+int tracking_id = -1;
+
+autocycle_extras::ObjectList tracking_ol;
 
 // Tunable parameters to determine if something is an object.
 int col_diff = 50;                       // Expected max difference between two adjacent cells in a column.
@@ -65,7 +72,7 @@ vector<vector<int>> Graph::connectedComps() {
 	return connected;
 }
 
-float pointToSeg(int x, int z, autocycle::Object seg) {
+float pointToSeg(int x, int z, autocycle_extras::Object seg) {
 	float segx = seg.x1 - seg.x2;
 	float segz = seg.z1 - seg.z2;
 	float lpx = seg.x1 - x;
@@ -85,7 +92,7 @@ float pointToSeg(int x, int z, autocycle::Object seg) {
 	return sqrt(pow(nx - lpx, 2) + pow(nz - lpz, 2));
 }
 
-float segDist(autocycle::Object seg1, autocycle::Object seg2) {
+float segDist(autocycle_extras::Object seg1, autocycle_extras::Object seg2) {
 	float dist = pointToSeg(seg1.x1, seg1.z1, seg2);
 	float t1 = pointToSeg(seg1.x2, seg1.z2, seg2);
 	if (dist > t1) {
@@ -129,7 +136,7 @@ int orientation(vector<int> p,vector<int> q,vector<int> r){
 	}
 }
 
-vector<autocycle::Object> convHull(vector<autocycle::Object> objects) {
+vector<autocycle_extras::Object> convHull(vector<autocycle_extras::Object> objects) {
 	vector<vector<int> points;
 	for (int i = 0; i < objects.size(); i++) {
 		points.push_back({objects[i].x1, objects[i].z1});
@@ -157,15 +164,15 @@ vector<autocycle::Object> convHull(vector<autocycle::Object> objects) {
 			break;
 		}
 	}
-	vector<autocycle::Object> new_objects;
+	vector<autocycle_extras::Object> new_objects;
 	int prev = 0;
 	for (int i = 1; i < hull.size(); i++) {
-		new_objects.push_back(autocycle::Object(points[hull[prev]][0], points[hull[i]][0], points[hull[prev]][1], points[hull[i]][1]));
+		new_objects.push_back(autocycle_extras::Object(points[hull[prev]][0], points[hull[i]][0], points[hull[prev]][1], points[hull[i]][1]));
 	}
 	return new_objects;
 }
 
-vector<autocycle::Object> condenseObjects(vector<autocycle::Object> objects) {
+vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object> objects) {
 	Graph gr = Graph(objects.size());
 	for (int x = 0; x < objects.size(); x++) {
 		for (int y = x+1; y < objects.size(); y++) {
@@ -175,23 +182,29 @@ vector<autocycle::Object> condenseObjects(vector<autocycle::Object> objects) {
 		}
 	}
 	vector<vector<int>> groups = gr.connectedComps();
-	vector<vector<autocycle::Object>> grouped_objs;
+	vector<vector<autocycle_extras::Object>> grouped_objs;
 	for (int i = 0; i < groups.size(); i++) {
-		vector<autocycle::Object> temp;
+		vector<autocycle_extras::Object> temp;
 		for (int y = 0; y < groups[i].size(); y++) {
 			temp.push_back(objects[groups[i][y]]);
 		}
 		grouped_objs.push_back(temp);
 	}
-	vector<autocycle::Object> new_objects;
+	vector<autocycle_extras::Object> new_objects;
 	for (int i = 0; i < grouped_objs.size(); i++) {
-		vector<autocycle::Object> temp = convHull(grouped_objs[i]);
+		vector<autocycle_extras::Object> temp = convHull(grouped_objs[i]);
 		new_objects.insert(new_objects.end(), temp.begin(), temp.end());
 	}
 	return new_objects;
 }
 
-void object_detection(vector<autocycle_extras::Point> points) {
+void object_detection(
+    autocycle_extras::DetectObjects::Request &req,
+    autocycle_extras::DetectObjects::Response &resp
+) {
+    while (id != -1 && old_tracking_id != tracking_id){}
+    old_tracking_id = tracking_id
+    points = req.data;
 	vector<vector<float>> cells(cell_row, vector<int>(cell_col, max_dist));
 	for (int i = 0; i < points.size(); i++) {
 		float z = points[i].z;
@@ -235,7 +248,7 @@ void object_detection(vector<autocycle_extras::Point> points) {
 	int left_bound = 0;
 	int right_bound = 0;
 	float prev = max_dist;
-	vector<autocycle::Object> z_boys;
+	vector<autocycle_extras::Object> z_boys;
 
 	for (int col = 0; col < cell_col; col++) {
 		if (close_vec[col] < max_dist) {
@@ -247,14 +260,14 @@ void object_detection(vector<autocycle_extras::Point> points) {
 				right_bound++;
 				prev = close_vec[col];
 			} else {
-				z_boys.push_back(autocycle::Object(left_bound * cell_dim - width / 2,
+				z_boys.push_back(autocycle_extras::Object(left_bound * cell_dim - width / 2,
 									              (right_bound + 1) * cell_dim - width / 2,
                              		              close_vec[left_bound],
 									              close_vec[right_bound]));
 				prev = max_dist;
 			}
 		} else if (prev < max_dist) {
-			z_boys.push_back(autocycle::Object(left_bound * cell_dim - width / 2,
+			z_boys.push_back(autocycle_extras::Object(left_bound * cell_dim - width / 2,
 											  (right_bound + 1) * cell_dim - width / 2,
                              		          close_vec[left_bound],
 									          close_vec[right_bound]));
@@ -263,27 +276,31 @@ void object_detection(vector<autocycle_extras::Point> points) {
 	}
 
 	if (prev < max_dist) {
-		z_boys.push_back(autocycle::Object(left_bound * cell_dim - width / 2,
+		z_boys.push_back(autocycle_extras::Object(left_bound * cell_dim - width / 2,
 									      (right_bound + 1) * cell_dim - width / 2,
                              		      close_vec[left_bound],
 									      close_vec[right_bound]));
 	}
 
-	vector<autocycle::Object> to_pub = condenseObjects(z_boys);
-
+	vector<autocycle_extras::Object> to_pub = condenseObjects(z_boys);
+    return true;
 }
 
+void get_new_frame(const autocycle_extras::ObjectList new_ol){
+    tracking_ol = new_ol;
+    tracking_id++;
+}
 
+int main(int argc, char **argv){
+    // Registers node with the master
+    ros::init(argc, argv, "object_dection");
 
+    // Creates Service to be called
+    ros::ServiceServer obj_det = nh.advertiseService("object_detection", &object_detection);
 
+    // Creates Subscriber that subscribes to the tracking frames
+    ros::Subscriber track_sub = nh.subscribe("cycle/object_frame", 1, &get_new_frame);
 
-
-//     print("THIS SHOULD BE PUBLISHING")
-//     for thing in z_boys:
-//         to_pub.append(Object(thing.x1, thing.x2, thing.z1, thing.z2))
-//     bruh = pub.publish(to_pub, iden2)
-//     iden2 += 1
-//     print(bruh)
-//     for o in to_pub:
-//         print(f"({o.x1}, {o.x2}, {o.z1}, {o.z2})")
-//     return []
+    // Waits to be called
+    rospy.spin()
+}

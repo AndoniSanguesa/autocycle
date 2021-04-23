@@ -346,9 +346,6 @@ def start():
 
     # Waits for the tracking frame getter service to be active
     rospy.wait_for_service("get_tracking_frame")
-   
-    # Waits for the get object list service to be active
-    rospy.wait_for_service("object_list_getter")
 
     # Waits to be called
     rospy.spin()
