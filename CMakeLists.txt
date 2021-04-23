@@ -16,8 +16,10 @@ add_executable(parse_lvx src/parse_lvx.cpp)
 add_executable(get_curve src/get_curve.cpp)
 add_executable(read_serial src/read_serial.cpp)
 add_executable(send_action src/send_action.cpp)
+add_executable(object_detection src/object_detection.cpp)
 add_executable(object_list_getter src/object_list_getter.cpp)
 add_executable(get_tracking_frame src/get_tracking_frame.cpp)
+
 
 add_dependencies(fix_roll ${catkin_EXPORTED_TARGETS})
 add_dependencies(get_data ${catkin_EXPORTED_TARGETS})
@@ -27,8 +29,10 @@ add_dependencies(parse_lvx ${catkin_EXPORTED_TARGETS})
 add_dependencies(get_curve ${catkin_EXPORTED_TARGETS})
 add_dependencies(read_serial ${catkin_EXPORTED_TARGETS})
 add_dependencies(send_action ${catkin_EXPORTED_TARGETS})
+add_dependencies(object_detection ${catkin_EXPORTED_TARGETS})
 add_dependencies(object_list_getter ${catkin_EXPORTED_TARGETS})
 add_dependencies(get_tracking_frame ${catkin_EXPORTED_TARGETS})
+
 
 target_link_libraries(run_lidar stdc++fs)
 target_link_libraries(fix_roll ${catkin_LIBRARIES})
@@ -39,10 +43,11 @@ target_link_libraries(parse_lvx ${catkin_LIBRARIES})
 target_link_libraries(get_curve ${catkin_LIBRARIES})
 target_link_libraries(read_serial ${catkin_LIBRARIES})
 target_link_libraries(send_action ${catkin_LIBRARIES})
+target_link_libraries(object_detection ${catkin_LIBRARIES})
 target_link_libraries(object_list_getter ${catkin_LIBRARIES})
 target_link_libraries(get_tracking_frame ${catkin_LIBRARIES})
 
-catkin_install_python(PROGRAMS bin/read_rosbag bin/generate_curve bin/get_deltas bin/object_detection bin/static_object_tracking
+catkin_install_python(PROGRAMS bin/read_rosbag bin/get_deltas bin/static_object_tracking
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 # TESTING FILES
