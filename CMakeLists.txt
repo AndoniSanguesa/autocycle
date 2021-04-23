@@ -47,7 +47,7 @@ target_link_libraries(object_detection ${catkin_LIBRARIES})
 target_link_libraries(object_list_getter ${catkin_LIBRARIES})
 target_link_libraries(get_tracking_frame ${catkin_LIBRARIES})
 
-catkin_install_python(PROGRAMS bin/read_rosbag bin/get_deltas bin/static_object_tracking
+catkin_install_python(PROGRAMS bin/read_rosbag bin/generate_curve bin/get_deltas bin/static_object_tracking
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 # TESTING FILES

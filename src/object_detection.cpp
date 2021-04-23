@@ -6,7 +6,7 @@
 #include <autocycle_extras/Point.h>
 #include <autocycle_extras/DetectObjects.h>
 #include <autocycle_extras/ObjectList.h>
-
+#include <chrono>
 using namespace std;
 
 // Global variable declarations
@@ -17,9 +17,11 @@ int cell_dim = 50;    // dimension of cells in millimeters (cells are squares)
 int cell_row = ceil((1.0 * height) / cell_dim);
 int cell_col = ceil((1.0 * width) / cell_dim);
 int old_tracking_id = -1;
-int tracking_id = -1;
+int tracking_id = 0;
 
+autocycle_extras::ObjectList pub_lst;
 autocycle_extras::ObjectList tracking_ol;
+ros::Publisher obj_pub;
 
 // Tunable parameters to determine if something is an object.
 int col_diff = 50;                       // Expected max difference between two adjacent cells in a column.
@@ -28,6 +30,16 @@ int counter_reps = 2;                    // Number of reps required to dictate i
 int same_obj_diff = 150;                 // maximum diff between horizontal cells to be considered the same object
 int group_dist = 1500;					 // max dist between adjacent objects for convex hull
 float max_dist = 200000;				 // max z distance for objects
+
+
+autocycle_extras::Object get_object(float x1, float x2, float z1, float z2){
+	autocycle_extras::Object obj;
+	obj.x1 = x1;
+	obj.x2 = x2;
+	obj.z1 = z1;
+	obj.z2 = z2;
+	return obj;
+}
 
 class Graph {
 		int V;
@@ -109,7 +121,7 @@ float segDist(autocycle_extras::Object seg1, autocycle_extras::Object seg2) {
 	return dist;
 }
 
-int leftMost(vector<vector<int>> points) {
+int leftMost(vector<vector<float>> points) {
 	int min_ind = 0;
 	for (int i = 0; i < points.size(); i++) {
 		if (points[i][0] < points[min_ind][0]) {
@@ -123,7 +135,7 @@ int leftMost(vector<vector<int>> points) {
 	return min_ind;
 }
 
-int orientation(vector<int> p,vector<int> q,vector<int> r){
+int orientation(vector<float> p,vector<float> q,vector<float> r){
 	float val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1]);
 	if (val) {
 		if (val > 0) {
@@ -137,7 +149,7 @@ int orientation(vector<int> p,vector<int> q,vector<int> r){
 }
 
 vector<autocycle_extras::Object> convHull(vector<autocycle_extras::Object> objects) {
-	vector<vector<int> points;
+	vector<vector<float>> points;
 	for (int i = 0; i < objects.size(); i++) {
 		points.push_back({objects[i].x1, objects[i].z1});
 		points.push_back({objects[i].x2, objects[i].z2});
@@ -165,10 +177,10 @@ vector<autocycle_extras::Object> convHull(vector<autocycle_extras::Object> objec
 		}
 	}
 	vector<autocycle_extras::Object> new_objects;
-	int prev = 0;
 	for (int i = 1; i < hull.size(); i++) {
-		new_objects.push_back(autocycle_extras::Object(points[hull[prev]][0], points[hull[i]][0], points[hull[prev]][1], points[hull[i]][1]));
+		new_objects.push_back(get_object(points[hull[i-1]][0], points[hull[i]][0], points[hull[i-1]][1], points[hull[i]][1]));
 	}
+	new_objects.push_back(get_object(points[hull[hull.size()-1]][0], points[hull[0]][0], points[hull[hull.size()-1]][1], points[hull[0]][1]));
 	return new_objects;
 }
 
@@ -198,16 +210,23 @@ vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object
 	return new_objects;
 }
 
-void object_detection(
+
+bool object_detection(
     autocycle_extras::DetectObjects::Request &req,
     autocycle_extras::DetectObjects::Response &resp
 ) {
-    while (id != -1 && old_tracking_id != tracking_id){
+    //using std::chrono::high_resolution_clock;
+    //using std::chrono::duration_cast;
+    //using std::chrono::duration;
+    //using std::chrono::milliseconds;
+
+    while (old_tracking_id != -1 && old_tracking_id == tracking_id){
         ros::spinOnce();
     }
-    old_tracking_id = tracking_id
-    points = req.data;
-	vector<vector<float>> cells(cell_row, vector<int>(cell_col, max_dist));
+    //auto t1 = high_resolution_clock::now();
+    old_tracking_id = tracking_id;
+    vector<autocycle_extras::Point> points = req.data;
+	vector<vector<float>> cells(cell_row, vector<float>(cell_col, max_dist));
 	for (int i = 0; i < points.size(); i++) {
 		float z = points[i].z;
 		int x = (points[i].x + (width / 2)) / cell_dim;
@@ -218,24 +237,28 @@ void object_detection(
 	}
 	vector<float> close_vec(cell_col);
 	for (int col = 0; col < cell_col; col++) {
-		float prev = cells[0][col];
+		float prev = 0;
 		float closest = max_dist;
 		int counter = 0;
-		float min_obj = prev;
+		float min_obj = 0;
 
-		for (int row = 1; row < cell_row; row++) {
+		for (int row = 0; row < cell_row; row++) {
 			if (cells[row][col] == 0) {
 				counter = 0;
-				min_obj = max_dist;
+				min_obj = 0;
 				prev = 0;
 				continue;
+			}
+			if (counter == 0){
+				min_obj = cells[row][col];
+			} else{
+				min_obj = min(min_obj, cells[row][col]);
 			}
 			if (abs(cells[row][col] - prev) > col_diff) {
 				counter = 0;
 				min_obj = 0;
 			} else {
 				counter += 1;
-				min_obj = min(min_obj, cells[row][col]);
 			}
 			if (prev > cells[row][col] + for_jump_diff && row - 2 > 0 && cells[row-2][col] != 0) {
 				closest = min(closest, cells[row][col]);
@@ -251,7 +274,7 @@ void object_detection(
 	int right_bound = 0;
 	float prev = max_dist;
 	vector<autocycle_extras::Object> z_boys;
-
+	
 	for (int col = 0; col < cell_col; col++) {
 		if (close_vec[col] < max_dist) {
 			if (prev == max_dist) {
@@ -262,29 +285,34 @@ void object_detection(
 				right_bound++;
 				prev = close_vec[col];
 			} else {
-				z_boys.push_back(autocycle_extras::Object(left_bound * cell_dim - width / 2,
-									              (right_bound + 1) * cell_dim - width / 2,
-                             		              close_vec[left_bound],
-									              close_vec[right_bound]));
+				z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
+						  (right_bound + 1) * cell_dim - width / 2,
+                             		          close_vec[left_bound],
+						  close_vec[right_bound]));
 				prev = max_dist;
 			}
 		} else if (prev < max_dist) {
-			z_boys.push_back(autocycle_extras::Object(left_bound * cell_dim - width / 2,
-											  (right_bound + 1) * cell_dim - width / 2,
+			z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
+						  (right_bound + 1) * cell_dim - width / 2,
                              		          close_vec[left_bound],
-									          close_vec[right_bound]));
+						  close_vec[right_bound]));
 			prev = max_dist;
 		}
 	}
 
 	if (prev < max_dist) {
-		z_boys.push_back(autocycle_extras::Object(left_bound * cell_dim - width / 2,
-									      (right_bound + 1) * cell_dim - width / 2,
-                             		      close_vec[left_bound],
-									      close_vec[right_bound]));
+		z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
+						  (right_bound + 1) * cell_dim - width / 2,
+                             		      	  close_vec[left_bound],
+			  		          close_vec[right_bound]));
 	}
 
-	vector<autocycle_extras::Object> to_pub = condenseObjects(z_boys);
+	pub_lst.obj_lst = condenseObjects(z_boys);
+        pub_lst.iden = tracking_id;
+	obj_pub.publish(pub_lst);
+	//auto t2 = high_resolution_clock::now();
+	//duration<double, std::milli> ms_double = t2 - t1;
+	//ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << ms_double.count() << "ms");
     return true;
 }
 
@@ -296,12 +324,15 @@ void get_new_frame(const autocycle_extras::ObjectList new_ol){
 int main(int argc, char **argv){
     // Registers node with the master
     ros::init(argc, argv, "object_dection");
-
+    ros::NodeHandle nh;
     // Creates Service to be called
     ros::ServiceServer obj_det = nh.advertiseService("object_detection", &object_detection);
 
     // Creates Subscriber that subscribes to the tracking frames
     ros::Subscriber track_sub = nh.subscribe("cycle/object_frame", 1, &get_new_frame);
+
+    // Creates Object List Publisher
+    obj_pub = nh.advertise<autocycle_extras::ObjectList>("cycle/objects", 1);
 
     // Waits to be called
     ros::spin();
