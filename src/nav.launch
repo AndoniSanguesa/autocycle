@@ -22,7 +22,7 @@
   />
   <node
     pkg="autocycle"
-    type="bezier_visualization"
+    type="generate_curve"
     name="bezier"
     output="screen"
     respawn="true"

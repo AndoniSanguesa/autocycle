@@ -4,36 +4,46 @@
 
 using namespace std;
 
-string valid_data_types [9] = {"state", "roll", "steer", "droll", "dsteer", "vel", "heading", "dheading", "met"};
+float vel = 0;
+float head = 0;
+float roll = 0;
+float met = 0;
 
-float data = -1;
+void get_vel(const std_msgs::Float64 data){
+    vel = data.data;
+}
 
-void readTopic(const std_msgs::Float64 topic_data){
-  data = topic_data.data;
+void get_head(const std_msgs::Float64 data){
+    head = data.data;
+}
+
+void get_roll(const std_msgs::Float64 data){
+    roll = data.data;
+}
+
+void get_met(const std_msgs::Float64 data){
+    met = data.data;
 }
 
 bool get_data(
     autocycle_extras::GetData::Request &req,
     autocycle_extras::GetData::Response &resp
 ) {
-  ros::NodeHandle nh;
-
-  // Validates input
-  if(find(begin(valid_data_types), end(valid_data_types), req.data_type) == end(valid_data_types)){
-    ROS_ERROR_STREAM("COULD NOT GET DATA: '" << req.data_type << "'. Are you sure it exists?");
-    return false;
+  switch(req.data_type){
+    case(0):
+        resp.data = vel;
+	break;
+    case(1):
+        resp.data = head;
+	break;
+    case(2):
+        resp.data = roll;
+	break;
+    case(3):
+        resp.data = met;
+	break;
   }
 
-  // Creates subscriber for the data, collects that data and deletes subscriber
-  ros::Subscriber data_sub = nh.subscribe("sensors/" + req.data_type, 1, &readTopic);
-  while(data == -1){
-    ros::spinOnce();
-  }
-  data_sub.shutdown();
-
-  // Stores data in the response variable
-  resp.data = data;
-  data = -1;
   return true;
 }
 
@@ -44,6 +54,11 @@ int main(int argc, char **argv){
 
   // Register Service Server with the master
   ros::ServiceServer get_data_serv = nh.advertiseService("get_data", &get_data);
+
+  ros::Subscriber vel_sub = nh.subscribe("sensors/vel", 1, &get_vel);
+  ros::Subscriber head_sub = nh.subscribe("sensors/heading", 1, &get_head);
+  ros::Subscriber roll_sub = nh.subscribe("sensors/roll", 1, &get_roll);
+  ros::Subscriber met_sub = nh.subscribe("sensors/met", 1, &get_met);
 
   // Constantly checks for data requests
   ros::spin();
