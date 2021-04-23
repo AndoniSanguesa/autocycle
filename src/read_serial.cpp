@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <std_msgs/Float64.h>
+#include <std_msgs/Float32.h>
 #include <serial/serial.h>
 #include <fstream>
 #include <sstream>
@@ -12,15 +12,15 @@ int main(int argc, char **argv){
   ros::NodeHandle nh;
 
   // Registers the appropriate publishers
-  ros::Publisher state_pub = nh.advertise<std_msgs::Float64>("sensors/state", 1);
-  ros::Publisher roll_pub = nh.advertise<std_msgs::Float64>("sensors/roll", 1);
-  ros::Publisher steer_pub = nh.advertise<std_msgs::Float64>("sensors/steer", 1);
-  ros::Publisher droll_pub = nh.advertise<std_msgs::Float64>("sensors/droll", 1);
-  ros::Publisher dsteer_pub = nh.advertise<std_msgs::Float64>("sensors/dsteer", 1);
-  ros::Publisher vel_pub = nh.advertise<std_msgs::Float64>("sensors/vel", 1);
-  ros::Publisher head_pub = nh.advertise<std_msgs::Float64>("sensors/heading", 1);
-  ros::Publisher dhead_pub = nh.advertise<std_msgs::Float64>("sensors/dheading", 1);
-  ros::Publisher met_pub = nh.advertise<std_msgs::Float64>("sensors/met", 1);
+  ros::Publisher state_pub = nh.advertise<std_msgs::Float32>("sensors/state", 1);
+  ros::Publisher roll_pub = nh.advertise<std_msgs::Float32>("sensors/roll", 1);
+  ros::Publisher steer_pub = nh.advertise<std_msgs::Float32>("sensors/steer", 1);
+  ros::Publisher droll_pub = nh.advertise<std_msgs::Float32>("sensors/droll", 1);
+  ros::Publisher dsteer_pub = nh.advertise<std_msgs::Float32>("sensors/dsteer", 1);
+  ros::Publisher vel_pub = nh.advertise<std_msgs::Float32>("sensors/vel", 1);
+  ros::Publisher head_pub = nh.advertise<std_msgs::Float32>("sensors/heading", 1);
+  ros::Publisher dhead_pub = nh.advertise<std_msgs::Float32>("sensors/dheading", 1);
+  ros::Publisher met_pub = nh.advertise<std_msgs::Float32>("sensors/met", 1);
 
   // Initializing vars
   string temp = "";

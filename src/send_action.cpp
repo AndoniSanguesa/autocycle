@@ -1,31 +1,29 @@
 #include <ros/ros.h>
-#include <autocycle_extras/Action.h>
 #include <serial/serial.h>
+#include <autocycle_extras/GetDelta.h>
+#include <std_msgs/Float32.h>
+#include <chrono>
 
 using namespace std;
 
 // Creates serial object to write to
 serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
-bool SendAction(
-        autocycle_extras::Action::Request &req,
-        autocycle_extras::Action::Response &resp
+float distance = 0;
+float velocity = 0;
+float roll = 0;
+float time_elapsed = 0;
 
-){
-    string to_write = "";
+void reset_distance(const std_msgs::Empty e){
+    distance = 0;
+}
 
-    if(req.coms[0]){
-        to_write.append("s " + to_string(req.speed) + ";");
-    }
-    if(req.coms[1]){
-        to_write.append("d " + to_string(req.delta) + ";");
-    }
-    if(req.coms[2]){
-        to_write.append("c " + req.command + ";");
-    }
+void update_velocity(const std_msgs::Float32 data){
+    velocity = data.data;
+}
 
-    my_serial.write(to_write);
-    return true;
+void update_roll(const std_msgs::Float32 data){
+    roll = data.data;
 }
 
 int main(int argc, char **argv) {
@@ -33,10 +31,34 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "read_serial");
     ros::NodeHandle nh;
 
-    // Registers Service Server with master.
-    ros::ServiceServer act_srv = nh.advertiseService("send_action", &SendAction);
+    // Creates service proxy that will grab new deltas
+    std::ServiceClient get_delta = nh.serviceClient<autocycle_extras::GetDelta>("get_delta");
+    std::autocycle_extras::GetDelta::Request req;
+    std::autocycle_extras::GetDelta::Response resp;
 
-    // Waits for actions to send
-    ros::spin();
+    // Creates subscriber for new Path
+    std::Subscriber get_path = nh.subscribe("cycle/new_path", 1, &reset_distance);
+
+    // Creates subscriber for updating velocity
+    std::Subscriber get_vel = nh.subscribe("sensors/vel", 1, &update_velocity)
+
+    // Creates subscriber for updating roll
+    std::Subscriber get_roll = nh.subscribe("sensors/roll", 1, &update_velocity)
+
+    // Starts the clock!
+    auto start = std::chrono::high_resolution_clock::now();
+
+    while(ros::ok()){
+        ros::spinOnce();
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = duration_cast<milliseconds>(stop - start);
+        auto start = std::chrono::high_resolution_clock::now();
+        distance += velocity * (((float) duration.count())/1000.0)
+        req.x = distance;
+        req.roll = roll;
+        get_delta(req. resp);
+
+        my_serial.write("s 4.5;d " + to_string(resp.delta) + ";");
+    }
 
 }
