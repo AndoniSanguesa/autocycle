@@ -202,7 +202,9 @@ void object_detection(
     autocycle_extras::DetectObjects::Request &req,
     autocycle_extras::DetectObjects::Response &resp
 ) {
-    while (id != -1 && old_tracking_id != tracking_id){}
+    while (id != -1 && old_tracking_id != tracking_id){
+        ros::spinOnce();
+    }
     old_tracking_id = tracking_id
     points = req.data;
 	vector<vector<float>> cells(cell_row, vector<int>(cell_col, max_dist));
@@ -302,5 +304,5 @@ int main(int argc, char **argv){
     ros::Subscriber track_sub = nh.subscribe("cycle/object_frame", 1, &get_new_frame);
 
     // Waits to be called
-    rospy.spin()
+    ros::spin();
 }
