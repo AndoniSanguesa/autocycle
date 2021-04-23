@@ -47,10 +47,10 @@ def static_object_tracking():
     objects = new_objects.obj_lst.copy()
     while not rospy.is_shutdown():
         start = t.time()
-        new_objects = obj_lst_getter(iden2)
-        #for o in new_objects.obj_lst:
-        #    print(f"OBJECT: ({o.x1}, {o.x2}, {o.z1}, {o.z2})")
+        new_objects = obj_lst_getter(iden2)   
         if new_objects.obj_lst:
+            for o in new_objects.obj_lst:
+               print(f"OBJECT: ({o.x1}, {o.x2}, {o.z1}, {o.z2})")
             objects.extend(new_objects.obj_lst)
             iden2 = new_objects.iden
             print("I GOT THE OBJECTS")
