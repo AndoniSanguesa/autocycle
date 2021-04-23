@@ -24,7 +24,7 @@ int main(int argc, char **argv){
 
   // Initializing vars
   string temp = "";
-  std_msgs::Float64 to_pub;
+  std_msgs::Float32 to_pub;
   int cur_publisher = 0;
   ros::Publisher publishers [9] = {state_pub, roll_pub, steer_pub, droll_pub, dsteer_pub, vel_pub, head_pub, dhead_pub, met_pub};
 
