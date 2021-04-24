@@ -93,8 +93,8 @@ void augment_path(){
         new_y = std::get<0>(new_path[last_ind])+(std::get<1>(change)*0.5);
         new_path.emplace_back(new_y, new_x);
         new_path.push_back(path[i]);
-        xs.push_back(new_x);
-        ys.push_back(new_y);
+        xs.push_back(new_x*node_size + node_size);
+        ys.push_back(-new_y*node_size + (height / 2));
     }
 
     path = new_path;
@@ -238,8 +238,8 @@ void bfs(){
     node = end_node;
     while(node != start_node) {
         path.emplace_back(node);
-        xs.push_back(std::get<1>(node));
-        ys.push_back(std::get<0>(node));
+        xs.push_back(std::get<1>(node)*node_size + node_size);
+        ys.push_back(-std::get<0>(node)*node_size + (height / 2));
         try {
             node = parent.at(cantor(node));
         } catch (std::out_of_range const &) {

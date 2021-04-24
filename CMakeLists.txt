@@ -8,7 +8,6 @@ catkin_package(
 )
 include_directories(include ${catkin_INCLUDE_DIRS})
 # PROJECT FILES
-add_executable(get_data src/get_data.cpp)
 add_executable(run_lidar src/run_lidar.cpp)
 add_executable(start_nav src/start_nav.cpp)
 add_executable(read_serial src/read_serial.cpp)
@@ -16,7 +15,6 @@ add_executable(send_action src/send_action.cpp)
 add_executable(generate_curve src/generate_curve.cpp)
 add_executable(static_object_tracking src/static_object_tracking.cpp)
 
-add_dependencies(get_data ${catkin_EXPORTED_TARGETS})
 add_dependencies(run_lidar ${catkin_EXPORTED_TARGETS})
 add_dependencies(start_nav ${catkin_EXPORTED_TARGETS})
 add_dependencies(read_serial ${catkin_EXPORTED_TARGETS})
@@ -25,7 +23,6 @@ add_dependencies(generate_curve ${catkin_EXPORTED_TARGETS})
 add_dependencies(static_object_tracking ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(run_lidar stdc++fs)
-target_link_libraries(get_data ${catkin_LIBRARIES})
 target_link_libraries(run_lidar ${catkin_LIBRARIES})
 target_link_libraries(start_nav ${catkin_LIBRARIES})
 target_link_libraries(read_serial ${catkin_LIBRARIES})
