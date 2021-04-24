@@ -15,7 +15,7 @@
 #include <std_srvs/Empty.h>
 #include <std_msgs/Float32.h>
 #include <stdio.h>
-using namespace std::chrono;
+using namespace std;
 
 bool ready = false;
 
@@ -29,10 +29,10 @@ ros::Subscriber read_sub;
 // Creates service client that will call on the fix_roll service to fix the roll...
 ros::ServiceClient roll_client;
 
-std::vector<autocycle_extras::Point> points;
+vector<autocycle_extras::Point> points;
 
 // Initializes the variable that will hold the lvx file
-std::ofstream f_done;
+ofstream f_done;
 
 // Initializes variables for time
 float roll = 0;
@@ -59,7 +59,7 @@ int same_obj_diff = 150;                 // maximum diff between horizontal cell
 int group_dist = 1500;					 // max dist between adjacent objects for convex hull
 float max_dist = 200000;
 
-std::string path_to_lvx = "f_done.lvx";
+string path_to_lvx = "f_done.lvx";
 
 autocycle_extras::Object get_object(float x1, float x2, float z1, float z2){
 	autocycle_extras::Object obj;
@@ -241,7 +241,7 @@ vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object
 
 
 void object_detection() {
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
     while (old_tracking_id != -1 && old_tracking_id == tracking_id){
         ros::spinOnce();
     }
@@ -330,8 +330,8 @@ void object_detection() {
 	pub_lst.obj_lst = condenseObjects(z_boys);
         pub_lst.iden = tracking_id;
 	obj_pub.publish(pub_lst);
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	auto end = chrono::high_resolution_clock::now();
+	auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
 	ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << (float) duration.count()/1000.0 << " SECONDS");
 }
 
@@ -345,16 +345,16 @@ void update_roll(const std_msgs::Float32 data){
 }
 
 void parse_lvx(){
-    std::streampos size;
+    streampos size;
     int data_type, x, y, z;
     char * buff;
     long long next;
 
-    std::ifstream file (path_to_lvx, std::ios::in|std::ios::binary|std::ios::ate);
+    ifstream file (path_to_lvx, ios::in|ios::binary|ios::ate);
     if (file.is_open()) {
         // Initialization
         size = file.tellg();
-        file.seekg(0, std::ios::beg);
+        file.seekg(0, ios::beg);
 
         ROS_INFO_STREAM("LVX FILE SIZE: " << size);
 
@@ -453,18 +453,18 @@ bool collect_data(
     ){
     // ROS_INFO_STREAM("Sending request for LVX file.");
     // Waits until f_done.lvx has been populated
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
     points.clear();
-    f_done.open("f_done.lvx", std::ios::trunc);
+    f_done.open("f_done.lvx", ios::trunc);
     while(f_done.tellp() == 0){
       f_done.close();
       if(!ros::ok()){
-        f_done.open("f_done.lvx", std::ios::trunc);
+        f_done.open("f_done.lvx", ios::trunc);
         f_done.write("done", 4);
         f_done.close();
         return 0;
       }
-      f_done.open("f_done.lvx", std::ios::app);
+      f_done.open("f_done.lvx", ios::app);
     }
     f_done.close();
 
@@ -483,10 +483,10 @@ bool collect_data(
     object_detection();
 
     // Clears f_done.lvx file while waiting for the rest of the loop to be ready
-    f_done.open(path_to_lvx, std::ios::trunc);
+    f_done.open(path_to_lvx, ios::trunc);
     f_done.close();
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    auto end = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     ROS_INFO_STREAM("NAV LOOP TOOK : " << (float) duration.count() / 1000.0 << " SECONDS");
     return true;
 }
@@ -515,7 +515,7 @@ int main(int argc, char **argv) {
   // Navigation loop
   ros::spin();
 
-  f_done.open(path_to_lvx, std::ios::trunc);
+  f_done.open(path_to_lvx, ios::trunc);
   f_done.write("done", 4);
   f_done.close();
 }
