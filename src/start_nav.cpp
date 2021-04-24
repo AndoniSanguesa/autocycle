@@ -149,7 +149,7 @@ void fix_roll(){
     np.x = (p.x*cos(roll)) - (p.y*sin(roll));
     np.y = (p.x*sin(roll)) + (p.y*cos(roll));
     np.z = p.z;
-    points[p] = np;
+    points[i] = np;
   }
 }
 
@@ -159,6 +159,8 @@ bool collect_data(
     ){
     // ROS_INFO_STREAM("Sending request for LVX file.");
     // Waits until f_done.lvx has been populated
+    auto start = std::chrono::high_resolution_clock::now();
+    points.clear();
     f_done.open("f_done.lvx", std::ios::trunc);
     while(f_done.tellp() == 0){
       f_done.close();
@@ -179,7 +181,6 @@ bool collect_data(
     parse_lvx();
     //ROS_INFO_STREAM("LVX file analyzed.");
 
-    auto start = std::chrono::high_resolution_clock::now();
     fix_roll();
 
     auto end = std::chrono::high_resolution_clock::now();
