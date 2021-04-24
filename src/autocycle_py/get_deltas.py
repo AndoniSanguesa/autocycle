@@ -53,6 +53,7 @@ def calculate_deltas(data):
 
 
 def g_delta(data):
+    print(f"DELTA: {get_delta(data.x, data.roll) if tck else -1}")
     return get_delta(data.x, data.roll) if tck else -1
 
 

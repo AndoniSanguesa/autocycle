@@ -8,8 +8,9 @@
 #include <ros/ros.h>
 #include <std_srvs/Empty.h>
 #include <std_msgs/Float32.h>
-#include <autocycle_extras::Curve.h>
-#include <autocycle_extras::CalcDeltas.h>
+#include <autocycle_extras/CalcDeltas.h>
+#include <autocycle_extras/ObjectList.h>
+#include <autocycle_extras/Object.h>
 
 // Size of plot
 int width = 20;
@@ -36,8 +37,8 @@ std::tuple<int, int> start_node;
 std::tuple<int, int> end_node;
 
 // x values and y values
-std::vector<int> xs;
-std::vector<int> ys;
+std::vector<float> xs;
+std::vector<float> ys;
 
 // Heading
 int desired_heading = 0;
@@ -54,9 +55,9 @@ float heading = -1;
 // ROS stuff
 ros::ServiceClient new_data;
 ros::ServiceClient calc_deltas;
-std_srvs::CalcDeltas::Request calc_deltas_req;
-std_srvs::CalcDeltas::Response calc_deltas_resp;
-ros::ServiceCleint new_path_cli;
+autocycle_extras::CalcDeltas::Request calc_deltas_req;
+autocycle_extras::CalcDeltas::Response calc_deltas_resp;
+ros::ServiceClient new_path_cli;
 std_srvs::Empty::Request empty_req;
 std_srvs::Empty::Response empty_resp;
 
@@ -241,7 +242,7 @@ void bfs(){
         try {
             node = parent.at(cantor(node));
         } catch (std::out_of_range const &) {
-            //ROS_INFO_STREAM("THE BIKE SHOULD BE STOPPED"); // TODO: stop the bike
+            ROS_INFO_STREAM("THE BIKE SHOULD BE STOPPED"); // TODO: stop the bike
             break;
         }
     }
@@ -267,7 +268,7 @@ void update_end_node() {
     }
 }
 
-void generate_curve(const std::vector<std::tuple<float, float, float, float>>& obj_lst) {
+void generate_curve(const autocycle_extras::ObjectList data) {
     // Creates the curve around objects
     ros::spinOnce();
     theta = des_heading - heading;
@@ -275,10 +276,10 @@ void generate_curve(const std::vector<std::tuple<float, float, float, float>>& o
     reset_vars();
     update_end_node();
     std::vector<std::tuple<float, float, float, float>> real_obj_lst;
-    real_obj_lst.reserve(obj_lst.size());
+    real_obj_lst.reserve(data.obj_lst.size());
 
-    for(auto & i : obj_lst){
-        real_obj_lst.emplace_back(std::make_tuple(std::get<2>(i)/1000, std::get<3>(i)/1000, std::get<0>(i)/1000, std::get<1>(i)/1000));
+    for(auto & i : data.obj_lst){
+        real_obj_lst.emplace_back(std::make_tuple(i.z1/1000, i.z2/1000, i.x1/1000, i.x2/1000));
     }
 
     for (auto & i : real_obj_lst) {
@@ -288,9 +289,9 @@ void generate_curve(const std::vector<std::tuple<float, float, float, float>>& o
 
     calc_deltas_req.path_x = xs;
     calc_deltas_req.path_y = ys;
-    calc_deltas(calc_deltas_req, calc_deltas_resp);
-    new_path_cli(empty_req, empty_resp);
-    new_data(empty_req, empty_resp);
+    calc_deltas.call(calc_deltas_req, calc_deltas_resp);
+    new_path_cli.call(empty_req, empty_resp);
+    new_data.call(empty_req, empty_resp);
 }
 
 void get_heading(const std_msgs::Float32 data){
@@ -310,10 +311,10 @@ int main(int argc, char **argv){
     ros::NodeHandle nh;
 
     // Waits for data getter service
-    ros::waitForService("collect_data");
+    ros::service::waitForService("collect_data");
 
     // Waits for data getter service
-    ros::waitForService("calculate_deltas");
+    ros::service::waitForService("calculate_deltas");
 
     // Creates server proxy for collecting another set of data
     new_data = nh.serviceClient<std_srvs::Empty>("collect_data");
@@ -336,10 +337,10 @@ int main(int argc, char **argv){
     des_heading = heading;
 
     // Creates subscriber that will generate a path when there is new data
-    ros::Subscriber = nh.subscribe("cycle/object_frame", 1, &generate_curve);
+    ros::Subscriber frame_sub = nh.subscribe("cycle/object_frame", 1, &generate_curve);
 
     // Asks for initial data
-    new_data(new_data_req, new_data_resp);
+    new_data.call(empty_req, empty_resp);
 
     // Spins
     ros::spin();

@@ -10,7 +10,7 @@ using namespace std;
 // Creates serial object to write to
 serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
-float distance = 0;
+float dist_trav = 0;
 float velocity = 0;
 float roll = 0;
 float time_elapsed = 0;
@@ -19,7 +19,7 @@ bool reset_distance(
     std_srvs::Empty::Request &req,
     std_srvs::Empty::Response &resp
 ){
-    distance = 0;
+    dist_trav = 0;
     return true;
 }
 
@@ -37,18 +37,18 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;
 
     // Creates service proxy that will grab new deltas
-    std::ServiceClient get_delta = nh.serviceClient<autocycle_extras::GetDelta>("get_delta");
-    std::autocycle_extras::GetDelta::Request req;
-    std::autocycle_extras::GetDelta::Response resp;
+    ros::ServiceClient get_delta = nh.serviceClient<autocycle_extras::GetDelta>("get_delta");
+    autocycle_extras::GetDelta::Request req;
+    autocycle_extras::GetDelta::Response resp;
 
     // Creates Service that will reset the distance
-    std::ServiceServer get_path = nh.advertiseService("reset_action", &reset_distance);
+    ros::ServiceServer get_path = nh.advertiseService("reset_action", &reset_distance);
 
     // Creates subscriber for updating velocity
-    std::Subscriber get_vel = nh.subscribe("sensors/vel", 1, &update_velocity)
+    ros::Subscriber get_vel = nh.subscribe("sensors/vel", 1, &update_velocity);
 
     // Creates subscriber for updating roll
-    std::Subscriber get_roll = nh.subscribe("sensors/roll", 1, &update_velocity)
+    ros::Subscriber get_roll = nh.subscribe("sensors/roll", 1, &update_roll);
 
     // Starts the clock!
     auto start = std::chrono::high_resolution_clock::now();
@@ -56,12 +56,12 @@ int main(int argc, char **argv) {
     while(ros::ok()){
         ros::spinOnce();
         auto end = std::chrono::high_resolution_clock::now();
-        auto duration = duration_cast<milliseconds>(stop - start);
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         auto start = std::chrono::high_resolution_clock::now();
-        distance += velocity * (((float) duration.count())/1000.0)
-        req.x = distance;
+        dist_trav += velocity * (((float) duration.count())/1000.0);
+        req.x = dist_trav;
         req.roll = roll;
-        get_delta(req. resp);
+        get_delta.call(req, resp);
 
         my_serial.write("s 4.5;d " + to_string(resp.delta) + ";");
     }
