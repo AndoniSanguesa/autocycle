@@ -14,7 +14,6 @@ add_executable(start_nav src/start_nav.cpp)
 add_executable(read_serial src/read_serial.cpp)
 add_executable(send_action src/send_action.cpp)
 add_executable(generate_curve src/generate_curve.cpp)
-add_executable(object_detection src/object_detection.cpp)
 add_executable(static_object_tracking src/static_object_tracking.cpp)
 
 add_dependencies(get_data ${catkin_EXPORTED_TARGETS})
@@ -23,7 +22,6 @@ add_dependencies(start_nav ${catkin_EXPORTED_TARGETS})
 add_dependencies(read_serial ${catkin_EXPORTED_TARGETS})
 add_dependencies(send_action ${catkin_EXPORTED_TARGETS})
 add_dependencies(generate_curve ${catkin_EXPORTED_TARGETS})
-add_dependencies(object_detection ${catkin_EXPORTED_TARGETS})
 add_dependencies(static_object_tracking ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(run_lidar stdc++fs)
@@ -33,7 +31,6 @@ target_link_libraries(start_nav ${catkin_LIBRARIES})
 target_link_libraries(read_serial ${catkin_LIBRARIES})
 target_link_libraries(send_action ${catkin_LIBRARIES})
 target_link_libraries(generate_curve ${catkin_LIBRARIES})
-target_link_libraries(object_detection ${catkin_LIBRARIES})
 target_link_libraries(static_object_tracking ${catkin_LIBRARIES})
 
 catkin_install_python(PROGRAMS bin/read_rosbag bin/get_deltas
