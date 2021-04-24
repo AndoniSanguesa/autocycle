@@ -38,9 +38,12 @@ ofstream f_done;
 float roll = 0;
 bool result;
 
-int height = 3000;   // vertical dimension in millimeters
+int height = 2400;   // vertical dimension in millimeters
 int width = 20000;    // horizontal dimension in millimeters
 int cell_dim = 50;    // dimension of cells in millimeters (cells are squares)
+
+int half_height = height/2;
+int half_width = width/2;
 
 int cell_row = ceil((1.0 * height) / cell_dim);
 int cell_col = ceil((1.0 * width) / cell_dim);
@@ -241,7 +244,7 @@ vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object
 
 
 void object_detection() {
-    auto start = chrono::high_resolution_clock::now();
+    //auto start = chrono::high_resolution_clock::now();
     while (old_tracking_id != -1 && old_tracking_id == tracking_id){
         ros::spinOnce();
     }
@@ -327,12 +330,15 @@ void object_detection() {
 			  		          close_vec[right_bound]));
 	}
 
+	for(auto & i : z_boys){
+	    ROS_INFO_STREAM("OBJECT: (" << i.x1 << ", " << i.x2 << ", " << i.z1 << ", " << i.z2 << ")");
+	}
 	pub_lst.obj_lst = condenseObjects(z_boys);
         pub_lst.iden = tracking_id;
 	obj_pub.publish(pub_lst);
-	auto end = chrono::high_resolution_clock::now();
-	auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
-	ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << (float) duration.count()/1000.0 << " SECONDS");
+	//auto end = chrono::high_resolution_clock::now();
+	//auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+	//ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << (float) duration.count()/1000.0 << " SECONDS");
 }
 
 void get_new_frame(const autocycle_extras::ObjectList new_ol){
@@ -356,7 +362,7 @@ void parse_lvx(){
         size = file.tellg();
         file.seekg(0, ios::beg);
 
-        ROS_INFO_STREAM("LVX FILE SIZE: " << size);
+        //ROS_INFO_STREAM("LVX FILE SIZE: " << size);
 
         buff = new char[4];
 
@@ -412,7 +418,7 @@ void parse_lvx(){
                         p.z = x;
                         p.x = y;
                         p.y = z;
-			if(p.z !=0 && p.x > -10000 && p.x < 10000 && p.y > -1500 && p.y < 1500){
+			if(p.z !=0 && p.x > -half_width && p.x < half_width && p.y > -half_height && p.y < half_height){
 			    points.push_back(p);
 			}
                        // if(-50 < p.x and p.x < 50){
@@ -453,7 +459,7 @@ bool collect_data(
     ){
     // ROS_INFO_STREAM("Sending request for LVX file.");
     // Waits until f_done.lvx has been populated
-    auto start = chrono::high_resolution_clock::now();
+    //auto start = chrono::high_resolution_clock::now();
     points.clear();
     f_done.open("f_done.lvx", ios::trunc);
     while(f_done.tellp() == 0){
@@ -485,9 +491,9 @@ bool collect_data(
     // Clears f_done.lvx file while waiting for the rest of the loop to be ready
     f_done.open(path_to_lvx, ios::trunc);
     f_done.close();
-    auto end = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
-    ROS_INFO_STREAM("NAV LOOP TOOK : " << (float) duration.count() / 1000.0 << " SECONDS");
+    //auto end = chrono::high_resolution_clock::now();
+    //auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+    //ROS_INFO_STREAM("NAV LOOP TOOK : " << (float) duration.count() / 1000.0 << " SECONDS");
     return true;
 }
 

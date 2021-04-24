@@ -110,6 +110,8 @@ void reset_vars(){
     // The path being taken
     path.clear();
     path.reserve(400);
+    xs.clear();
+    ys.clear();
 }
 
 std::tuple<int, int> get_node_from_point(std::tuple<float, float> point){

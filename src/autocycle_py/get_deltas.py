@@ -35,13 +35,11 @@ def get_delta(i, roll):
 
 def calculate_deltas(data):
     global tck
-    start = time.time()
-    inter_path(data.path_x, data.path_y)
-    data.path_x.insert(0, 0)
-    data.path_y.insert(0, 0)
+    xs = list(data.path_x)
+    ys = list(data.path_y)
+    xs.insert(0, 0)
+    ys.insert(0, 0)
     tck = interp.splprep([xs, ys], s=0.5)[0]
-    end = time.time()
-    print(f"CALCUALTING DELTAS TOOK : {end - start} SECONDS")
     return []
 
 
