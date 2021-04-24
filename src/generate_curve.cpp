@@ -53,13 +53,12 @@ float heading = -1;
 
 // ROS stuff
 ros::ServiceClient new_data;
-std_srvs::Empty::Request new_data_req;
-std_srvs::Empty::Response new_data_resp;
 ros::ServiceClient calc_deltas;
 std_srvs::CalcDeltas::Request calc_deltas_req;
 std_srvs::CalcDeltas::Response calc_deltas_resp;
-ros::Publisher new_path_pub;
-std_msgs::Empty e;
+ros::ServiceCleint new_path_cli;
+std_srvs::Empty::Request empty_req;
+std_srvs::Empty::Response empty_resp;
 
 int cantor(std::tuple<int, int> node){
     // Maps a tuple to 2 integers to a unique integer (for hashing)
@@ -290,8 +289,8 @@ void generate_curve(const std::vector<std::tuple<float, float, float, float>>& o
     calc_deltas_req.path_x = xs;
     calc_deltas_req.path_y = ys;
     calc_deltas(calc_deltas_req, calc_deltas_resp);
-    new_path_pub.publish(e);
-    new_data(new_data_req, new_data_resp);
+    new_path_cli(empty_req, empty_resp);
+    new_data(empty_req, empty_resp);
 }
 
 void get_heading(const std_msgs::Float32 data){
@@ -322,11 +321,11 @@ int main(int argc, char **argv){
     // Creates server proxy for calculating new deltas
     calc_deltas = nh.serviceClient<autocycle_extras::CalcDeltas>("calculate_deltas");
 
+    // Creates Publisher that alerts send_action that it needs to reset its coordinate system
+    new_path_cli = nh.serviceClient<std_srvs::Empty>("reset_action");
+
     // Creates subscriber that updates the heading
     ros::Subscriber head_sub = nh.subscribe("sensors/heading", 1, &get_heading);
-
-    // Creates Publisher that alerts send_action that it needs to reset its coordinate system
-    new_path_pub = nh.advertise<std_msgs::Empty>("cycle/new_path", 1);
 
     // Sets desired heading (for now the initial heading)
     while(heading == -1){

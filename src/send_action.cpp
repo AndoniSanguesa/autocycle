@@ -3,6 +3,7 @@
 #include <autocycle_extras/GetDelta.h>
 #include <std_msgs/Float32.h>
 #include <chrono>
+#include <std_srvs/Empty.h>
 
 using namespace std;
 
@@ -14,8 +15,12 @@ float velocity = 0;
 float roll = 0;
 float time_elapsed = 0;
 
-void reset_distance(const std_msgs::Empty e){
+bool reset_distance(
+    std_srvs::Empty::Request &req,
+    std_srvs::Empty::Response &resp
+){
     distance = 0;
+    return true;
 }
 
 void update_velocity(const std_msgs::Float32 data){
@@ -36,8 +41,8 @@ int main(int argc, char **argv) {
     std::autocycle_extras::GetDelta::Request req;
     std::autocycle_extras::GetDelta::Response resp;
 
-    // Creates subscriber for new Path
-    std::Subscriber get_path = nh.subscribe("cycle/new_path", 1, &reset_distance);
+    // Creates Service that will reset the distance
+    std::ServiceServer get_path = nh.advertiseService("reset_action", &reset_distance);
 
     // Creates subscriber for updating velocity
     std::Subscriber get_vel = nh.subscribe("sensors/vel", 1, &update_velocity)
