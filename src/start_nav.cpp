@@ -56,7 +56,7 @@ void parse_lvx(){
     char * buff;
     long long next;
 
-    std::ifstream file (path_to_lvx, ios::in|ios::binary|ios::ate);
+    std::ifstream file (path_to_lvx, std::ios::in|std::ios::binary|std::ios::ate);
     if (file.is_open()) {
         // Initialization
         size = file.tellg();
@@ -144,8 +144,8 @@ void fix_roll(){
   autocycle_extras::Point np;
 
   // Updates each point in `req` and pushes it to the new vector
-  for(i=0;i<points.size();i++){
-    p = points[p];
+  for(int i=0;i<points.size();i++){
+    p = points[i];
     np.x = (p.x*cos(roll)) - (p.y*sin(roll));
     np.y = (p.x*sin(roll)) + (p.y*cos(roll));
     np.z = p.z;
@@ -188,7 +188,7 @@ bool collect_data(
     //ROS_INFO_STREAM("Points have been adjusted for roll.");
 
     //ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
-    detect_req.data = adj_roll_resp.out;
+    detect_req.data = points;
     result = detection_client.call(detect_req, detect_resp);
 
     // Clears f_done.lvx file while waiting for the rest of the loop to be ready
