@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <std_msgs/Float64.h>
+#include <std_msgs/Float32.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
   ros::NodeHandle nh;
 
   // Creates publisher that will publish roll values
-  ros::Publisher roll_pub = nh.advertise<std_msgs::Float64>("sensors/roll", 1);
+  ros::Publisher roll_pub = nh.advertise<std_msgs::Float32>("sensors/roll", 1);
 
   // Initializes roll value
   float roll = 0;

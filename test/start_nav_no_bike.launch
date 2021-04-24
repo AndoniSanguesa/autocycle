@@ -15,13 +15,6 @@
   />
   <node
     pkg="autocycle"
-    type="parse_lvx"
-    name="parse_lvx_file"
-    output="screen"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
     type="generate_curve"
     name="bezier"
     output="screen"
@@ -59,12 +52,6 @@
     pkg="autocycle"
     type="test_fake_send_action"
     name="test_fake_send_action"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
-    type="fix_roll"
-    name="fix_roll"
     respawn="true"
   />
   <node
