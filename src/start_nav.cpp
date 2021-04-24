@@ -1,5 +1,3 @@
-// This program handles the communication between different parts of
-// Autocycle's navigation systems.
 #include <ros/ros.h>
 #include <autocycle_extras/LvxData.h>
 #include <autocycle_extras/ObjectList.h>
@@ -16,6 +14,7 @@
 #include <std_msgs/Empty.h>
 #include <std_srvs/Empty.h>
 #include <std_msgs/Float32.h>
+#include <stdio.h>
 using namespace std::chrono;
 
 bool ready = false;
@@ -32,15 +31,11 @@ ros::ServiceClient detection_client;
 // Creates service client that will call on the fix_roll service to fix the roll...
 ros::ServiceClient roll_client;
 
-vector<autocycle_extras::Point> points;
+std::vector<autocycle_extras::Point> points;
 
 // The response and request objects that will handle object detection
 autocycle_extras::DetectObjects::Request detect_req;
 autocycle_extras::DetectObjects::Response detect_resp;
-
-// The response and requests objects that will contain the non roll-adjusted points and the adjusted ones
-autocycle_extras::RollAdj::Request adj_roll_req;
-autocycle_extras::RollAdj::Response adj_roll_resp;
 
 // Initializes the variable that will hold the lvx file
 std::ofstream f_done;
@@ -56,16 +51,16 @@ void update_roll(const std_msgs::Float32 data){
 }
 
 void parse_lvx(){
-    streampos size;
+    std::streampos size;
     int data_type, x, y, z;
     char * buff;
     long long next;
 
-    ifstream file (path_to_lvx, ios::in|ios::binary|ios::ate);
+    std::ifstream file (path_to_lvx, ios::in|ios::binary|ios::ate);
     if (file.is_open()) {
         // Initialization
         size = file.tellg();
-        file.seekg(0, ios::beg);
+        file.seekg(0, std::ios::beg);
 
         ROS_INFO_STREAM("LVX FILE SIZE: " << size);
 
@@ -139,9 +134,8 @@ void parse_lvx(){
     }
     else {
         ROS_ERROR_STREAM("File could not be opened");
-        return false;
     }
-    ret.shrink_to_fit();
+    points.shrink_to_fit();
 }
 
 void fix_roll(){
@@ -154,7 +148,7 @@ void fix_roll(){
     p = points[p];
     np.x = (p.x*cos(roll)) - (p.y*sin(roll));
     np.y = (p.x*sin(roll)) + (p.y*cos(roll));
-    np.z = cur_point.z;
+    np.z = p.z;
     points[p] = np;
   }
 }
@@ -211,9 +205,6 @@ int main(int argc, char **argv) {
   // Waits for the object detector service to be active
   ros::service::waitForService("object_detection");
 
-  // Wait for the fix_roll service to be active
-  ros::service::waitForService("fix_roll");
-
   // Creates the subscriber that checks for when it is safe to continue
   read_sub = nh.subscribe("cycle/ready", 1, &update_ready);
 
@@ -221,9 +212,6 @@ int main(int argc, char **argv) {
   ros::Subscriber get_roll = nh.subscribe("sensors/roll", 1, &update_roll);
 
   detection_client = nh.serviceClient<autocycle_extras::DetectObjects>("object_detection");
-
-  // Creates service client that will call on the fix_roll service to fix the roll...
-  roll_client = nh.serviceClient<autocycle_extras::RollAdj>("fix_roll");
 
   ros::ServiceServer data_server = nh.advertiseService("collect_data", &collect_data);
 
