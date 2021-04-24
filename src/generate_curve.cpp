@@ -11,6 +11,7 @@
 #include <autocycle_extras/CalcDeltas.h>
 #include <autocycle_extras/ObjectList.h>
 #include <autocycle_extras/Object.h>
+#include <chrono>
 
 // Size of plot
 int width = 20;
@@ -270,6 +271,7 @@ void update_end_node() {
 
 void generate_curve(const autocycle_extras::ObjectList data) {
     // Creates the curve around objects
+    auto start = std::chrono::high_resolution_clock::now();
     ros::spinOnce();
     theta = des_heading - heading;
 
@@ -286,12 +288,15 @@ void generate_curve(const autocycle_extras::ObjectList data) {
         get_blocked_nodes(i);
     }
     bfs();
-
     calc_deltas_req.path_x = xs;
     calc_deltas_req.path_y = ys;
     calc_deltas.call(calc_deltas_req, calc_deltas_resp);
     new_path_cli.call(empty_req, empty_resp);
     new_data.call(empty_req, empty_resp);
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    ROS_INFO_STREAM("PATH PLANNING IS TAKING: " << (float) duration.count() / 1000.0 << " SECONDS");
 }
 
 void get_heading(const std_msgs::Float32 data){

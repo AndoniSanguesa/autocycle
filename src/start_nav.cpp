@@ -14,7 +14,7 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Empty.h>
 #include <std_srvs/Empty.h>
-
+#include <std_msgs/Float32.h>
 using namespace std::chrono;
 
 bool ready = false;
@@ -58,18 +58,21 @@ autocycle_extras::RollAdj::Response adj_roll_resp;
 std::ofstream f_done;
 
 // Initializes variables for time
-double distance;
-float velocity;
+float roll = 0;
 bool result;
 
 std::string path_to_lvx = "f_done.lvx";
+
+void update_roll(const std_msgs::Float32 data){
+    roll = data.data;
+}
+
 
 bool collect_data(
     std_srvs::Empty::Request &req,
     std_srvs::Empty::Response &resp
     ){
-    ROS_INFO_STREAM("Sending request for LVX file.");
-
+    // ROS_INFO_STREAM("Sending request for LVX file.");
     // Waits until f_done.lvx has been populated
     f_done.open("f_done.lvx", std::ios::trunc);
     while(f_done.tellp() == 0){
@@ -84,12 +87,9 @@ bool collect_data(
     }
     f_done.close();
 
-    // Collects the latest roll data
-    get_data_req.data_type = 2;
-    result = get_data_client.call(get_data_req, get_data_resp);
 
-    ROS_INFO_STREAM("LVX file generated.");
-    ROS_INFO_STREAM("Sending request to analyze LVX File.");
+    //ROS_INFO_STREAM("LVX file generated.");
+    //ROS_INFO_STREAM("Sending request to analyze LVX File.");
 
     // Parses the lvx file
     lvx_req.path = path_to_lvx;
@@ -98,15 +98,20 @@ bool collect_data(
     if(!result){
         exit(1);
     }
-    ROS_INFO_STREAM("LVX file analyzed.");
+    //ROS_INFO_STREAM("LVX file analyzed.");
 
+     
+    auto start = std::chrono::high_resolution_clock::now();
     adj_roll_req.in = lvx_resp.data;
     adj_roll_req.roll = get_data_resp.data;
     result = roll_client.call(adj_roll_req, adj_roll_resp);
 
-    ROS_INFO_STREAM("Points have been adjusted for roll.");
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    ROS_INFO_STREAM("NAV LOOP TOOK : " << (float) duration.count() / 1000.0 << " SECONDS");
+    //ROS_INFO_STREAM("Points have been adjusted for roll.");
 
-    ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
+    //ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
     detect_req.data = adj_roll_resp.out;
     result = detection_client.call(detect_req, detect_resp);
 
@@ -124,9 +129,6 @@ int main(int argc, char **argv) {
   // Wait for the parse_lvx service to be active
   ros::service::waitForService("parse_lvx");
 
-  // Waits for the data getter service to be active
-  ros::service::waitForService("get_data");
-
   // Waits for the object detector service to be active
   ros::service::waitForService("object_detection");
 
@@ -135,6 +137,9 @@ int main(int argc, char **argv) {
 
   // Creates the subscriber that checks for when it is safe to continue
   read_sub = nh.subscribe("cycle/ready", 1, &update_ready);
+
+  // Creates subscriber for updating roll
+  ros::Subscriber get_roll = nh.subscribe("sensors/roll", 1, &update_roll);
 
   // TEMPRORARY UNTIL LVX ANALYSIS ALGORITHM IS COMPLETE.
   // ONLY TO TEST THAT FRAMES ARE BEING RECORDED.

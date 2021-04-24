@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <autocycle_extras/GetData.h>
-#include <std_msgs/Float64.h>
+#include <std_msgs/Float32.h>
 
 using namespace std;
 
@@ -9,19 +9,19 @@ float head = 0;
 float roll = 0;
 float met = 0;
 
-void get_vel(const std_msgs::Float64 data){
+void get_vel(const std_msgs::Float32 data){
     vel = data.data;
 }
 
-void get_head(const std_msgs::Float64 data){
+void get_head(const std_msgs::Float32 data){
     head = data.data;
 }
 
-void get_roll(const std_msgs::Float64 data){
+void get_roll(const std_msgs::Float32 data){
     roll = data.data;
 }
 
-void get_met(const std_msgs::Float64 data){
+void get_met(const std_msgs::Float32 data){
     met = data.data;
 }
 

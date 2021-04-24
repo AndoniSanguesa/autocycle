@@ -2,8 +2,8 @@
 #include <chrono>
 #include <cmath>
 #include <std_msgs/Float32.h>
-#include <autocycle_extras/ObjectList>
-#include <autocycle_extras/Object>
+#include <autocycle_extras/ObjectList.h>
+#include <autocycle_extras/Object.h>
 
 float prev_heading = -1;
 float heading = -1;
@@ -24,7 +24,7 @@ void get_objects(const autocycle_extras::ObjectList data){
 
 int main(int argc, char **argv){
     // Registers the Node with the Master
-    ros::init(argc, argv"static_object_tracking");
+    ros::init(argc, argv, "static_object_tracking");
     ros::NodeHandle nh;
 
     // Creates subscriber that updates heading
@@ -42,7 +42,6 @@ int main(int argc, char **argv){
     // Initializing variables
     float delta_angle, delta_time, c, s, distance;
     std::vector<autocycle_extras::Object> new_objs;
-    autocycle_extras::Object rotated;
     autocycle_extras::ObjectList to_pub;
 
     while (ol.size() == 0 || heading == -1 || velocity == -1){
@@ -64,21 +63,23 @@ int main(int argc, char **argv){
 
         c = cos(delta_angle);
         s = sin(delta_angle);
-        distance = speed * delta_time;
+        distance = velocity * delta_time;
 
-        for(auto & i : objects){
-            rotated.x1 = i.x1*c - i.y1*s;
-            rotated.z1 = i.x1*s + i.y1*c - distance;
-            rotated.x2 = i.x2*c - i.y2*s;
-            rotated.z2 = i.x2*s + i.y2*c - distance;
+        for(auto & i : ol){
+	    autocycle_extras::Object rotated;
+            rotated.z1 = i.z1*c - i.x1*s;
+            rotated.x1 = i.z1*s + i.x1*c - distance;
+            rotated.z2 = i.z2*c - i.x2*s;
+            rotated.x2 = i.z2*s + i.x2*c - distance;
             if(rotated.z1 < 0 && rotated.z2 < 0){
                 continue;
             }
-            new_objs.emplace_back(rotated.copy());
+            new_objs.emplace_back(rotated);
         }
-        objects.clear();
-        objects = new_objs.copy();
-        to_pub.obj_lst = objects;
+        ol.clear();
+        ol = new_objs;
+        to_pub.obj_lst = ol;
         pub.publish(to_pub);
+	ol.clear(); // DELETE THIS LINE ONCE INTERSECTION IS WORKING
     }
 }

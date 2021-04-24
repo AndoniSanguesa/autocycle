@@ -1,13 +1,12 @@
 import rospy
-import re
-from autocycle_extras.srv import CalcDeltas, GetDelta, GetData, Action, GetCurve
-import time
+from autocycle_extras.srv import CalcDeltas, GetDelta
 import numpy as np
 from scipy import interpolate as interp
 
 tck = []
-dist_travelled = 0
-
+node_size = 1
+height = 20
+width = 20
 
 def inter_path(path_x, path_y):
     """Creates the interpolated path from the line segments
@@ -50,10 +49,10 @@ def get_delta(i, roll):
 
 def calculate_deltas(data):
     inter_path(data.path_x, data.path_y)
+    return []
 
 
-def g_delta(data):
-    print(f"DELTA: {get_delta(data.x, data.roll) if tck else -1}")
+def delta(data):
     return get_delta(data.x, data.roll) if tck else -1
 
 
@@ -66,8 +65,8 @@ def start():
     calc_delta = rospy.Service("calculate_deltas", CalcDeltas, calculate_deltas)
 
     # Service that will return the appropriate delta for a given x-value and roll
-    g_delta = rospy.Service("get_delta", GetDelta, get_delta)
+    g_delta = rospy.Service("get_delta", GetDelta, delta)
         
-
+    rospy.spin()
 
 

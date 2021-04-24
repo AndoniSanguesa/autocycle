@@ -215,15 +215,10 @@ bool object_detection(
     autocycle_extras::DetectObjects::Request &req,
     autocycle_extras::DetectObjects::Response &resp
 ) {
-    //using std::chrono::high_resolution_clock;
-    //using std::chrono::duration_cast;
-    //using std::chrono::duration;
-    //using std::chrono::milliseconds;
-
+    auto start = std::chrono::high_resolution_clock::now();
     while (old_tracking_id != -1 && old_tracking_id == tracking_id){
         ros::spinOnce();
     }
-    //auto t1 = high_resolution_clock::now();
     old_tracking_id = tracking_id;
     vector<autocycle_extras::Point> points = req.data;
 	vector<vector<float>> cells(cell_row, vector<float>(cell_col, max_dist));
@@ -310,9 +305,9 @@ bool object_detection(
 	pub_lst.obj_lst = condenseObjects(z_boys);
         pub_lst.iden = tracking_id;
 	obj_pub.publish(pub_lst);
-	//auto t2 = high_resolution_clock::now();
-	//duration<double, std::milli> ms_double = t2 - t1;
-	//ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << ms_double.count() << "ms");
+	auto end = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << (float) duration.count()/1000.0 << " SECONDS");
     return true;
 }
 

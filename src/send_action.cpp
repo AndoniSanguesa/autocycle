@@ -52,8 +52,12 @@ int main(int argc, char **argv) {
 
     // Starts the clock!
     auto start = std::chrono::high_resolution_clock::now();
+    
+    // Rates the delta querying speed
+    ros::Rate loop_rate(10);
 
     while(ros::ok()){
+	loop_rate.sleep();
         ros::spinOnce();
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
