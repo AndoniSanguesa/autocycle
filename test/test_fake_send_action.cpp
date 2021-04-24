@@ -60,5 +60,4 @@ int main(int argc, char **argv) {
         req.roll = roll;
         get_delta.call(req, resp);
     }
-
 }
