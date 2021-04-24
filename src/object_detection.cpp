@@ -10,7 +10,7 @@
 using namespace std;
 
 // Global variable declarations
-int height = 10000;   // vertical dimension in millimeters
+int height = 3000;   // vertical dimension in millimeters
 int width = 20000;    // horizontal dimension in millimeters
 int cell_dim = 50;    // dimension of cells in millimeters (cells are squares)
 
@@ -226,7 +226,7 @@ bool object_detection(
 		float z = points[i].z;
 		int x = (points[i].x + (width / 2)) / cell_dim;
 		int y = (points[i].y + (height / 2)) / cell_dim;
-		if (x >= 0 &&  x < cell_col && y >=0 && y < cell_row && z < cells[y][x]) {
+		if (z < cells[y][x]) {
 			cells[y][x] = z;
 		}
 	}

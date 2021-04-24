@@ -118,7 +118,7 @@ void parse_lvx(){
                         p.z = x;
                         p.x = y;
                         p.y = z;
-			if(!(x == 0 && y == 0 && z ==0)){
+			if(p.z !=0 && p.x > -10000 && p.x < 10000 && p.y > -1500 && p.y < 1500){
 			    points.push_back(p);
 			}
                        // if(-50 < p.x and p.x < 50){
