@@ -249,12 +249,12 @@ void object_detection() {
         ros::spinOnce();
     }
     old_tracking_id = tracking_id;
-	vector<vector<float>> cells(cell_row, vector<float>(cell_col, max_dist));
+	vector<vector<float>> cells(cell_row, vector<float>(cell_col, 0));
 	for (int i = 0; i < points.size(); i++) {
 		float z = points[i].z;
 		int x = (points[i].x + (width / 2)) / cell_dim;
 		int y = (points[i].y + (height / 2)) / cell_dim;
-		if (z < cells[y][x]) {
+		if (cells[y][x] == 0 || z < cells[y][x]) {
 			cells[y][x] = z;
 		}
 	}
