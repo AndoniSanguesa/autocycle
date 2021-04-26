@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <serial/serial.h>
 #include <autocycle_extras/GetDelta.h>
+#include <autocycle_extras/CalcDelta.h>
 #include <std_msgs/Float32.h>
 #include <chrono>
 #include <std_srvs/Empty.h>
@@ -15,12 +16,8 @@ float velocity = 0;
 float roll = 0;
 float time_elapsed = 0;
 
-bool reset_distance(
-    std_srvs::Empty::Request &req,
-    std_srvs::Empty::Response &resp
-){
+void reset_distance(const autocycle_extras::CalcDelta data){
     dist_trav = 0;
-    return true;
 }
 
 void update_velocity(const std_msgs::Float32 data){
@@ -42,7 +39,7 @@ int main(int argc, char **argv) {
     autocycle_extras::GetDelta::Response resp;
 
     // Creates Service that will reset the distance
-    ros::ServiceServer get_path = nh.advertiseService("reset_action", &reset_distance);
+    ros::Subscriber get_path = nh.subscribe("cycle/path", &reset_distance);
 
     // Creates subscriber for updating velocity
     ros::Subscriber get_vel = nh.subscribe("sensors/vel", 1, &update_velocity);

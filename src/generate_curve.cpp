@@ -55,10 +55,8 @@ float heading = -1;
 
 // ROS stuff
 ros::ServiceClient new_data;
-ros::ServiceClient calc_deltas;
-autocycle_extras::CalcDeltas::Request calc_deltas_req;
-autocycle_extras::CalcDeltas::Response calc_deltas_resp;
-ros::ServiceClient new_path_cli;
+ros::Publisher calc_deltas;
+autocycle_extras::CalcDeltas to_pub;
 std_srvs::Empty::Request empty_req;
 std_srvs::Empty::Response empty_resp;
 
@@ -290,10 +288,9 @@ void generate_curve(const autocycle_extras::ObjectList data) {
         get_blocked_nodes(i);
     }
     bfs();
-    calc_deltas_req.path_x = xs;
-    calc_deltas_req.path_y = ys;
-    calc_deltas.call(calc_deltas_req, calc_deltas_resp);
-    new_path_cli.call(empty_req, empty_resp);
+    to_pub.path_x = xs;
+    to_pub.path_y = ys;
+    calc_deltas.publish(to_pub);
     new_data.call(empty_req, empty_resp);
     
     auto end = std::chrono::high_resolution_clock::now();
@@ -327,10 +324,7 @@ int main(int argc, char **argv){
     new_data = nh.serviceClient<std_srvs::Empty>("collect_data");
 
     // Creates server proxy for calculating new deltas
-    calc_deltas = nh.serviceClient<autocycle_extras::CalcDeltas>("calculate_deltas");
-
-    // Creates Publisher that alerts send_action that it needs to reset its coordinate system
-    new_path_cli = nh.serviceClient<std_srvs::Empty>("reset_action");
+    calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
 
     // Creates subscriber that updates the heading
     ros::Subscriber head_sub = nh.subscribe("sensors/heading", 1, &get_heading);

@@ -53,7 +53,7 @@ def start():
     rospy.init_node('get_deltas')
 
     # Service that will update the parameters for calculating deltas
-    calc_delta = rospy.Service("calculate_deltas", CalcDeltas, calculate_deltas)
+    calc_delta = rospy.Subscribe("cycle/path", CalcDeltas, calculate_deltas)
 
     # Service that will return the appropriate delta for a given x-value and roll
     g_delta = rospy.Service("get_delta", GetDelta, delta)
