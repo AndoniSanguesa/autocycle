@@ -1,11 +1,9 @@
+#define _USE_MATH_DEFINES
+
 #include <ros/ros.h>
-#include <autocycle_extras/LvxData.h>
 #include <autocycle_extras/ObjectList.h>
 #include <autocycle_extras/Object.h>
 #include <autocycle_extras/Point.h>
-#include <autocycle_extras/GetData.h>
-#include <autocycle_extras/RollAdj.h>
-#include <autocycle_extras/DetectObjects.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -15,6 +13,18 @@
 #include <std_srvs/Empty.h>
 #include <std_msgs/Float32.h>
 #include <stdio.h>
+#include <math.h>
+#include <vector>
+#include <autocycle_extras/CalcDeltas.h>
+#include <cmath>
+#include <set>
+#include <vector>
+#include <functional>
+#include <deque>
+#include <unordered_map>
+#include <unordered_set>
+#include <tuple>
+
 using namespace std;
 
 bool ready = false;
@@ -50,9 +60,10 @@ int cell_col = ceil((1.0 * width) / cell_dim);
 int old_tracking_id = -1;
 int tracking_id = 0;
 
-autocycle_extras::ObjectList pub_lst;
-autocycle_extras::ObjectList tracking_ol;
-ros::Publisher obj_pub;
+autocycle_extras::ObjectList obj_lst;
+autocycle_extras::ObjectList new_obj_lst;
+ros::Publisher calc_deltas;
+autocycle_extras::CalcDeltas to_pub;
 
 // Tunable parameters to determine if something is an object.
 int col_diff = 50;                       // Expected max difference between two adjacent cells in a column.
@@ -61,8 +72,313 @@ int counter_reps = 2;                    // Number of reps required to dictate i
 int same_obj_diff = 150;                 // maximum diff between horizontal cells to be considered the same object
 int group_dist = 1500;					 // max dist between adjacent objects for convex hull
 float max_dist = 200000;
+float box_dist = 100;                 // distance in each dimension surrounding line segment
+
+float prev_heading = -1;
+float heading = -1;
+float velocity = -1;
+float delta_angle, delta_time, c, s, dist;
+
+// Size of plot
+int path_width = 20;
+int path_height = 20;
+
+// Size of each node
+int node_size = 1;
+
+// The dimensions of the graph (how many nodes in each direction)
+int x_dim = path_width / node_size;
+int y_dim = path_height / node_size;
+
+// The nodes that have been deemed blocked by an object
+unordered_set<int> blocked_nodes;
+unordered_set<int> center_blocked_nodes;
+
+// The path being taken
+vector<tuple<float, float>> path;
+
+// Starting node
+tuple<int, int> start_node;
+
+// End node
+tuple<int, int> end_node;
+
+// x values and y values
+vector<float> ys;
+vector<float> xs;
+
+// Calculate Padding
+float padding = 1.5;
+int padding_num = (int) (padding / (float) node_size);
+
+// Theta to adjust heading by
+float theta = 0;
+float des_heading = 0;
+
+chrono::high_resolution_clock::time_point stop;
+chrono::high_resolution_clock::time_point start;
+chrono::milliseconds duration;
 
 string path_to_lvx = "f_done.lvx";
+
+int cantor(tuple<int, int> node){
+    // Maps a tuple to 2 integers to a unique integer (for hashing)
+    int p1 = get<0>(node);
+    int p2 = get<1>(node);
+    return (((p1 + p2) * (p1 + p2 +1))/2) + p2;
+}
+
+tuple<float, float> get_change(tuple<float, float> p1, tuple<float, float> p2){
+    // Calculates difference between nodes
+    return(make_tuple(get<0>(p2) - get<0>(p1), get<1>(p2) - get<1>(p1)));
+}
+
+void augment_path(){
+    // Generates intermediary points to assist in interpolation
+    vector<tuple<float, float>> new_path;
+    tuple<float, float> change;
+    float new_x, new_y = 0;
+    unsigned long last_ind;
+
+    new_path.reserve(path.size()*2);
+    new_path.push_back(path[0]);
+    xs.clear();
+    ys.clear();
+
+    for(int i = 1; i < path.size(); i++){
+        last_ind = new_path.size()-1;
+        change = get_change(new_path[last_ind], path[i]);
+        new_x = get<1>(new_path[last_ind])+(get<0>(change)*0.5);
+        new_y = get<0>(new_path[last_ind])+(get<1>(change)*0.5);
+        new_path.emplace_back(new_y, new_x);
+        new_path.push_back(path[i]);
+        xs.push_back(new_x*node_size + node_size);
+        ys.push_back(-new_y*node_size + (path_height / 2));
+    }
+
+    path = new_path;
+}
+
+void reset_vars(){
+    // Resets variables between calls
+
+    // The nodes that have been deemed blocked by an object
+    blocked_nodes.clear();
+    center_blocked_nodes.clear();
+
+    // The path being taken
+    path.clear();
+    path.reserve(400);
+    xs.clear();
+    ys.clear();
+}
+
+tuple<int, int> get_node_from_point(tuple<float, float> point){
+    //Takes cartesian point and returns the corresponding node
+    float x = get<0>(point);
+    float y = get<1>(point);
+    return (make_tuple(
+            (int) (((-y) + ((float) path_height / 2)) / (float) node_size),
+            (int) (x / (float) node_size)
+    ));
+}
+
+void get_blocked_nodes(tuple<float, float, float, float> obj){
+    // Returns the list of nodes that an object is blocking
+    float x1, x2, y1, y2, tmp, m;
+    double delta_x;
+    int x, y;
+    tuple<int, int> node, new_node;
+    tie (x1, x2, y1, y2) = obj;
+
+    if(x2 < x1){
+        tmp = x1;
+        x1 = x2;
+        x2 = tmp;
+
+        tmp = y1;
+        y1 = y2;
+        y2 = tmp;
+    }
+
+    double cur_point [2] = {x1, y1};
+    bool vert = x2 - x1 == 0;
+    if(!vert){
+        m = (y2 - y1) / (x2 - x1);
+        delta_x = node_size/sqrt(1+pow(m, 2));
+    }
+
+    while((!vert && (cur_point[0] < x2)) || (vert && (cur_point[1] < y2))){
+        node = get_node_from_point(make_tuple(cur_point[0], cur_point[1]));
+        if(center_blocked_nodes.find(cantor(node)) == center_blocked_nodes.end()){
+            center_blocked_nodes.insert(cantor(node));
+            vector<tuple<int, int>> cur_blocked;
+            x = get<1>(node);
+            y = get<0>(node);
+
+            for(int y_ind = -(padding_num); y_ind < (padding_num+1); y_ind++){
+                for(int x_ind = -(padding_num); x_ind < (padding_num+1); x_ind++){
+                    if(0 <= y+y_ind < y_dim && 0 <= x+x_ind < x_dim){
+                        cur_blocked.emplace_back(y+y_ind, x+x_ind);
+                    }
+                }
+            }
+
+            for(auto & ind : cur_blocked){
+                blocked_nodes.insert(cantor(ind));
+            }
+        }
+        if(!vert){
+            cur_point[0] = cur_point[0] + delta_x;
+            cur_point[1] = cur_point[1] + (m * delta_x);
+        } else {
+            cur_point[1] = cur_point[1] + node_size;
+        }
+    }
+
+    node = get_node_from_point(make_tuple(x2, y2));
+    if(center_blocked_nodes.find(cantor(node)) == center_blocked_nodes.end()){
+        center_blocked_nodes.insert(cantor(node));
+        vector<tuple<int, int>> cur_blocked;
+        x = get<1>(node);
+        y = get<0>(node);
+
+        for(int y_ind = -1; y_ind < 2; y_ind++){
+            for(int x_ind = -1; x_ind < 2; x_ind++){
+                if(0 <= y+y_ind < y_dim && 0 <= x+x_ind < x_dim){
+                    cur_blocked.emplace_back(y+y_ind, x+x_ind);
+                }
+            }
+        }
+    }
+}
+
+void bfs(){
+    // Finds the shortest path from the starting node to the
+    // end node via a Breadth First Search(BFS)
+    deque<tuple<int, int>> q;
+    unordered_set<int> visited;
+    unordered_map<int, tuple<int, int>> parent;
+    tuple<int, int> next_node, node;
+    int x, y;
+    int tot_count = 0; // DELETE THIS
+    q.push_back(start_node);
+
+    while(!q.empty()){
+        next_node = q.front();
+        q.pop_front();
+
+        y = get<0>(next_node);
+        x = get<1>(next_node);
+
+        tuple<int, int> adj_nodes [5] = {make_tuple(y, x+1), make_tuple(y-1, x+1), make_tuple(y+1, x+1), make_tuple(y+1, x), make_tuple(y-1, x)};
+        visited.insert(cantor(next_node));
+
+        for(auto & adj_node : adj_nodes){
+            node = adj_node;
+
+            if(!(0 <= get<0>(node) && get<0>(node) <= y_dim) || !(0 <= get<1>(node) && get<1>(node) <= x_dim) || blocked_nodes.find(cantor(node)) != blocked_nodes.end()){
+                continue;
+            }
+
+            if(visited.find(cantor(node)) != visited.end()){
+                continue;
+            }
+
+            q.push_back(node);
+            visited.insert(cantor(node));
+            parent[cantor(node)] = next_node;
+
+            if(node == end_node){
+                q.clear();
+                break;
+            }
+        }
+    }
+
+    node = end_node;
+    while(node != start_node) {
+        path.emplace_back(node);
+        xs.push_back(get<1>(node)*node_size + node_size);
+        ys.push_back(-get<0>(node)*node_size + (path_height / 2));
+        try {
+            node = parent.at(cantor(node));
+        } catch (out_of_range const &) {
+            ROS_INFO_STREAM("THE BIKE SHOULD BE STOPPED"); // TODO: stop the bike
+            break;
+        }
+    }
+    path.emplace_back(start_node);
+    reverse(path.begin(),path.end());
+}
+
+void update_end_node() {
+    // Updates end_node to approximate the desired heading
+
+    double m = tan(theta);
+    int half_path_height = path_height / 2;
+    tuple<int, int> top = get_node_from_point(make_tuple(half_path_height / m, half_path_height));
+    tuple<int, int> bot = get_node_from_point(make_tuple((-half_path_height) / m, -half_path_height));
+    tuple<int, int> right = get_node_from_point(make_tuple(path_width, m * (path_width)));
+
+    if (0 <= get<1>(top) && get<1>(top) < x_dim) {
+        end_node = top;
+    } else if (0 <= get<1>(bot) && get<1>(bot) < x_dim) {
+        end_node = bot;
+    } else {
+        end_node = right;
+    }
+}
+
+void generate_curve() {
+    // Creates the curve around objects
+    // auto start = chrono::high_resolution_clock::now();
+    ros::spinOnce();
+    theta = des_heading - heading;
+
+    reset_vars();
+    update_end_node();
+    vector<tuple<float, float, float, float>> real_obj_lst;
+    real_obj_lst.reserve(obj_lst.obj_lst.size());
+
+    for(auto & i : obj_lst.obj_lst){
+        real_obj_lst.emplace_back(make_tuple(i.z1/1000, i.z2/1000, i.x1/1000, i.x2/1000));
+    }
+
+    for (auto & i : real_obj_lst) {
+        get_blocked_nodes(i);
+    }
+    bfs();
+    to_pub.path_x = xs;
+    to_pub.path_y = ys;
+
+    calc_deltas.publish(to_pub);
+
+    // auto end = chrono::high_resolution_clock::now();
+    // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+    // ROS_INFO_STREAM("PATH PLANNING IS TAKING: " << (float) duration.count() / 1000.0 << " SECONDS");
+}
+
+void update_object_positions(float delta_time){
+    delta_angle = heading - prev_heading;
+    prev_heading = heading;
+
+    c = cos(delta_angle);
+    s = sin(delta_angle);
+    dist = velocity * delta_time;
+
+    for(auto & i : obj_lst.obj_lst){
+    autocycle_extras::Object rotated;
+        rotated.z1 = i.z1*c - i.x1*s;
+        rotated.x1 = i.z1*s + i.x1*c - dist;
+        rotated.z2 = i.z2*c - i.x2*s;
+        rotated.x2 = i.z2*s + i.x2*c - dist;
+        if(rotated.z1 < 0 && rotated.z2 < 0){
+            continue;
+        }
+        new_obj_lst.obj_lst.emplace_back(rotated);
+    }
+}
 
 autocycle_extras::Object get_object(float x1, float x2, float z1, float z2){
 	autocycle_extras::Object obj;
@@ -216,6 +532,145 @@ vector<autocycle_extras::Object> convHull(vector<autocycle_extras::Object> objec
 	return new_objects;
 }
 
+vector<float> diff (vector<float> p1, vector<float> p2) {
+    vector<float> vals;
+    vals.push_back(p1[1] - p2[1]);
+    vals.push_back(p2[0] - p1[0]);
+    vals.push_back(-1 * (p1[0] * p2[1] - p2[0] * p1[1]));
+    return vals;
+}
+
+vector<float> rotatePoint(vector<float> point, float theta) {
+    point[0] = point[0] * cos(theta) - point[1] * sin(theta);
+    point[1] = point[0] * sin(theta) + point[1] * cos(theta);
+    return point;
+}
+
+vector<float> transPoint(vector<float> point, vector<float> trans) {
+    point[0] += trans[0];
+    point[1] += trans[1];
+    return point;
+}
+
+vector<vector<float>> getBoundingBox(float x1, float x2, float z1, float z2) {
+    vector<float> mov = {x2, z2};
+    vector<float> o1 = {x1 - mov[0], z1 - mov[1]};
+    // Rotates o1 about o2/origin so that o1 is directly above o2
+    float theta;
+    if (o1[1] == 0) {
+        if (o1[0] > 0) {
+            theta = M_PI_2;
+        } else {
+            theta = -M_PI_2;
+        }
+    } else {
+        theta = atan(o1[0]/ o1[1]);
+        if (o1[0] < 0) {
+            theta += M_PI;
+        }
+    }
+    o1 = rotatePoint(o1, theta);
+    vector<float> p1 = {-box_dist, o1[1] + box_dist};
+    vector<float> p2 = {box_dist, o1[1] + box_dist};
+    vector<float> p3 = {box_dist, -box_dist};
+    vector<float> p4 = {-box_dist, -box_dist};
+    //Rotates p1, p2, and p3 by negative theta (original orientation)
+
+    p1 = rotatePoint(p1, -theta);
+    p2 = rotatePoint(p2, -theta);
+    p3 = rotatePoint(p3, -theta);
+    p4 = rotatePoint(p4, -theta);
+
+    // Translates points back to relative positions
+    p1 = transPoint(p1, mov);
+    p2 = transPoint(p2, mov);
+    p3 = transPoint(p3, mov);
+    p4 = transPoint(p4, mov);
+
+    vector<vector<float>> box;
+    box.push_back(p1);
+    box.push_back(p2);
+    box.push_back(p3);
+    box.push_back(p4);
+    return box;
+}
+
+bool intersection(float x1, float x2, float z1, float z2, vector<autocycle_extras::Object> objects) {
+    vector<vector<float>> points;
+    if (x1 < x2) {
+        points = getBoundingBox(x1, x2, z1, z2);
+    } else if (x1 > x2){
+        points = getBoundingBox(x2, x1, z2, z1);
+    } else if (z1 < z2) {
+        points = {{x1 - box_dist, z1 - box_dist},
+                  {x1 + box_dist, z1 - box_dist},
+                  {x2 + box_dist, z2 + box_dist},
+                  {x2 - box_dist, z2 + box_dist}};
+    } else {
+        points = {{x2 - box_dist, z2 - box_dist},
+                  {x2 + box_dist, z2 - box_dist},
+                  {x1 + box_dist, z1 + box_dist},
+                  {x1 - box_dist, z1 + box_dist}};
+    }
+    vector<float> p2p3 = {points[2][0] - points[1][0], points[2][1] - points[1][1]};
+    vector<float> p2p1 = {points[0][0] - points[1][0], points[0][1] - points[1][1]};
+    float p2p3Dot = p2p3[0] * p2p3[0] + p2p3[1] * p2p3[1];
+    float p2p1Dot = p2p1[0] * p2p1[0] + p2p1[1] * p2p1[1];
+    vector<vector<float>> point_diffs = {diff(points[1], points[0]), diff(points[2], points[1]),
+                                         diff(points[3], points[2]), diff(points[0], points[3])};
+    vector<vector<float>> box_constraints = {{min(points[0][0], points[1][0]), max(points[0][0], points[1][0]),
+                                                     min(points[0][1], points[1][1]), max(points[0][1], points[1][1])},
+                                             {min(points[1][0], points[2][0]), max(points[1][0], points[2][0]),
+                                                     min(points[1][1], points[2][1]), max(points[1][1], points[2][1])},
+                                             {min(points[2][0], points[3][0]), max(points[2][0], points[3][0]),
+                                                     min(points[2][1], points[3][1]), max(points[2][1], points[3][1])},
+                                             {min(points[3][0], points[0][0]), max(points[3][0], points[0][0]),
+                                                     min(points[3][1], points[0][1]), max(points[3][1], points[0][1])}};
+    for (autocycle_extras::Object o : objects) {
+        float x3 = o.x1;
+        float x4 = o.x2;
+        float z3 = o.z1;
+        float z4 = o.z2;
+        vector<float> p2m = {o.x1 - points[1][0], o.z1 - points[1][1]};
+        vector<float> p2m2 = {o.x2 - points[1][0], o.z2 - points[1][1]};
+        float p2m_p2p3 = (p2m[0] * p2p3[0] +  p2m[1] * p2p3[1]);
+        float p2m_p2p1 = (p2m[0] * p2p1[0] +  p2m[1] * p2p1[1]);
+        float p2m2_p2p3 = (p2m2[0] * p2p3[0] +  p2m2[1] * p2p3[1]);
+        float p2m2_p2p1 = (p2m2[0] * p2p1[0] +  p2m2[1] * p2p1[1]);
+
+        if ((0 <= p2m_p2p3 && p2m_p2p3 < p2p3Dot && 0 <= p2m_p2p1 && p2m_p2p1 < p2p1Dot) ||
+            (0 <= p2m2_p2p3 && p2m2_p2p3 < p2p3Dot && 0 <= p2m2_p2p1 && p2m2_p2p1 < p2p1Dot)) {
+            return true;
+        }
+        if (x3 > x2) {
+            float temp = x3;
+            x3 = x4;
+            x4 = temp;
+            temp = z3;
+            z3 = z4;
+            z4 = temp;
+        }
+        vector<float> diffs_obj = {z3 - z4, x4 - x3, -1 * (x3 * z4 - x4 * z3)};
+        if (z3 > z4) {
+            float temp = z3;
+            z3 = z4;
+            z4 = temp;
+        }
+        for (int i = 0; i < 4; i++) {
+            float D = point_diffs[i][0] * diffs_obj[1] - point_diffs[i][1] * diffs_obj[0];
+            if (D != 0) {
+                float x = (point_diffs[i][2] * diffs_obj[1] - point_diffs[i][1] * diffs_obj[2]) / D;
+                float z = (point_diffs[i][0] * diffs_obj[2] - point_diffs[i][2] * diffs_obj[0]) / D;
+                if (x3 <= x && x <= x4 && z3 <= z && z <= z4 && box_constraints[i][0] <= x &&
+                    x <= box_constraints[i][1] && box_constraints[i][2] <= z && z <= box_constraints[i][3]) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object> objects) {
 	Graph gr = Graph(objects.size());
 	for (int x = 0; x < objects.size(); x++) {
@@ -245,10 +700,6 @@ vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object
 
 void object_detection() {
     //auto start = chrono::high_resolution_clock::now();
-    while (old_tracking_id != -1 && old_tracking_id == tracking_id){
-        ros::spinOnce();
-    }
-    old_tracking_id = tracking_id;
 	vector<vector<float>> cells(cell_row, vector<float>(cell_col, 0));
 	for (int i = 0; i < points.size(); i++) {
 		float z = points[i].z;
@@ -308,46 +759,55 @@ void object_detection() {
 				right_bound++;
 				prev = close_vec[col];
 			} else {
-				z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
-						  (right_bound + 1) * cell_dim - width / 2,
-                             		          close_vec[left_bound],
-						  close_vec[right_bound]));
+                if (not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                                     close_vec[left_bound], close_vec[right_bound], new_obj_lst.obj_lst)) {
+                    z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
+                                                (right_bound + 1) * cell_dim - width / 2,
+                                                close_vec[left_bound],
+                                                close_vec[right_bound]));
+                }
 				prev = max_dist;
 			}
 		} else if (prev < max_dist) {
-			z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
-						  (right_bound + 1) * cell_dim - width / 2,
-                             		          close_vec[left_bound],
-						  close_vec[right_bound]));
+            if (not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                                 close_vec[left_bound], close_vec[right_bound], new_obj_lst.obj_lst)) {
+                z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
+                                            (right_bound + 1) * cell_dim - width / 2,
+                                            close_vec[left_bound],
+                                            close_vec[right_bound]));
+            }
 			prev = max_dist;
 		}
 	}
 
-	if (prev < max_dist) {
-		z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
-						  (right_bound + 1) * cell_dim - width / 2,
-                             		      	  close_vec[left_bound],
-			  		          close_vec[right_bound]));
-	}
+    if (prev < max_dist &&
+        not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                         close_vec[left_bound], close_vec[right_bound], new_obj_lst.obj_lst)) {
+        z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
+                                    (right_bound + 1) * cell_dim - width / 2,
+                                    close_vec[left_bound],
+                                    close_vec[right_bound]));
+    }
 
 	for(auto & i : z_boys){
 	    ROS_INFO_STREAM("OBJECT: (" << i.x1 << ", " << i.x2 << ", " << i.z1 << ", " << i.z2 << ")");
 	}
-	pub_lst.obj_lst = condenseObjects(z_boys);
-        pub_lst.iden = tracking_id;
-	obj_pub.publish(pub_lst);
+	obj_lst.obj_lst = condenseObjects(z_boys);
 	//auto end = chrono::high_resolution_clock::now();
 	//auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
 	//ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << (float) duration.count()/1000.0 << " SECONDS");
 }
 
-void get_new_frame(const autocycle_extras::ObjectList new_ol){
-    tracking_ol = new_ol;
-    tracking_id++;
+void get_roll(const std_msgs::Float32 data){
+    roll = data.data;
 }
 
-void update_roll(const std_msgs::Float32 data){
-    roll = data.data;
+void get_heading(const std_msgs::Float32 data){
+    heading = data.data;
+}
+
+void get_velocity(const std_msgs::Float32 data){
+    velocity = data.data;
 }
 
 void parse_lvx(){
@@ -453,13 +913,42 @@ void fix_roll(){
   }
 }
 
-bool collect_data(
-    std_srvs::Empty::Request &req,
-    std_srvs::Empty::Response &resp
-    ){
+int main(int argc, char **argv) {
+  // Initializes the Node and registers it with the master.
+  ros::init(argc, argv, "navigation_communicator");
+  ros::NodeHandle nh;
+
+  // Creates subscriber for updating roll
+  ros::Subscriber update_roll = nh.subscribe("sensors/roll", 1, &get_roll);
+
+  // Creates subscriber that updates heading
+  ros::Subscriber head_sub = nh.subscribe("sensors/heading", 1, &get_heading);
+
+  // Creates subscriber that updates velocity
+  ros::Subscriber vel_sub = nh.subscribe("sensors/vel", 1, &get_velocity);
+
+  // Creates server proxy for calculating new deltas
+  calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
+
+  // Sets desired heading (for now the initial heading)
+  while(heading == -1){
+      ros::spinOnce();
+  }
+
+  // Sets initial desired heading
+  des_heading = heading;
+
+  points.reserve(15000);
+  path.reserve(400);
+  xs.reserve(400);
+  ys.reserve(400);
+
+  // Navigation loop
+  start = std::chrono::high_resolution_clock::now();
+  while(ros::ok()){
     // ROS_INFO_STREAM("Sending request for LVX file.");
     // Waits until f_done.lvx has been populated
-    //auto start = chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
     points.clear();
     f_done.open("f_done.lvx", ios::trunc);
     while(f_done.tellp() == 0){
@@ -481,47 +970,32 @@ bool collect_data(
     parse_lvx();
     //ROS_INFO_STREAM("LVX file analyzed.");
 
+    ros::spinOnce();
     fix_roll();
 
     //ROS_INFO_STREAM("Points have been adjusted for roll.");
 
     //ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
+    ros::spinOnce();
+    stop = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    start = std::chrono::high_resolution_clock::now();
+    update_object_positions(((float) duration.count())/1000.0);
+
     object_detection();
+
+    generate_curve();
 
     // Clears f_done.lvx file while waiting for the rest of the loop to be ready
     f_done.open(path_to_lvx, ios::trunc);
     f_done.close();
-    //auto end = chrono::high_resolution_clock::now();
-    //auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
-    //ROS_INFO_STREAM("NAV LOOP TOOK : " << (float) duration.count() / 1000.0 << " SECONDS");
-    return true;
-}
-
-int main(int argc, char **argv) {
-  // Initializes the Node and registers it with the master.
-  ros::init(argc, argv, "navigation_communicator");
-  ros::NodeHandle nh;
-
-  // Creates the subscriber that checks for when it is safe to continue
-  read_sub = nh.subscribe("cycle/ready", 1, &update_ready);
-
-  // Creates subscriber for updating roll
-  ros::Subscriber get_roll = nh.subscribe("sensors/roll", 1, &update_roll);
-
-  ros::ServiceServer data_server = nh.advertiseService("collect_data", &collect_data);
-
-  // Creates Subscriber that subscribes to the tracking frames
-  ros::Subscriber track_sub = nh.subscribe("cycle/object_frame", 1, &get_new_frame);
-
-  // Creates Object List Publisher
-  obj_pub = nh.advertise<autocycle_extras::ObjectList>("cycle/objects", 1);
-
-  points.reserve(15000);
-
-  // Navigation loop
-  ros::spin();
+    auto end = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+    ROS_INFO_STREAM("NAV LOOP TOOK : " << (float) duration.count() / 1000.0 << " SECONDS");
+  }
 
   f_done.open(path_to_lvx, ios::trunc);
   f_done.write("done", 4);
   f_done.close();
+  return 0;
 }

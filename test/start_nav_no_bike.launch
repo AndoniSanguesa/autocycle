@@ -15,36 +15,8 @@
   />
   <node
     pkg="autocycle"
-    type="generate_curve"
-    name="bezier"
-    output="screen"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
     type="get_deltas"
     name="get_deltas"
-    output="screen"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
-    type="get_data"
-    name="get_data"
-    output="screen"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
-    type="object_detection"
-    name="object_detection"
-    output="screen"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
-    type="static_object_tracking"
-    name="static_object_tracking"
     output="screen"
     respawn="true"
   />
@@ -58,13 +30,6 @@
     pkg="autocycle"
     type="test_sim_sensors"
     name="sim_sensors"
-    output="screen"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
-    type="object_list_getter"
-    name="object_list_getter"
     output="screen"
     respawn="true"
   />

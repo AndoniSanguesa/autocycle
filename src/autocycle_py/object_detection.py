@@ -18,6 +18,8 @@ same_obj_diff = 150                 # maximum diff between horizontal cells to b
 
 group_dist = 1500
 
+
+
 class Graph:
     def __init__(self, V):
         self.v = V
