@@ -14,35 +14,32 @@
 #include <chrono>
 
 // Size of plot
-int width = 20;
-int height = 20;
+int path_width = 20;
+int path_height = 20;
 
 // Size of each node
 int node_size = 1;
 
 // The dimensions of the graph (how many nodes in each direction)
-int x_dim = width / node_size;
-int y_dim = height / node_size;
+int x_dim = path_width / node_size;
+int y_dim = path_height / node_size;
 
 // The nodes that have been deemed blocked by an object
-std::unordered_set<int> blocked_nodes;
-std::unordered_set<int> center_blocked_nodes;
+unordered_set<int> blocked_nodes;
+unordered_set<int> center_blocked_nodes;
 
 // The path being taken
-std::vector<std::tuple<float, float>> path;
+vector<tuple<float, float>> path;
 
 // Starting node
-std::tuple<int, int> start_node;
+tuple<int, int> start_node;
 
 // End node
-std::tuple<int, int> end_node;
+tuple<int, int> end_node;
 
 // x values and y values
-std::vector<float> xs;
-std::vector<float> ys;
-
-// Heading
-int desired_heading = 0;
+vector<float> xs;
+vector<float> ys;
 
 // Calculate Padding
 float padding = 1.5;
@@ -60,22 +57,22 @@ autocycle_extras::CalcDeltas to_pub;
 std_srvs::Empty::Request empty_req;
 std_srvs::Empty::Response empty_resp;
 
-int cantor(std::tuple<int, int> node){
+int cantor(tuple<int, int> node){
     // Maps a tuple to 2 integers to a unique integer (for hashing)
-    int p1 = std::get<0>(node);
-    int p2 = std::get<1>(node);
+    int p1 = get<0>(node);
+    int p2 = get<1>(node);
     return (((p1 + p2) * (p1 + p2 +1))/2) + p2;
 }
 
-std::tuple<float, float> get_change(std::tuple<float, float> p1, std::tuple<float, float> p2){
+tuple<float, float> get_change(tuple<float, float> p1, tuple<float, float> p2){
     // Calculates difference between nodes
-    return(std::make_tuple(std::get<0>(p2) - std::get<0>(p1), std::get<1>(p2) - std::get<1>(p1)));
+    return(make_tuple(get<0>(p2) - get<0>(p1), get<1>(p2) - get<1>(p1)));
 }
 
 void augment_path(){
     // Generates intermediary points to assist in interpolation
-    std::vector<std::tuple<float, float>> new_path;
-    std::tuple<float, float> change;
+    vector<tuple<float, float>> new_path;
+    tuple<float, float> change;
     float new_x, new_y = 0;
     unsigned long last_ind;
 
@@ -87,12 +84,12 @@ void augment_path(){
     for(int i = 1; i < path.size(); i++){
         last_ind = new_path.size()-1;
         change = get_change(new_path[last_ind], path[i]);
-        new_x = std::get<1>(new_path[last_ind])+(std::get<0>(change)*0.5);
-        new_y = std::get<0>(new_path[last_ind])+(std::get<1>(change)*0.5);
+        new_x = get<1>(new_path[last_ind])+(get<0>(change)*0.5);
+        new_y = get<0>(new_path[last_ind])+(get<1>(change)*0.5);
         new_path.emplace_back(new_y, new_x);
         new_path.push_back(path[i]);
         xs.push_back(new_x*node_size + node_size);
-        ys.push_back(-new_y*node_size + (height / 2));
+        ys.push_back(-new_y*node_size + (path_height / 2));
     }
 
     path = new_path;
@@ -112,23 +109,23 @@ void reset_vars(){
     ys.clear();
 }
 
-std::tuple<int, int> get_node_from_point(std::tuple<float, float> point){
+tuple<int, int> get_node_from_point(tuple<float, float> point){
     //Takes cartesian point and returns the corresponding node
-    float x = std::get<0>(point);
-    float y = std::get<1>(point);
-    return (std::make_tuple(
-            (int) (((-y) + ((float) height / 2)) / (float) node_size),
+    float x = get<0>(point);
+    float y = get<1>(point);
+    return (make_tuple(
+            (int) (((-y) + ((float) path_height / 2)) / (float) node_size),
             (int) (x / (float) node_size)
     ));
 }
 
-void get_blocked_nodes(std::tuple<float, float, float, float> obj){
+void get_blocked_nodes(tuple<float, float, float, float> obj){
     // Returns the list of nodes that an object is blocking
     float x1, x2, y1, y2, tmp, m;
     double delta_x;
     int x, y;
-    std::tuple<int, int> node, new_node;
-    std::tie (x1, x2, y1, y2) = obj;
+    tuple<int, int> node, new_node;
+    tie (x1, x2, y1, y2) = obj;
 
     if(x2 < x1){
         tmp = x1;
@@ -148,12 +145,12 @@ void get_blocked_nodes(std::tuple<float, float, float, float> obj){
     }
 
     while((!vert && (cur_point[0] < x2)) || (vert && (cur_point[1] < y2))){
-        node = get_node_from_point(std::make_tuple(cur_point[0], cur_point[1]));
+        node = get_node_from_point(make_tuple(cur_point[0], cur_point[1]));
         if(center_blocked_nodes.find(cantor(node)) == center_blocked_nodes.end()){
             center_blocked_nodes.insert(cantor(node));
-            std::vector<std::tuple<int, int>> cur_blocked;
-            x = std::get<1>(node);
-            y = std::get<0>(node);
+            vector<tuple<int, int>> cur_blocked;
+            x = get<1>(node);
+            y = get<0>(node);
 
             for(int y_ind = -(padding_num); y_ind < (padding_num+1); y_ind++){
                 for(int x_ind = -(padding_num); x_ind < (padding_num+1); x_ind++){
@@ -175,12 +172,12 @@ void get_blocked_nodes(std::tuple<float, float, float, float> obj){
         }
     }
 
-    node = get_node_from_point(std::make_tuple(x2, y2));
+    node = get_node_from_point(make_tuple(x2, y2));
     if(center_blocked_nodes.find(cantor(node)) == center_blocked_nodes.end()){
         center_blocked_nodes.insert(cantor(node));
-        std::vector<std::tuple<int, int>> cur_blocked;
-        x = std::get<1>(node);
-        y = std::get<0>(node);
+        vector<tuple<int, int>> cur_blocked;
+        x = get<1>(node);
+        y = get<0>(node);
 
         for(int y_ind = -1; y_ind < 2; y_ind++){
             for(int x_ind = -1; x_ind < 2; x_ind++){
@@ -195,10 +192,10 @@ void get_blocked_nodes(std::tuple<float, float, float, float> obj){
 void bfs(){
     // Finds the shortest path from the starting node to the
     // end node via a Breadth First Search(BFS)
-    std::deque<std::tuple<int, int>> q;
-    std::unordered_set<int> visited;
-    std::unordered_map<int, std::tuple<int, int>> parent;
-    std::tuple<int, int> next_node, node;
+    deque<tuple<int, int>> q;
+    unordered_set<int> visited;
+    unordered_map<int, tuple<int, int>> parent;
+    tuple<int, int> next_node, node;
     int x, y;
     int tot_count = 0; // DELETE THIS
     q.push_back(start_node);
@@ -207,16 +204,16 @@ void bfs(){
         next_node = q.front();
         q.pop_front();
 
-        y = std::get<0>(next_node);
-        x = std::get<1>(next_node);
+        y = get<0>(next_node);
+        x = get<1>(next_node);
 
-        std::tuple<int, int> adj_nodes [5] = {std::make_tuple(y, x+1), std::make_tuple(y-1, x+1), std::make_tuple(y+1, x+1), std::make_tuple(y+1, x), std::make_tuple(y-1, x)};
+        tuple<int, int> adj_nodes [5] = {make_tuple(y, x+1), make_tuple(y-1, x+1), make_tuple(y+1, x+1), make_tuple(y+1, x), make_tuple(y-1, x)};
         visited.insert(cantor(next_node));
 
         for(auto & adj_node : adj_nodes){
             node = adj_node;
 
-            if(!(0 <= std::get<0>(node) && std::get<0>(node) <= y_dim) || !(0 <= std::get<1>(node) && std::get<1>(node) <= x_dim) || blocked_nodes.find(cantor(node)) != blocked_nodes.end()){
+            if(!(0 <= get<0>(node) && get<0>(node) <= y_dim) || !(0 <= get<1>(node) && get<1>(node) <= x_dim) || blocked_nodes.find(cantor(node)) != blocked_nodes.end()){
                 continue;
             }
 
@@ -238,31 +235,31 @@ void bfs(){
     node = end_node;
     while(node != start_node) {
         path.emplace_back(node);
-        xs.push_back(std::get<1>(node)*node_size + node_size);
-        ys.push_back(-std::get<0>(node)*node_size + (height / 2));
+        xs.push_back(get<1>(node)*node_size + node_size);
+        ys.push_back(-get<0>(node)*node_size + (path_height / 2));
         try {
             node = parent.at(cantor(node));
-        } catch (std::out_of_range const &) {
+        } catch (out_of_range const &) {
             ROS_INFO_STREAM("THE BIKE SHOULD BE STOPPED"); // TODO: stop the bike
             break;
         }
     }
     path.emplace_back(start_node);
-    std::reverse(path.begin(),path.end());
+    reverse(path.begin(),path.end());
 }
 
 void update_end_node() {
     // Updates end_node to approximate the desired heading
 
     double m = tan(theta);
-    int half_height = height / 2;
-    std::tuple<int, int> top = get_node_from_point(std::make_tuple(half_height / m, half_height));
-    std::tuple<int, int> bot = get_node_from_point(std::make_tuple((-half_height) / m, -half_height));
-    std::tuple<int, int> right = get_node_from_point(std::make_tuple(width, m * (width)));
+    int half_path_height = path_height / 2;
+    tuple<int, int> top = get_node_from_point(make_tuple(half_path_height / m, half_path_height));
+    tuple<int, int> bot = get_node_from_point(make_tuple((-half_path_height) / m, -half_path_height));
+    tuple<int, int> right = get_node_from_point(make_tuple(path_width, m * (path_width)));
 
-    if (0 <= std::get<1>(top) && std::get<1>(top) < x_dim) {
+    if (0 <= get<1>(top) && get<1>(top) < x_dim) {
         end_node = top;
-    } else if (0 <= std::get<1>(bot) && std::get<1>(bot) < x_dim) {
+    } else if (0 <= get<1>(bot) && get<1>(bot) < x_dim) {
         end_node = bot;
     } else {
         end_node = right;
@@ -271,17 +268,17 @@ void update_end_node() {
 
 void generate_curve(const autocycle_extras::ObjectList data) {
     // Creates the curve around objects
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
     ros::spinOnce();
     theta = des_heading - heading;
 
     reset_vars();
     update_end_node();
-    std::vector<std::tuple<float, float, float, float>> real_obj_lst;
+    vector<tuple<float, float, float, float>> real_obj_lst;
     real_obj_lst.reserve(data.obj_lst.size());
 
     for(auto & i : data.obj_lst){
-        real_obj_lst.emplace_back(std::make_tuple(i.z1/1000, i.z2/1000, i.x1/1000, i.x2/1000));
+        real_obj_lst.emplace_back(make_tuple(i.z1/1000, i.z2/1000, i.x1/1000, i.x2/1000));
     }
 
     for (auto & i : real_obj_lst) {
@@ -293,8 +290,8 @@ void generate_curve(const autocycle_extras::ObjectList data) {
     calc_deltas.publish(to_pub);
     new_data.call(empty_req, empty_resp);
     
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    auto end = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     ROS_INFO_STREAM("PATH PLANNING IS TAKING: " << (float) duration.count() / 1000.0 << " SECONDS");
 }
 
