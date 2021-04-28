@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+
 #include <ros/ros.h>
 #include <autocycle_extras/LvxData.h>
 #include <autocycle_extras/ObjectList.h>
@@ -15,6 +17,8 @@
 #include <std_srvs/Empty.h>
 #include <std_msgs/Float32.h>
 #include <stdio.h>
+#include <math.h>
+#include <vector>
 using namespace std;
 
 bool ready = false;
@@ -61,6 +65,7 @@ int counter_reps = 2;                    // Number of reps required to dictate i
 int same_obj_diff = 150;                 // maximum diff between horizontal cells to be considered the same object
 int group_dist = 1500;					 // max dist between adjacent objects for convex hull
 float max_dist = 200000;
+float box_dist = 100;                 // distance in each dimension surrounding line segment
 
 string path_to_lvx = "f_done.lvx";
 
@@ -216,6 +221,145 @@ vector<autocycle_extras::Object> convHull(vector<autocycle_extras::Object> objec
 	return new_objects;
 }
 
+vector<float> diff (vector<float> p1, vector<float> p2) {
+    vector<float> vals;
+    vals.push_back(p1[1] - p2[1]);
+    vals.push_back(p2[0] - p1[0]);
+    vals.push_back(-1 * (p1[0] * p2[1] - p2[0] * p1[1]));
+    return vals;
+}
+
+vector<float> rotatePoint(vector<float> point, float theta) {
+    point[0] = point[0] * cos(theta) - point[1] * sin(theta);
+    point[1] = point[0] * sin(theta) + point[1] * cos(theta);
+    return point;
+}
+
+vector<float> transPoint(vector<float> point, vector<float> trans) {
+    point[0] += trans[0];
+    point[1] += trans[1];
+    return point;
+}
+
+vector<vector<float>> getBoundingBox(float x1, float x2, float z1, float z2) {
+    vector<float> mov = {x2, z2};
+    vector<float> o1 = {x1 - mov[0], z1 - mov[1]};
+    // Rotates o1 about o2/origin so that o1 is directly above o2
+    float theta;
+    if (o1[1] == 0) {
+        if (o1[0] > 0) {
+            theta = M_PI_2;
+        } else {
+            theta = -M_PI_2;
+        }
+    } else {
+        theta = atan(o1[0]/ o1[1]);
+        if (o1[0] < 0) {
+            theta += M_PI;
+        }
+    }
+    o1 = rotatePoint(o1, theta);
+    vector<float> p1 = {-box_dist, o1[1] + box_dist};
+    vector<float> p2 = {box_dist, o1[1] + box_dist};
+    vector<float> p3 = {box_dist, -box_dist};
+    vector<float> p4 = {-box_dist, -box_dist};
+    //Rotates p1, p2, and p3 by negative theta (original orientation)
+
+    p1 = rotatePoint(p1, -theta);
+    p2 = rotatePoint(p2, -theta);
+    p3 = rotatePoint(p3, -theta);
+    p4 = rotatePoint(p4, -theta);
+
+    // Translates points back to relative positions
+    p1 = transPoint(p1, mov);
+    p2 = transPoint(p2, mov);
+    p3 = transPoint(p3, mov);
+    p4 = transPoint(p4, mov);
+
+    vector<vector<float>> box;
+    box.push_back(p1);
+    box.push_back(p2);
+    box.push_back(p3);
+    box.push_back(p4);
+    return box;
+}
+
+bool intersection(float x1, float x2, float z1, float z2, vector<autocycle_extras::Object> objects) {
+    vector<vector<float>> points;
+    if (x1 < x2) {
+        points = getBoundingBox(x1, x2, z1, z2);
+    } else if (x1 > x2){
+        points = getBoundingBox(x2, x1, z2, z1);
+    } else if (z1 < z2) {
+        points = {{x1 - box_dist, z1 - box_dist},
+                  {x1 + box_dist, z1 - box_dist},
+                  {x2 + box_dist, z2 + box_dist},
+                  {x2 - box_dist, z2 + box_dist}};
+    } else {
+        points = {{x2 - box_dist, z2 - box_dist},
+                  {x2 + box_dist, z2 - box_dist},
+                  {x1 + box_dist, z1 + box_dist},
+                  {x1 - box_dist, z1 + box_dist}};
+    }
+    vector<float> p2p3 = {points[2][0] - points[1][0], points[2][1] - points[1][1]};
+    vector<float> p2p1 = {points[0][0] - points[1][0], points[0][1] - points[1][1]};
+    float p2p3Dot = p2p3[0] * p2p3[0] + p2p3[1] * p2p3[1];
+    float p2p1Dot = p2p1[0] * p2p1[0] + p2p1[1] * p2p1[1];
+    vector<vector<float>> point_diffs = {diff(points[1], points[0]), diff(points[2], points[1]),
+                                         diff(points[3], points[2]), diff(points[0], points[3])};
+    vector<vector<float>> box_constraints = {{min(points[0][0], points[1][0]), max(points[0][0], points[1][0]),
+                                                     min(points[0][1], points[1][1]), max(points[0][1], points[1][1])},
+                                             {min(points[1][0], points[2][0]), max(points[1][0], points[2][0]),
+                                                     min(points[1][1], points[2][1]), max(points[1][1], points[2][1])},
+                                             {min(points[2][0], points[3][0]), max(points[2][0], points[3][0]),
+                                                     min(points[2][1], points[3][1]), max(points[2][1], points[3][1])},
+                                             {min(points[3][0], points[0][0]), max(points[3][0], points[0][0]),
+                                                     min(points[3][1], points[0][1]), max(points[3][1], points[0][1])}};
+    for (autocycle_extras::Object o : objects) {
+        float x3 = o.x1;
+        float x4 = o.x2;
+        float z3 = o.z1;
+        float z4 = o.z2;
+        vector<float> p2m = (o.x1 - points[1][0], o.z1 - points[1][1]);
+        vector<float> p2m2 = (o.x2 - points[1][0], o.z2 - points[1][1]);
+        float p2m_p2p3 = (p2m[0] * p2p3[0] +  p2m[1] * p2p3[1]);
+        float p2m_p2p1 = (p2m[0] * p2p1[0] +  p2m[1] * p2p1[1]);
+        float p2m2_p2p3 = (p2m2[0] * p2p3[0] +  p2m2[1] * p2p3[1]);
+        float p2m2_p2p1 = (p2m2[0] * p2p1[0] +  p2m2[1] * p2p1[1]);
+
+        if ((0 <= p2m_p2p3 && p2m_p2p3 < p2p3Dot && 0 <= p2m_p2p1 && p2m_p2p1 < p2p1Dot) ||
+            (0 <= p2m2_p2p3 && p2m2_p2p3 < p2p3Dot && 0 <= p2m2_p2p1 && p2m2_p2p1 < p2p1Dot)) {
+            return true;
+        }
+        if (x3 > x2) {
+            float temp = x3;
+            x3 = x4;
+            x4 = temp;
+            temp = z3;
+            z3 = z4;
+            z4 = temp;
+        }
+        vector<float> diffs_obj = {z3 - z4, x4 - x3, -1 * (x3 * z4 - x4 * z3)};
+        if (z3 > z4) {
+            float temp = z3;
+            z3 = z4;
+            z4 = temp;
+        }
+        for (int i = 0; i < 4; i++) {
+            float D = point_diffs[i][0] * diffs_obj[1] - point_diffs[i][1] * diffs_obj[0];
+            if (D != 0) {
+                float x = (point_diffs[i][2] * diffs_obj[1] - point_diffs[i][1] * diffs_obj[2]) / D;
+                float z = (point_diffs[i][0] * diffs_obj[2] - point_diffs[i][2] * diffs_obj[0]) / D;
+                if (x3 <= x && x <= x4 && z3 <= z && z <= z4 && box_constraints[i][0] <= x &&
+                    x <= box_constraints[i][1] && box_constraints[i][2] <= z && z <= box_constraints[i][3]) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}
+
 vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object> objects) {
 	Graph gr = Graph(objects.size());
 	for (int x = 0; x < objects.size(); x++) {
@@ -308,27 +452,35 @@ void object_detection() {
 				right_bound++;
 				prev = close_vec[col];
 			} else {
-				z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
-						  (right_bound + 1) * cell_dim - width / 2,
-                             		          close_vec[left_bound],
-						  close_vec[right_bound]));
+                if (not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                                     close_vec[left_bound], close_vec[right_bound])) {
+                    z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
+                                                (right_bound + 1) * cell_dim - width / 2,
+                                                close_vec[left_bound],
+                                                close_vec[right_bound]));
+                }
 				prev = max_dist;
 			}
 		} else if (prev < max_dist) {
-			z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
-						  (right_bound + 1) * cell_dim - width / 2,
-                             		          close_vec[left_bound],
-						  close_vec[right_bound]));
+            if (not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                                 close_vec[left_bound], close_vec[right_bound])) {
+                z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
+                                            (right_bound + 1) * cell_dim - width / 2,
+                                            close_vec[left_bound],
+                                            close_vec[right_bound]));
+            }
 			prev = max_dist;
 		}
 	}
 
-	if (prev < max_dist) {
-		z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
-						  (right_bound + 1) * cell_dim - width / 2,
-                             		      	  close_vec[left_bound],
-			  		          close_vec[right_bound]));
-	}
+    if (prev < max_dist &&
+        not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
+                         close_vec[left_bound], close_vec[right_bound])) {
+        z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
+                                    (right_bound + 1) * cell_dim - width / 2,
+                                    close_vec[left_bound],
+                                    close_vec[right_bound]));
+    }
 
 	for(auto & i : z_boys){
 	    ROS_INFO_STREAM("OBJECT: (" << i.x1 << ", " << i.x2 << ", " << i.z1 << ", " << i.z2 << ")");
