@@ -317,9 +317,6 @@ int main(int argc, char **argv){
     // Waits for data getter service
     ros::service::waitForService("collect_data");
 
-    // Waits for data getter service
-    ros::service::waitForService("calculate_deltas");
-
     // Creates server proxy for collecting another set of data
     new_data = nh.serviceClient<std_srvs::Empty>("collect_data");
 

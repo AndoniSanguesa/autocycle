@@ -1,13 +1,9 @@
 #define _USE_MATH_DEFINES
 
 #include <ros/ros.h>
-#include <autocycle_extras/LvxData.h>
 #include <autocycle_extras/ObjectList.h>
 #include <autocycle_extras/Object.h>
 #include <autocycle_extras/Point.h>
-#include <autocycle_extras/GetData.h>
-#include <autocycle_extras/RollAdj.h>
-#include <autocycle_extras/DetectObjects.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -320,8 +316,8 @@ bool intersection(float x1, float x2, float z1, float z2, vector<autocycle_extra
         float x4 = o.x2;
         float z3 = o.z1;
         float z4 = o.z2;
-        vector<float> p2m = (o.x1 - points[1][0], o.z1 - points[1][1]);
-        vector<float> p2m2 = (o.x2 - points[1][0], o.z2 - points[1][1]);
+        vector<float> p2m = {o.x1 - points[1][0], o.z1 - points[1][1]};
+        vector<float> p2m2 = {o.x2 - points[1][0], o.z2 - points[1][1]};
         float p2m_p2p3 = (p2m[0] * p2p3[0] +  p2m[1] * p2p3[1]);
         float p2m_p2p1 = (p2m[0] * p2p1[0] +  p2m[1] * p2p1[1]);
         float p2m2_p2p3 = (p2m2[0] * p2p3[0] +  p2m2[1] * p2p3[1]);
@@ -356,8 +352,8 @@ bool intersection(float x1, float x2, float z1, float z2, vector<autocycle_extra
                 }
             }
         }
-        return false;
     }
+    return false;
 }
 
 vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object> objects) {
