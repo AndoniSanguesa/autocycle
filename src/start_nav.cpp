@@ -927,6 +927,9 @@ int main(int argc, char **argv) {
   // Creates subscriber that updates velocity
   ros::Subscriber vel_sub = nh.subscribe("sensors/vel", 1, &get_velocity);
 
+  // Creates subscriber that updates velocity
+  ros::Subscriber ready_sub = nh.subscribe("cycle/frame_ready", 1, &update_ready);
+
   // Creates server proxy for calculating new deltas
   calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
 
@@ -948,47 +951,41 @@ int main(int argc, char **argv) {
   while(ros::ok()){
     // ROS_INFO_STREAM("Sending request for LVX file.");
     // Waits until f_done.lvx has been populated
+    ros::spinOnce();
     auto start = chrono::high_resolution_clock::now();
     points.clear();
-    f_done.open("f_done.lvx", ios::trunc);
-    while(f_done.tellp() == 0){
-      f_done.close();
-      if(!ros::ok()){
-        f_done.open("f_done.lvx", ios::trunc);
-        f_done.write("done", 4);
-        f_done.close();
-        return 0;
-      }
-      f_done.open("f_done.lvx", ios::app);
-    }
-    f_done.close();
 
     //ROS_INFO_STREAM("LVX file generated.");
     //ROS_INFO_STREAM("Sending request to analyze LVX File.");
 
     // Parses the lvx file
-    parse_lvx();
-    //ROS_INFO_STREAM("LVX file analyzed.");
+    if(ready){
+      parse_lvx();
+      ready = false;
+      // Clears f_done.lvx file while waiting for the rest of the loop to be ready
+      f_done.open(path_to_lvx, ios::trunc);
+      f_done.close();
+      //ROS_INFO_STREAM("LVX file analyzed.");
 
-    ros::spinOnce();
-    fix_roll();
+      ros::spinOnce();
+      fix_roll();
 
-    //ROS_INFO_STREAM("Points have been adjusted for roll.");
+      //ROS_INFO_STREAM("Points have been adjusted for roll.");
+
+      object_detection();
+    }
 
     //ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
     ros::spinOnce();
     state_stop = std::chrono::high_resolution_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(state_stop - state_start);
     state_start = std::chrono::high_resolution_clock::now();
     update_object_positions(((float) duration.count())/1000.0);
 
-    object_detection();
+
 
     generate_curve();
 
-    // Clears f_done.lvx file while waiting for the rest of the loop to be ready
-    f_done.open(path_to_lvx, ios::trunc);
-    f_done.close();
     auto end = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     ROS_INFO_STREAM("NAV LOOP TOOK : " << (float) duration.count() / 1000.0 << " SECONDS");
