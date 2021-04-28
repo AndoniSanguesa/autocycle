@@ -77,6 +77,7 @@ float box_dist = 100;                 // distance in each dimension surrounding 
 float prev_heading = -1;
 float heading = -1;
 float velocity = -1;
+float delta_angle, delta_time, c, s, dist;
 
 // Size of plot
 int path_width = 20;
@@ -103,6 +104,7 @@ tuple<int, int> start_node;
 tuple<int, int> end_node;
 
 // x values and y values
+vector<float> ys;
 vector<float> xs;
 
 // Calculate Padding
@@ -112,9 +114,8 @@ int padding_num = (int) (padding / (float) node_size);
 // Theta to adjust heading by
 float theta = 0;
 float des_heading = 0;
-float heading = -1;
 
-chrono::high_resolution_clock::time_point end;
+chrono::high_resolution_clock::time_point stop;
 chrono::high_resolution_clock::time_point start;
 chrono::milliseconds duration;
 
@@ -331,14 +332,14 @@ void update_end_node() {
 
 void generate_curve() {
     // Creates the curve around objects
-    auto start = chrono::high_resolution_clock::now();
+    // auto start = chrono::high_resolution_clock::now();
     ros::spinOnce();
     theta = des_heading - heading;
 
     reset_vars();
     update_end_node();
     vector<tuple<float, float, float, float>> real_obj_lst;
-    real_obj_lst.reserve(data.obj_lst.size());
+    real_obj_lst.reserve(obj_lst.obj_lst.size());
 
     for(auto & i : obj_lst.obj_lst){
         real_obj_lst.emplace_back(make_tuple(i.z1/1000, i.z2/1000, i.x1/1000, i.x2/1000));
@@ -353,9 +354,9 @@ void generate_curve() {
 
     calc_deltas.publish(to_pub);
 
-    auto end = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
-    ROS_INFO_STREAM("PATH PLANNING IS TAKING: " << (float) duration.count() / 1000.0 << " SECONDS");
+    // auto end = chrono::high_resolution_clock::now();
+    // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+    // ROS_INFO_STREAM("PATH PLANNING IS TAKING: " << (float) duration.count() / 1000.0 << " SECONDS");
 }
 
 void update_object_positions(float delta_time){
@@ -364,14 +365,14 @@ void update_object_positions(float delta_time){
 
     c = cos(delta_angle);
     s = sin(delta_angle);
-    distance = velocity * delta_time;
+    dist = velocity * delta_time;
 
     for(auto & i : obj_lst.obj_lst){
     autocycle_extras::Object rotated;
         rotated.z1 = i.z1*c - i.x1*s;
-        rotated.x1 = i.z1*s + i.x1*c - distance;
+        rotated.x1 = i.z1*s + i.x1*c - dist;
         rotated.z2 = i.z2*c - i.x2*s;
-        rotated.x2 = i.z2*s + i.x2*c - distance;
+        rotated.x2 = i.z2*s + i.x2*c - dist;
         if(rotated.z1 < 0 && rotated.z2 < 0){
             continue;
         }
@@ -759,7 +760,7 @@ void object_detection() {
 				prev = close_vec[col];
 			} else {
                 if (not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
-                                     close_vec[left_bound], close_vec[right_bound], new_obj_lst)) {
+                                     close_vec[left_bound], close_vec[right_bound], new_obj_lst.obj_lst)) {
                     z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
                                                 (right_bound + 1) * cell_dim - width / 2,
                                                 close_vec[left_bound],
@@ -769,7 +770,7 @@ void object_detection() {
 			}
 		} else if (prev < max_dist) {
             if (not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
-                                 close_vec[left_bound], close_vec[right_bound], new_obj_lst)) {
+                                 close_vec[left_bound], close_vec[right_bound], new_obj_lst.obj_lst)) {
                 z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
                                             (right_bound + 1) * cell_dim - width / 2,
                                             close_vec[left_bound],
@@ -781,7 +782,7 @@ void object_detection() {
 
     if (prev < max_dist &&
         not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
-                         close_vec[left_bound], close_vec[right_bound], new_obj_lst)) {
+                         close_vec[left_bound], close_vec[right_bound], new_obj_lst.obj_lst)) {
         z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
                                     (right_bound + 1) * cell_dim - width / 2,
                                     close_vec[left_bound],
@@ -947,7 +948,7 @@ int main(int argc, char **argv) {
   while(ros::ok()){
     // ROS_INFO_STREAM("Sending request for LVX file.");
     // Waits until f_done.lvx has been populated
-    //auto start = chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
     points.clear();
     f_done.open("f_done.lvx", ios::trunc);
     while(f_done.tellp() == 0){
@@ -976,19 +977,21 @@ int main(int argc, char **argv) {
 
     //ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
     ros::spinOnce();
-    end = std::chrono::high_resolution_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    stop = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     start = std::chrono::high_resolution_clock::now();
-    object_detection(((float) duration.count())/1000.0);
+    update_object_positions(((float) duration.count())/1000.0);
+
+    object_detection();
 
     generate_curve();
 
     // Clears f_done.lvx file while waiting for the rest of the loop to be ready
     f_done.open(path_to_lvx, ios::trunc);
     f_done.close();
-    //auto end = chrono::high_resolution_clock::now();
-    //auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
-    //ROS_INFO_STREAM("NAV LOOP TOOK : " << (float) duration.count() / 1000.0 << " SECONDS");
+    auto end = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+    ROS_INFO_STREAM("NAV LOOP TOOK : " << (float) duration.count() / 1000.0 << " SECONDS");
   }
 
   f_done.open(path_to_lvx, ios::trunc);

@@ -1,5 +1,6 @@
 import rospy
-from autocycle_extras.srv import CalcDeltas, GetDelta
+from autocycle_extras.srv import GetDelta
+from autocycle_extras.msg import CalcDeltas
 import numpy as np
 from scipy import interpolate as interp
 import time
@@ -53,7 +54,7 @@ def start():
     rospy.init_node('get_deltas')
 
     # Service that will update the parameters for calculating deltas
-    calc_delta = rospy.Subscribe("cycle/path", CalcDeltas, calculate_deltas)
+    calc_delta = rospy.Subscriber("cycle/path", CalcDeltas, calculate_deltas)
 
     # Service that will return the appropriate delta for a given x-value and roll
     g_delta = rospy.Service("get_delta", GetDelta, delta)
