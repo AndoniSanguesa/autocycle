@@ -10,17 +10,20 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 # PROJECT FILES
 add_executable(run_lidar src/run_lidar.cpp)
 add_executable(start_nav src/start_nav.cpp)
+add_executable(frame_ready src/frame_ready.cpp)
 add_executable(read_serial src/read_serial.cpp)
 add_executable(send_action src/send_action.cpp)
 
 add_dependencies(run_lidar ${catkin_EXPORTED_TARGETS})
 add_dependencies(start_nav ${catkin_EXPORTED_TARGETS})
+add_dependencies(frame_ready ${catkin_EXPORTED_TARGETS})
 add_dependencies(read_serial ${catkin_EXPORTED_TARGETS})
 add_dependencies(send_action ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(run_lidar stdc++fs)
 target_link_libraries(run_lidar ${catkin_LIBRARIES})
 target_link_libraries(start_nav ${catkin_LIBRARIES})
+target_link_libraries(frame_ready ${catkin_LIBRARIES})
 target_link_libraries(read_serial ${catkin_LIBRARIES})
 target_link_libraries(send_action ${catkin_LIBRARIES})
 
