@@ -15,6 +15,16 @@
 #include <stdio.h>
 #include <math.h>
 #include <vector>
+#include <autocycle_extras/CalcDeltas.h>
+#include <cmath>
+#include <set>
+#include <vector>
+#include <functional>
+#include <deque>
+#include <unordered_map>
+#include <unordered_set>
+#include <tuple>
+
 using namespace std;
 
 bool ready = false;
@@ -94,7 +104,6 @@ tuple<int, int> end_node;
 
 // x values and y values
 vector<float> xs;
-vector<float> ys;
 
 // Calculate Padding
 float padding = 1.5;
@@ -341,6 +350,7 @@ void generate_curve() {
     bfs();
     to_pub.path_x = xs;
     to_pub.path_y = ys;
+
     calc_deltas.publish(to_pub);
 
     auto end = chrono::high_resolution_clock::now();
