@@ -1,6 +1,0 @@
-#! /usr/bin/env python
-
-import autocycle_py.static_object_tracking
-
-if __name__ == '__main__':
-  autocycle_py.static_object_tracking.static_object_tracking()
