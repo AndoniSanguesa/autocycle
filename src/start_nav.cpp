@@ -115,8 +115,8 @@ int padding_num = (int) (padding / (float) node_size);
 float theta = 0;
 float des_heading = 0;
 
-chrono::high_resolution_clock::time_point stop;
-chrono::high_resolution_clock::time_point start;
+chrono::high_resolution_clock::time_point state_stop;
+chrono::high_resolution_clock::time_point state_start;
 chrono::milliseconds duration;
 
 string path_to_lvx = "f_done.lvx";
@@ -944,7 +944,7 @@ int main(int argc, char **argv) {
   ys.reserve(400);
 
   // Navigation loop
-  start = std::chrono::high_resolution_clock::now();
+  state_start = std::chrono::high_resolution_clock::now();
   while(ros::ok()){
     // ROS_INFO_STREAM("Sending request for LVX file.");
     // Waits until f_done.lvx has been populated
@@ -977,9 +977,9 @@ int main(int argc, char **argv) {
 
     //ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
     ros::spinOnce();
-    stop = std::chrono::high_resolution_clock::now();
+    state_stop = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-    start = std::chrono::high_resolution_clock::now();
+    state_start = std::chrono::high_resolution_clock::now();
     update_object_positions(((float) duration.count())/1000.0);
 
     object_detection();
