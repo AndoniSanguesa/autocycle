@@ -40,6 +40,7 @@ ros::Subscriber read_sub;
 ros::ServiceClient roll_client;
 
 vector<autocycle_extras::Point> points;
+vector<autocycle_extras::Object> cond_objs;
 
 // Initializes the variable that will hold the lvx file
 ofstream f_done;
@@ -378,6 +379,7 @@ void update_object_positions(float delta_time){
         }
         new_obj_lst.obj_lst.emplace_back(rotated);
     }
+    obj_lst.obj_lst = new_obj_lst.obj_lst
 }
 
 autocycle_extras::Object get_object(float x1, float x2, float z1, float z2){
@@ -792,7 +794,8 @@ void object_detection() {
 	for(auto & i : z_boys){
 	    ROS_INFO_STREAM("OBJECT: (" << i.x1 << ", " << i.x2 << ", " << i.z1 << ", " << i.z2 << ")");
 	}
-	obj_lst.obj_lst = condenseObjects(z_boys);
+	cond_objs = condenseObjects(z_boys);
+	obj_lst.obj_lst.insert(obj_lst.obj_lst.end(), cond_objs.begin(), cond_objs.end());
 	//auto end = chrono::high_resolution_clock::now();
 	//auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
 	//ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << (float) duration.count()/1000.0 << " SECONDS");
