@@ -363,6 +363,7 @@ void generate_curve() {
 void update_object_positions(float delta_time){
     delta_angle = heading - prev_heading;
     prev_heading = heading;
+    new_obj_lst.clear();
 
     c = cos(delta_angle);
     s = sin(delta_angle);
@@ -379,7 +380,8 @@ void update_object_positions(float delta_time){
         }
         new_obj_lst.obj_lst.emplace_back(rotated);
     }
-    obj_lst.obj_lst = new_obj_lst.obj_lst
+    obj_lst.obj_lst.clear()
+    obj_lst.obj_lst = new_obj_lst.obj_lst;
 }
 
 autocycle_extras::Object get_object(float x1, float x2, float z1, float z2){
@@ -791,11 +793,12 @@ void object_detection() {
                                     close_vec[right_bound]));
     }
 
-	for(auto & i : z_boys){
-	    ROS_INFO_STREAM("OBJECT: (" << i.x1 << ", " << i.x2 << ", " << i.z1 << ", " << i.z2 << ")");
-	}
+
 	cond_objs = condenseObjects(z_boys);
 	obj_lst.obj_lst.insert(obj_lst.obj_lst.end(), cond_objs.begin(), cond_objs.end());
+	for(auto & i : obj_lst.obj_lst){
+	    ROS_INFO_STREAM("OBJECT: (" << i.x1 << ", " << i.x2 << ", " << i.z1 << ", " << i.z2 << ")");
+	}
 	//auto end = chrono::high_resolution_clock::now();
 	//auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
 	//ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << (float) duration.count()/1000.0 << " SECONDS");
