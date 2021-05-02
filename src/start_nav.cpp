@@ -948,21 +948,27 @@ int main(int argc, char **argv) {
   path.reserve(400);
   xs.reserve(400);
   ys.reserve(400);
-
+  
+  auto start = chrono::high_resolution_clock::now();
   // Navigation loop
   state_start = std::chrono::high_resolution_clock::now();
   while(ros::ok()){
     // ROS_INFO_STREAM("Sending request for LVX file.");
     // Waits until f_done.lvx has been populated
     ros::spinOnce();
-    auto start = chrono::high_resolution_clock::now();
     points.clear();
 
     //ROS_INFO_STREAM("LVX file generated.");
     //ROS_INFO_STREAM("Sending request to analyze LVX File.");
 
     // Parses the lvx file
-    if(ready){
+    if(ready){ 
+      auto end = chrono::high_resolution_clock::now();
+      auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+      
+      start = chrono::high_resolution_clock::now();
+      ROS_INFO_STREAM("NAV LOOP TOOK : " << (float) duration.count() / 1000.0 << " SECONDS");
+      
       parse_lvx();
       ready = false;
       // Clears f_done.lvx file while waiting for the rest of the loop to be ready
@@ -989,9 +995,6 @@ int main(int argc, char **argv) {
 
     generate_curve();
 
-    auto end = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
-    ROS_INFO_STREAM("NAV LOOP TOOK : " << (float) duration.count() / 1000.0 << " SECONDS");
   }
 
   f_done.open(path_to_lvx, ios::trunc);
