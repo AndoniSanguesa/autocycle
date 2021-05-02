@@ -1,5 +1,9 @@
 #include <ros/ros.h>
 #include <std_msgs/Empty.h>
+#include <fstream>
+#include <iostream>
+
+using namespace std;
 
 int main(int argc, char **argv){
     // Registers node with the master
@@ -7,10 +11,12 @@ int main(int argc, char **argv){
     ros::NodeHandle nh;
 
     // Creates subscriber
-    ros::Publisher frame_ready_pub = nh.advertise<std_msgs::Empty>("cycle/frame_ready", 1)
+    ros::Publisher frame_ready_pub = nh.advertise<std_msgs::Empty>("cycle/frame_ready", 1);
 
     // Creates message to publish
     std_msgs::Empty e;
+
+    ofstream f_done;
 
     while(ros::ok()){
         f_done.open("f_done.lvx", ios::trunc);
@@ -25,8 +31,7 @@ int main(int argc, char **argv){
           f_done.open("f_done.lvx", ios::app);
         }
         f_done.close();
-        frame_ready_pub.publish(e)
-        f_done.open("f_done.lvx", ios::trunc);
+        frame_ready_pub.publish(e);
         while(f_done.tellp() != 0){
           f_done.close();
           if(!ros::ok()){
