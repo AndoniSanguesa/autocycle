@@ -764,7 +764,7 @@ void object_detection() {
 				prev = close_vec[col];
 			} else {
                 if (not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
-                                     close_vec[left_bound], close_vec[right_bound], new_obj_lst.obj_lst)) {
+                                     close_vec[left_bound], close_vec[right_bound], obj_lst.obj_lst)) {
                     z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
                                                 (right_bound + 1) * cell_dim - width / 2,
                                                 close_vec[left_bound],
@@ -774,7 +774,7 @@ void object_detection() {
 			}
 		} else if (prev < max_dist) {
             if (not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
-                                 close_vec[left_bound], close_vec[right_bound], new_obj_lst.obj_lst)) {
+                                 close_vec[left_bound], close_vec[right_bound], obj_lst.obj_lst)) {
                 z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
                                             (right_bound + 1) * cell_dim - width / 2,
                                             close_vec[left_bound],
@@ -786,7 +786,7 @@ void object_detection() {
 
     if (prev < max_dist &&
         not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
-                         close_vec[left_bound], close_vec[right_bound], new_obj_lst.obj_lst)) {
+                         close_vec[left_bound], close_vec[right_bound], obj_lst.obj_lst)) {
         z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
                                     (right_bound + 1) * cell_dim - width / 2,
                                     close_vec[left_bound],
