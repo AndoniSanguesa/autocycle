@@ -363,7 +363,7 @@ void generate_curve() {
 void update_object_positions(float delta_time){
     delta_angle = heading - prev_heading;
     prev_heading = heading;
-    new_obj_lst.clear();
+    new_obj_lst.obj_lst.clear();
 
     c = cos(delta_angle);
     s = sin(delta_angle);
@@ -380,7 +380,7 @@ void update_object_positions(float delta_time){
         }
         new_obj_lst.obj_lst.emplace_back(rotated);
     }
-    obj_lst.obj_lst.clear()
+    obj_lst.obj_lst.clear();
     obj_lst.obj_lst = new_obj_lst.obj_lst;
 }
 
