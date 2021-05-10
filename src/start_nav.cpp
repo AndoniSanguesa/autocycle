@@ -50,7 +50,7 @@ float roll = 0;
 bool result;
 
 int height = 2400;   // vertical dimension in millimeters
-int width = 20000;    // horizontal dimension in millimeters
+int width = 2000;    // horizontal dimension in millimeters
 int cell_dim = 50;    // dimension of cells in millimeters (cells are squares)
 
 int half_height = height/2;
@@ -60,6 +60,8 @@ int cell_row = ceil((1.0 * height) / cell_dim);
 int cell_col = ceil((1.0 * width) / cell_dim);
 int old_tracking_id = -1;
 int tracking_id = 0;
+
+ros::Publisher obj_lst_pub;
 
 autocycle_extras::ObjectList obj_lst;
 autocycle_extras::ObjectList new_obj_lst;
@@ -72,13 +74,13 @@ int for_jump_diff = col_diff * 1.5;      // Expected min difference between cell
 int counter_reps = 2;                    // Number of reps required to dictate it is an object.
 int same_obj_diff = 150;                 // maximum diff between horizontal cells to be considered the same object
 int group_dist = 1500;					 // max dist between adjacent objects for convex hull
-float max_dist = 200000;
-float box_dist = 100;                 // distance in each dimension surrounding line segment
+float max_dist = 4000;
+float box_dist = 1500;                 // distance in each dimension surrounding line segment
 
-float prev_heading = -1;
-float heading = -1;
-float velocity = -1;
-float delta_angle, delta_time, c, s, dist;
+float prev_heading = 0;
+float heading = 0;
+float velocity = 0;
+float delta_angle, c, s, dist;
 
 // Size of plot
 int path_width = 20;
@@ -86,6 +88,7 @@ int path_height = 20;
 
 // Size of each node
 int node_size = 1;
+
 
 // The dimensions of the graph (how many nodes in each direction)
 int x_dim = path_width / node_size;
@@ -376,7 +379,8 @@ void update_object_positions(float delta_time){
         rotated.z2 = i.z2*c - i.x2*s;
         rotated.x2 = i.z2*s + i.x2*c - dist;
         if(rotated.z1 < 0 && rotated.z2 < 0){
-            continue;
+            ROS_INFO_STREAM("BRERUUERDSHGSJKDFHSDIEUR");
+	    continue;
         }
         new_obj_lst.obj_lst.emplace_back(rotated);
     }
@@ -545,9 +549,10 @@ vector<float> diff (vector<float> p1, vector<float> p2) {
 }
 
 vector<float> rotatePoint(vector<float> point, float theta) {
-    point[0] = point[0] * cos(theta) - point[1] * sin(theta);
-    point[1] = point[0] * sin(theta) + point[1] * cos(theta);
-    return point;
+    vector<float> new_point = {0, 0};
+    new_point[0] = point[0] * cos(theta) - point[1] * sin(theta);
+    new_point[1] = point[0] * sin(theta) + point[1] * cos(theta);
+    return new_point;
 }
 
 vector<float> transPoint(vector<float> point, vector<float> trans) {
@@ -704,6 +709,7 @@ vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object
 
 void object_detection() {
     //auto start = chrono::high_resolution_clock::now();
+	obj_lst.obj_lst.clear();
 	vector<vector<float>> cells(cell_row, vector<float>(cell_col, 0));
 	for (int i = 0; i < points.size(); i++) {
 		float z = points[i].z;
@@ -796,9 +802,10 @@ void object_detection() {
 
 	cond_objs = condenseObjects(z_boys);
 	obj_lst.obj_lst.insert(obj_lst.obj_lst.end(), cond_objs.begin(), cond_objs.end());
-	for(auto & i : obj_lst.obj_lst){
+        for(auto & i : obj_lst.obj_lst){
 	    ROS_INFO_STREAM("OBJECT: (" << i.x1 << ", " << i.x2 << ", " << i.z1 << ", " << i.z2 << ")");
 	}
+	obj_lst_pub.publish(obj_lst);
 	//auto end = chrono::high_resolution_clock::now();
 	//auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
 	//ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << (float) duration.count()/1000.0 << " SECONDS");
@@ -816,12 +823,12 @@ void get_velocity(const std_msgs::Float32 data){
     velocity = data.data;
 }
 
+//ofstream o_file ("/home/ubuntu/Autocycle/BezierAutocycle/ros/bruh.txt", ios::out);
 void parse_lvx(){
     streampos size;
     int data_type, x, y, z;
     char * buff;
     long long next;
-
     ifstream file (path_to_lvx, ios::in|ios::binary|ios::ate);
     if (file.is_open()) {
         // Initialization
@@ -887,6 +894,7 @@ void parse_lvx(){
 			if(p.z !=0 && p.x > -half_width && p.x < half_width && p.y > -half_height && p.y < half_height){
 			    points.push_back(p);
 			}
+			//o_file << "(" << p.x << ", " << p.y << ", " << p.z << ") ";
                        // if(-50 < p.x and p.x < 50){
 		       //     ROS_INFO_STREAM(p.z);
 		       //}
@@ -902,6 +910,7 @@ void parse_lvx(){
         ROS_ERROR_STREAM("File could not be opened");
     }
     points.shrink_to_fit();
+    //o_file << endl;
 }
 
 void fix_roll(){
@@ -938,6 +947,8 @@ int main(int argc, char **argv) {
 
   // Creates server proxy for calculating new deltas
   calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
+
+  obj_lst_pub = nh.advertise<autocycle_extras::ObjectList>("cycle/list", 1);
 
   // Sets desired heading (for now the initial heading)
   while(heading == -1){
@@ -1003,5 +1014,6 @@ int main(int argc, char **argv) {
   f_done.open(path_to_lvx, ios::trunc);
   f_done.write("done", 4);
   f_done.close();
+  //o_file.close();
   return 0;
 }
