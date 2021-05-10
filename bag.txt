@@ -1,0 +1,1700 @@
+cycle/list obj_lst: []
+iden: 0 1620569609416676571
+cycle/list obj_lst: []
+iden: 0 1620569609508787793
+cycle/list obj_lst: []
+iden: 0 1620569609606126911
+cycle/list obj_lst: []
+iden: 0 1620569609704188980
+cycle/list obj_lst: []
+iden: 0 1620569609805684641
+cycle/list obj_lst: []
+iden: 0 1620569609909844609
+cycle/list obj_lst: []
+iden: 0 1620569610006406184
+cycle/list obj_lst: []
+iden: 0 1620569610106647292
+cycle/list obj_lst: []
+iden: 0 1620569610209670818
+cycle/list obj_lst: []
+iden: 0 1620569610309682781
+cycle/list obj_lst: []
+iden: 0 1620569610407246433
+cycle/list obj_lst: []
+iden: 0 1620569610509309808
+cycle/list obj_lst: []
+iden: 0 1620569610612874213
+cycle/list obj_lst: []
+iden: 0 1620569610712076283
+cycle/list obj_lst: []
+iden: 0 1620569610810038354
+cycle/list obj_lst: []
+iden: 0 1620569610913003954
+cycle/list obj_lst: []
+iden: 0 1620569611020961509
+cycle/list obj_lst: []
+iden: 0 1620569611115276864
+cycle/list obj_lst: []
+iden: 0 1620569611213975684
+cycle/list obj_lst: []
+iden: 0 1620569611311105640
+cycle/list obj_lst: []
+iden: 0 1620569611413205663
+cycle/list obj_lst: []
+iden: 0 1620569611513976170
+cycle/list obj_lst: []
+iden: 0 1620569611614116837
+cycle/list obj_lst: []
+iden: 0 1620569611717277249
+cycle/list obj_lst: []
+iden: 0 1620569611815358375
+cycle/list obj_lst: []
+iden: 0 1620569611916640856
+cycle/list obj_lst: []
+iden: 0 1620569612015005737
+cycle/list obj_lst: []
+iden: 0 1620569612115686821
+cycle/list obj_lst: []
+iden: 0 1620569612216145186
+cycle/list obj_lst: []
+iden: 0 1620569612319677760
+cycle/list obj_lst: []
+iden: 0 1620569612417941829
+cycle/list obj_lst: []
+iden: 0 1620569612518997258
+cycle/list obj_lst: []
+iden: 0 1620569612618636378
+cycle/list obj_lst: []
+iden: 0 1620569612717996558
+cycle/list obj_lst: []
+iden: 0 1620569612820572833
+cycle/list obj_lst: []
+iden: 0 1620569612920136232
+cycle/list obj_lst: []
+iden: 0 1620569613022519751
+cycle/list obj_lst: []
+iden: 0 1620569613117306878
+cycle/list obj_lst: []
+iden: 0 1620569613218219292
+cycle/list obj_lst: []
+iden: 0 1620569613324538544
+cycle/list obj_lst: []
+iden: 0 1620569613422344102
+cycle/list obj_lst: []
+iden: 0 1620569613521385288
+cycle/list obj_lst: []
+iden: 0 1620569613622733417
+cycle/list obj_lst: []
+iden: 0 1620569613722077876
+cycle/list obj_lst: []
+iden: 0 1620569613828230427
+cycle/list obj_lst: []
+iden: 0 1620569613924993502
+cycle/list obj_lst: []
+iden: 0 1620569614024361998
+cycle/list obj_lst: []
+iden: 0 1620569614122868953
+cycle/list obj_lst: []
+iden: 0 1620569614229326740
+cycle/list obj_lst: []
+iden: 0 1620569614327396980
+cycle/list obj_lst: []
+iden: 0 1620569614428923904
+cycle/list obj_lst: []
+iden: 0 1620569614524829605
+cycle/list obj_lst: []
+iden: 0 1620569614633067308
+cycle/list obj_lst: []
+iden: 0 1620569614733310012
+cycle/list obj_lst: []
+iden: 0 1620569614836477576
+cycle/list obj_lst: []
+iden: 0 1620569614929023166
+cycle/list obj_lst: []
+iden: 0 1620569615030450017
+cycle/list obj_lst: []
+iden: 0 1620569615132086310
+cycle/list obj_lst: []
+iden: 0 1620569615229249862
+cycle/list obj_lst: []
+iden: 0 1620569615331543997
+cycle/list obj_lst: []
+iden: 0 1620569615433274326
+cycle/list obj_lst: []
+iden: 0 1620569615531042497
+cycle/list obj_lst: []
+iden: 0 1620569615628409491
+cycle/list obj_lst: []
+iden: 0 1620569615729233168
+cycle/list obj_lst: []
+iden: 0 1620569615831784131
+cycle/list obj_lst: []
+iden: 0 1620569615938939315
+cycle/list obj_lst: []
+iden: 0 1620569616034386248
+cycle/list obj_lst: []
+iden: 0 1620569616134304514
+cycle/list obj_lst: []
+iden: 0 1620569616229527284
+cycle/list obj_lst: []
+iden: 0 1620569616336171330
+cycle/list obj_lst: []
+iden: 0 1620569616434867506
+cycle/list obj_lst: []
+iden: 0 1620569616534958547
+cycle/list obj_lst: []
+iden: 0 1620569616632790200
+cycle/list obj_lst: []
+iden: 0 1620569616738721091
+cycle/list obj_lst: []
+iden: 0 1620569616832372238
+cycle/list obj_lst: []
+iden: 0 1620569616934216085
+cycle/list obj_lst: []
+iden: 0 1620569617031756021
+cycle/list obj_lst: []
+iden: 0 1620569617137277826
+cycle/list obj_lst: []
+iden: 0 1620569617235492807
+cycle/list obj_lst: []
+iden: 0 1620569617343733790
+cycle/list obj_lst: []
+iden: 0 1620569617441014509
+cycle/list obj_lst: []
+iden: 0 1620569617542266458
+cycle/list obj_lst: []
+iden: 0 1620569617640921524
+cycle/list obj_lst: []
+iden: 0 1620569617743498897
+cycle/list obj_lst: []
+iden: 0 1620569617841849894
+cycle/list obj_lst: []
+iden: 0 1620569617940446591
+cycle/list obj_lst: []
+iden: 0 1620569618038800292
+cycle/list obj_lst: []
+iden: 0 1620569618141007264
+cycle/list obj_lst: []
+iden: 0 1620569618239428353
+cycle/list obj_lst: []
+iden: 0 1620569618342209075
+cycle/list obj_lst: []
+iden: 0 1620569618445116499
+cycle/list obj_lst: []
+iden: 0 1620569618542323904
+cycle/list obj_lst: []
+iden: 0 1620569618641835013
+cycle/list obj_lst: []
+iden: 0 1620569618743629473
+cycle/list obj_lst: []
+iden: 0 1620569618845567709
+cycle/list obj_lst: []
+iden: 0 1620569618947691589
+cycle/list obj_lst: []
+iden: 0 1620569619046094365
+cycle/list obj_lst: []
+iden: 0 1620569619147253855
+cycle/list obj_lst: []
+iden: 0 1620569619244306782
+cycle/list obj_lst: []
+iden: 0 1620569619345176944
+cycle/list obj_lst: []
+iden: 0 1620569619452156912
+cycle/list obj_lst: []
+iden: 0 1620569619547963120
+cycle/list obj_lst: []
+iden: 0 1620569619645981420
+cycle/list obj_lst: []
+iden: 0 1620569619746831934
+cycle/list obj_lst: []
+iden: 0 1620569619846893905
+cycle/list obj_lst: []
+iden: 0 1620569619943501673
+cycle/list obj_lst: []
+iden: 0 1620569620049544787
+cycle/list obj_lst: []
+iden: 0 1620569620146995283
+cycle/list obj_lst: []
+iden: 0 1620569620243859956
+cycle/list obj_lst: []
+iden: 0 1620569620347104357
+cycle/list obj_lst: []
+iden: 0 1620569620450801325
+cycle/list obj_lst: []
+iden: 0 1620569620548235821
+cycle/list obj_lst: []
+iden: 0 1620569620646425175
+cycle/list obj_lst: []
+iden: 0 1620569620745882787
+cycle/list obj_lst: []
+iden: 0 1620569620847307236
+cycle/list obj_lst: []
+iden: 0 1620569620948505726
+cycle/list obj_lst: []
+iden: 0 1620569621049831956
+cycle/list obj_lst: []
+iden: 0 1620569621149311419
+cycle/list obj_lst: []
+iden: 0 1620569621250155435
+cycle/list obj_lst: []
+iden: 0 1620569621350397942
+cycle/list obj_lst: []
+iden: 0 1620569621454544607
+cycle/list obj_lst: []
+iden: 0 1620569621550368334
+cycle/list obj_lst: []
+iden: 0 1620569621652748343
+cycle/list obj_lst: []
+iden: 0 1620569621753123940
+cycle/list obj_lst: []
+iden: 0 1620569621855614373
+cycle/list obj_lst: []
+iden: 0 1620569621955124595
+cycle/list obj_lst: []
+iden: 0 1620569622050785900
+cycle/list obj_lst: []
+iden: 0 1620569622158516933
+cycle/list obj_lst: []
+iden: 0 1620569622254476733
+cycle/list obj_lst: []
+iden: 0 1620569622355492265
+cycle/list obj_lst: []
+iden: 0 1620569622453195240
+cycle/list obj_lst: []
+iden: 0 1620569622560229933
+cycle/list obj_lst: []
+iden: 0 1620569622565247555
+cycle/list obj_lst: []
+iden: 0 1620569622654227358
+cycle/list obj_lst: []
+iden: 0 1620569622756579368
+cycle/list obj_lst: []
+iden: 0 1620569622856088573
+cycle/list obj_lst: []
+iden: 0 1620569622956214897
+cycle/list obj_lst: []
+iden: 0 1620569623058362319
+cycle/list obj_lst: []
+iden: 0 1620569623160484889
+cycle/list obj_lst: []
+iden: 0 1620569623257075106
+cycle/list obj_lst: []
+iden: 0 1620569623358582945
+cycle/list obj_lst: []
+iden: 0 1620569623455851410
+cycle/list obj_lst: []
+iden: 0 1620569623556846647
+cycle/list obj_lst: []
+iden: 0 1620569623656789864
+cycle/list obj_lst: []
+iden: 0 1620569623756956948
+cycle/list obj_lst: []
+iden: 0 1620569623861184799
+cycle/list obj_lst: []
+iden: 0 1620569623962823488
+cycle/list obj_lst: []
+iden: 0 1620569624059021693
+cycle/list obj_lst: []
+iden: 0 1620569624161899067
+cycle/list obj_lst: []
+iden: 0 1620569624256322745
+cycle/list obj_lst: []
+iden: 0 1620569624358861514
+cycle/list obj_lst: []
+iden: 0 1620569624457176166
+cycle/list obj_lst: []
+iden: 0 1620569624559743396
+cycle/list obj_lst: []
+iden: 0 1620569624657610204
+cycle/list obj_lst: []
+iden: 0 1620569624761361563
+cycle/list obj_lst: []
+iden: 0 1620569624859075373
+cycle/list obj_lst: []
+iden: 0 1620569624962345241
+cycle/list obj_lst: []
+iden: 0 1620569625059842296
+cycle/list obj_lst: []
+iden: 0 1620569625159971067
+cycle/list obj_lst: []
+iden: 0 1620569625260705717
+cycle/list obj_lst: []
+iden: 0 1620569625363598740
+cycle/list obj_lst: []
+iden: 0 1620569625463920379
+cycle/list obj_lst: []
+iden: 0 1620569625565056763
+cycle/list obj_lst: []
+iden: 0 1620569625669868477
+cycle/list obj_lst: []
+iden: 0 1620569625765982906
+cycle/list obj_lst: []
+iden: 0 1620569625863938269
+cycle/list obj_lst: []
+iden: 0 1620569625966042638
+cycle/list obj_lst: []
+iden: 0 1620569626064848727
+cycle/list obj_lst: []
+iden: 0 1620569626162751814
+cycle/list obj_lst: []
+iden: 0 1620569626264528319
+cycle/list obj_lst: []
+iden: 0 1620569626371029394
+cycle/list obj_lst: []
+iden: 0 1620569626464405814
+cycle/list obj_lst: []
+iden: 0 1620569626570072274
+cycle/list obj_lst: []
+iden: 0 1620569626670488430
+cycle/list obj_lst: []
+iden: 0 1620569626767299090
+cycle/list obj_lst: []
+iden: 0 1620569626867715598
+cycle/list obj_lst: []
+iden: 0 1620569626967014440
+cycle/list obj_lst: []
+iden: 0 1620569627066544556
+cycle/list obj_lst: []
+iden: 0 1620569627170293696
+cycle/list obj_lst: []
+iden: 0 1620569627266610142
+cycle/list obj_lst: []
+iden: 0 1620569627372214252
+cycle/list obj_lst: []
+iden: 0 1620569627470125802
+cycle/list obj_lst: []
+iden: 0 1620569627578975674
+cycle/list obj_lst: []
+iden: 0 1620569627675230547
+cycle/list obj_lst: []
+iden: 0 1620569627769704542
+cycle/list obj_lst: []
+iden: 0 1620569627868564151
+cycle/list obj_lst: []
+iden: 0 1620569627969658038
+cycle/list obj_lst: []
+iden: 0 1620569628071650856
+cycle/list obj_lst: []
+iden: 0 1620569628176209798
+cycle/list obj_lst: []
+iden: 0 1620569628270616129
+cycle/list obj_lst: []
+iden: 0 1620569628377146113
+cycle/list obj_lst: []
+iden: 0 1620569628474842686
+cycle/list obj_lst: []
+iden: 0 1620569628578909785
+cycle/list obj_lst: []
+iden: 0 1620569628674162879
+cycle/list obj_lst: []
+iden: 0 1620569628775634983
+cycle/list obj_lst: []
+iden: 0 1620569628874646701
+cycle/list obj_lst: []
+iden: 0 1620569628976103750
+cycle/list obj_lst: []
+iden: 0 1620569629076444244
+cycle/list obj_lst: []
+iden: 0 1620569629174845991
+cycle/list obj_lst: []
+iden: 0 1620569629276772700
+cycle/list obj_lst: []
+iden: 0 1620569629376727478
+cycle/list obj_lst: []
+iden: 0 1620569629476845086
+cycle/list obj_lst: []
+iden: 0 1620569629577096081
+cycle/list obj_lst: []
+iden: 0 1620569629680822205
+cycle/list obj_lst: []
+iden: 0 1620569629777959677
+cycle/list obj_lst: []
+iden: 0 1620569629879964717
+cycle/list obj_lst: []
+iden: 0 1620569629981718947
+cycle/list obj_lst: []
+iden: 0 1620569630079083601
+cycle/list obj_lst: []
+iden: 0 1620569630178244819
+cycle/list obj_lst: []
+iden: 0 1620569630284511995
+cycle/list obj_lst: []
+iden: 0 1620569630381164198
+cycle/list obj_lst: []
+iden: 0 1620569630481363768
+cycle/list obj_lst: []
+iden: 0 1620569630588202546
+cycle/list obj_lst: []
+iden: 0 1620569630679833442
+cycle/list obj_lst: []
+iden: 0 1620569630781685986
+cycle/list obj_lst: []
+iden: 0 1620569630884685882
+cycle/list obj_lst: []
+iden: 0 1620569630984358943
+cycle/list obj_lst: []
+iden: 0 1620569631083731917
+cycle/list obj_lst: []
+iden: 0 1620569631182060778
+cycle/list obj_lst: []
+iden: 0 1620569631282826656
+cycle/list obj_lst: []
+iden: 0 1620569631386123251
+cycle/list obj_lst: []
+iden: 0 1620569631484484279
+cycle/list obj_lst: []
+iden: 0 1620569631585134751
+cycle/list obj_lst: []
+iden: 0 1620569631684277803
+cycle/list obj_lst: []
+iden: 0 1620569631787177701
+cycle/list obj_lst: []
+iden: 0 1620569631885640134
+cycle/list obj_lst: []
+iden: 0 1620569631985765059
+cycle/list obj_lst: []
+iden: 0 1620569632086596473
+cycle/list obj_lst: []
+iden: 0 1620569632182254102
+cycle/list obj_lst: []
+iden: 0 1620569632285010818
+cycle/list obj_lst: []
+iden: 0 1620569632388566354
+cycle/list obj_lst: []
+iden: 0 1620569632486706331
+cycle/list obj_lst: []
+iden: 0 1620569632584646904
+cycle/list obj_lst: []
+iden: 0 1620569632691630366
+cycle/list obj_lst: []
+iden: 0 1620569632787805967
+cycle/list obj_lst: []
+iden: 0 1620569632886769004
+cycle/list obj_lst: []
+iden: 0 1620569632985886409
+cycle/list obj_lst: []
+iden: 0 1620569633088905511
+cycle/list obj_lst: []
+iden: 0 1620569633186972823
+cycle/list obj_lst: []
+iden: 0 1620569633286733070
+cycle/list obj_lst: []
+iden: 0 1620569633386726407
+cycle/list obj_lst: []
+iden: 0 1620569633491409148
+cycle/list obj_lst: []
+iden: 0 1620569633588720472
+cycle/list obj_lst: []
+iden: 0 1620569633688315352
+cycle/list obj_lst: []
+iden: 0 1620569633786653660
+cycle/list obj_lst: []
+iden: 0 1620569633890217308
+cycle/list obj_lst: []
+iden: 0 1620569633987351561
+cycle/list obj_lst: []
+iden: 0 1620569634088275050
+cycle/list obj_lst: []
+iden: 0 1620569634190765716
+cycle/list obj_lst: []
+iden: 0 1620569634289712774
+cycle/list obj_lst: []
+iden: 0 1620569634392424400
+cycle/list obj_lst: []
+iden: 0 1620569634487620538
+cycle/list obj_lst: []
+iden: 0 1620569634589930670
+cycle/list obj_lst: []
+iden: 0 1620569634693667187
+cycle/list obj_lst: []
+iden: 0 1620569634792459896
+cycle/list obj_lst: []
+iden: 0 1620569634891507693
+cycle/list obj_lst: []
+iden: 0 1620569634988878054
+cycle/list obj_lst: []
+iden: 0 1620569635092512295
+cycle/list obj_lst: []
+iden: 0 1620569635193308991
+cycle/list obj_lst: []
+iden: 0 1620569635294419051
+cycle/list obj_lst: []
+iden: 0 1620569635394735625
+cycle/list obj_lst: []
+iden: 0 1620569635491437275
+cycle/list obj_lst: []
+iden: 0 1620569635593326786
+cycle/list obj_lst: []
+iden: 0 1620569635692892464
+cycle/list obj_lst: []
+iden: 0 1620569635797116530
+cycle/list obj_lst: []
+iden: 0 1620569635892928547
+cycle/list obj_lst: []
+iden: 0 1620569635996641972
+cycle/list obj_lst: []
+iden: 0 1620569636094354700
+cycle/list obj_lst: []
+iden: 0 1620569636195795404
+cycle/list obj_lst: []
+iden: 0 1620569636301802108
+cycle/list obj_lst: []
+iden: 0 1620569636395510697
+cycle/list obj_lst: []
+iden: 0 1620569636497716796
+cycle/list obj_lst: []
+iden: 0 1620569636596900185
+cycle/list obj_lst: []
+iden: 0 1620569636697004300
+cycle/list obj_lst: []
+iden: 0 1620569636794523772
+cycle/list obj_lst: []
+iden: 0 1620569636899594047
+cycle/list obj_lst: []
+iden: 0 1620569636997232683
+cycle/list obj_lst: []
+iden: 0 1620569637098831904
+cycle/list obj_lst: []
+iden: 0 1620569637199645693
+cycle/list obj_lst: []
+iden: 0 1620569637296581267
+cycle/list obj_lst: []
+iden: 0 1620569637394889468
+cycle/list obj_lst: []
+iden: 0 1620569637500465532
+cycle/list obj_lst: []
+iden: 0 1620569637600716830
+cycle/list obj_lst: []
+iden: 0 1620569637697684386
+cycle/list obj_lst: []
+iden: 0 1620569638152559502
+cycle/list obj_lst: []
+iden: 0 1620569638205712547
+cycle/list obj_lst: []
+iden: 0 1620569638300128608
+cycle/list obj_lst: []
+iden: 0 1620569638398622862
+cycle/list obj_lst: []
+iden: 0 1620569638497932121
+cycle/list obj_lst: []
+iden: 0 1620569638598927630
+cycle/list obj_lst: []
+iden: 0 1620569638699628885
+cycle/list obj_lst: []
+iden: 0 1620569638797958715
+cycle/list obj_lst: []
+iden: 0 1620569638899428513
+cycle/list obj_lst: []
+iden: 0 1620569638997919656
+cycle/list obj_lst: []
+iden: 0 1620569639103843253
+cycle/list obj_lst: []
+iden: 0 1620569639199824974
+cycle/list obj_lst: []
+iden: 0 1620569639300600451
+cycle/list obj_lst: []
+iden: 0 1620569639404271159
+cycle/list obj_lst: []
+iden: 0 1620569639497621293
+cycle/list obj_lst: []
+iden: 0 1620569639602936659
+cycle/list obj_lst: []
+iden: 0 1620569639700775998
+cycle/list obj_lst: []
+iden: 0 1620569639801782064
+cycle/list obj_lst: []
+iden: 0 1620569639901727036
+cycle/list obj_lst: []
+iden: 0 1620569640004597220
+cycle/list obj_lst: []
+iden: 0 1620569640105701747
+cycle/list obj_lst: []
+iden: 0 1620569640204695495
+cycle/list obj_lst: []
+iden: 0 1620569640306032593
+cycle/list obj_lst: []
+iden: 0 1620569640404892250
+cycle/list obj_lst: []
+iden: 0 1620569640506961484
+cycle/list obj_lst: []
+iden: 0 1620569640612305518
+cycle/list obj_lst: []
+iden: 0 1620569640708343387
+cycle/list obj_lst: []
+iden: 0 1620569640807840441
+cycle/list obj_lst: []
+iden: 0 1620569640923035648
+cycle/list obj_lst: []
+iden: 0 1620569641016395172
+cycle/list obj_lst: []
+iden: 0 1620569641115075388
+cycle/list obj_lst: []
+iden: 0 1620569641210809559
+cycle/list obj_lst: []
+iden: 0 1620569641315578640
+cycle/list obj_lst: []
+iden: 0 1620569641411498308
+cycle/list obj_lst: []
+iden: 0 1620569641513251734
+cycle/list obj_lst: []
+iden: 0 1620569641611662954
+cycle/list obj_lst: []
+iden: 0 1620569641712961387
+cycle/list obj_lst: []
+iden: 0 1620569641824125790
+cycle/list obj_lst: []
+iden: 0 1620569641915577124
+cycle/list obj_lst: []
+iden: 0 1620569642020018413
+cycle/list obj_lst: []
+iden: 0 1620569642117378355
+cycle/list obj_lst: []
+iden: 0 1620569642216580082
+cycle/list obj_lst: []
+iden: 0 1620569642315987843
+cycle/list obj_lst: []
+iden: 0 1620569642420411708
+cycle/list obj_lst: []
+iden: 0 1620569642528608160
+cycle/list obj_lst: []
+iden: 0 1620569642623178888
+cycle/list obj_lst: []
+iden: 0 1620569642720779937
+cycle/list obj_lst: []
+iden: 0 1620569642818545076
+cycle/list obj_lst: []
+iden: 0 1620569642914935831
+cycle/list obj_lst: []
+iden: 0 1620569643023348020
+cycle/list obj_lst: []
+iden: 0 1620569643119439854
+cycle/list obj_lst: []
+iden: 0 1620569643220071966
+cycle/list obj_lst: []
+iden: 0 1620569643319218084
+cycle/list obj_lst: []
+iden: 0 1620569643424982502
+cycle/list obj_lst: []
+iden: 0 1620569643519817708
+cycle/list obj_lst: []
+iden: 0 1620569643624426978
+cycle/list obj_lst: []
+iden: 0 1620569643717953316
+cycle/list obj_lst: []
+iden: 0 1620569643819261547
+cycle/list obj_lst: []
+iden: 0 1620569643919633089
+cycle/list obj_lst: []
+iden: 0 1620569644021916286
+cycle/list obj_lst: 
+  - 
+    x1: 800.0
+    x2: 1000.0
+    z1: 3093.0
+    z2: 2963.0
+iden: 0 1620569644118076434
+cycle/list obj_lst: 
+  - 
+    x1: 850.0
+    x2: 950.0
+    z1: 3026.0
+    z2: 2794.0
+  - 
+    x1: 950.0
+    x2: 1000.0
+    z1: 2794.0
+    z2: 2794.0
+  - 
+    x1: 1000.0
+    x2: 900.0
+    z1: 2794.0
+    z2: 3026.0
+  - 
+    x1: 900.0
+    x2: 850.0
+    z1: 3026.0
+    z2: 3026.0
+iden: 0 1620569644227446017
+cycle/list obj_lst: 
+  - 
+    x1: 800.0
+    x2: 1000.0
+    z1: 2920.0
+    z2: 2759.0
+iden: 0 1620569644327231163
+cycle/list obj_lst: 
+  - 
+    x1: 650.0
+    x2: 750.0
+    z1: 3278.0
+    z2: 2814.0
+  - 
+    x1: 750.0
+    x2: 1000.0
+    z1: 2814.0
+    z2: 2915.0
+  - 
+    x1: 1000.0
+    x2: 700.0
+    z1: 2915.0
+    z2: 3278.0
+  - 
+    x1: 700.0
+    x2: 650.0
+    z1: 3278.0
+    z2: 3278.0
+iden: 0 1620569644424374165
+cycle/list obj_lst: 
+  - 
+    x1: 450.0
+    x2: 650.0
+    z1: 3051.0
+    z2: 2837.0
+  - 
+    x1: 650.0
+    x2: 1000.0
+    z1: 2837.0
+    z2: 2950.0
+  - 
+    x1: 1000.0
+    x2: 600.0
+    z1: 2950.0
+    z2: 3186.0
+  - 
+    x1: 600.0
+    x2: 550.0
+    z1: 3186.0
+    z2: 3186.0
+  - 
+    x1: 550.0
+    x2: 450.0
+    z1: 3186.0
+    z2: 3051.0
+iden: 0 1620569644532664636
+cycle/list obj_lst: 
+  - 
+    x1: 100.0
+    x2: 550.0
+    z1: 3276.0
+    z2: 2854.0
+  - 
+    x1: 550.0
+    x2: 1000.0
+    z1: 2854.0
+    z2: 2965.0
+  - 
+    x1: 1000.0
+    x2: 500.0
+    z1: 2965.0
+    z2: 3199.0
+  - 
+    x1: 500.0
+    x2: 100.0
+    z1: 3199.0
+    z2: 3276.0
+iden: 0 1620569644625216880
+cycle/list obj_lst: 
+  - 
+    x1: 200.0
+    x2: 400.0
+    z1: 3227.0
+    z2: 2896.0
+  - 
+    x1: 400.0
+    x2: 750.0
+    z1: 2896.0
+    z2: 2860.0
+  - 
+    x1: 750.0
+    x2: 1000.0
+    z1: 2860.0
+    z2: 2987.0
+  - 
+    x1: 1000.0
+    x2: 350.0
+    z1: 2987.0
+    z2: 3206.0
+  - 
+    x1: 350.0
+    x2: 200.0
+    z1: 3206.0
+    z2: 3227.0
+iden: 0 1620569644728535468
+cycle/list obj_lst: 
+  - 
+    x1: 200.0
+    x2: 300.0
+    z1: 3213.0
+    z2: 2913.0
+  - 
+    x1: 300.0
+    x2: 1000.0
+    z1: 2913.0
+    z2: 3061.0
+  - 
+    x1: 1000.0
+    x2: 250.0
+    z1: 3061.0
+    z2: 3213.0
+  - 
+    x1: 250.0
+    x2: 200.0
+    z1: 3213.0
+    z2: 3213.0
+iden: 0 1620569644831036588
+cycle/list obj_lst: 
+  - 
+    x1: 100.0
+    x2: 700.0
+    z1: 3053.0
+    z2: 3025.0
+iden: 0 1620569644928592066
+cycle/list obj_lst: 
+  - 
+    x1: -50.0
+    x2: 400.0
+    z1: 3090.0
+    z2: 3103.0
+iden: 0 1620569645029811317
+cycle/list obj_lst: 
+  - 
+    x1: -200.0
+    x2: 350.0
+    z1: 3142.0
+    z2: 3198.0
+iden: 0 1620569645131162216
+cycle/list obj_lst: 
+  - 
+    x1: -550.0
+    x2: 100.0
+    z1: 3221.0
+    z2: 3102.0
+  - 
+    x1: 100.0
+    x2: 350.0
+    z1: 3102.0
+    z2: 3198.0
+  - 
+    x1: 350.0
+    x2: 150.0
+    z1: 3198.0
+    z2: 3275.0
+  - 
+    x1: 150.0
+    x2: -550.0
+    z1: 3275.0
+    z2: 3221.0
+iden: 0 1620569645229367258
+cycle/list obj_lst: 
+  - 
+    x1: -450.0
+    x2: 400.0
+    z1: 3238.0
+    z2: 3307.0
+iden: 0 1620569645330807007
+cycle/list obj_lst: 
+  - 
+    x1: -500.0
+    x2: 250.0
+    z1: 3171.0
+    z2: 3246.0
+  - 
+    x1: 250.0
+    x2: -50.0
+    z1: 3246.0
+    z2: 3330.0
+  - 
+    x1: -50.0
+    x2: -500.0
+    z1: 3330.0
+    z2: 3171.0
+iden: 0 1620569645432759377
+cycle/list obj_lst: 
+  - 
+    x1: -600.0
+    x2: 0.0
+    z1: 3179.0
+    z2: 3285.0
+  - 
+    x1: 0.0
+    x2: -150.0
+    z1: 3285.0
+    z2: 3338.0
+  - 
+    x1: -150.0
+    x2: -600.0
+    z1: 3338.0
+    z2: 3179.0
+iden: 0 1620569645531508077
+cycle/list obj_lst: 
+  - 
+    x1: -700.0
+    x2: -250.0
+    z1: 3189.0
+    z2: 3342.0
+iden: 0 1620569645629606436
+cycle/list obj_lst: 
+  - 
+    x1: -850.0
+    x2: -350.0
+    z1: 3176.0
+    z2: 3276.0
+iden: 0 1620569645738126311
+cycle/list obj_lst: 
+  - 
+    x1: -1000.0
+    x2: -850.0
+    z1: 3508.0
+    z2: 3110.0
+  - 
+    x1: -850.0
+    x2: -400.0
+    z1: 3110.0
+    z2: 3285.0
+  - 
+    x1: -400.0
+    x2: -900.0
+    z1: 3285.0
+    z2: 3490.0
+  - 
+    x1: -900.0
+    x2: -1000.0
+    z1: 3490.0
+    z2: 3508.0
+iden: 0 1620569645832678746
+cycle/list obj_lst: 
+  - 
+    x1: -1000.0
+    x2: -450.0
+    z1: 3165.0
+    z2: 3291.0
+iden: 0 1620569645932263747
+cycle/list obj_lst: 
+  - 
+    x1: -1000.0
+    x2: -500.0
+    z1: 3153.0
+    z2: 3322.0
+  - 
+    x1: -500.0
+    x2: -750.0
+    z1: 3322.0
+    z2: 3276.0
+  - 
+    x1: -750.0
+    x2: -1000.0
+    z1: 3276.0
+    z2: 3153.0
+iden: 0 1620569646040766827
+cycle/list obj_lst: 
+  - 
+    x1: -1000.0
+    x2: -900.0
+    z1: 3284.0
+    z2: 3306.0
+iden: 0 1620569646131265716
+cycle/list obj_lst: 
+  - 
+    x1: -1000.0
+    x2: -950.0
+    z1: 3383.0
+    z2: 3383.0
+iden: 0 1620569646233853744
+cycle/list obj_lst: []
+iden: 0 1620569646338580644
+cycle/list obj_lst: []
+iden: 0 1620569646441070192
+cycle/list obj_lst: []
+iden: 0 1620569646533895137
+cycle/list obj_lst: []
+iden: 0 1620569646641292920
+cycle/list obj_lst: []
+iden: 0 1620569646733626446
+cycle/list obj_lst: []
+iden: 0 1620569646834007787
+cycle/list obj_lst: []
+iden: 0 1620569646940819839
+cycle/list obj_lst: []
+iden: 0 1620569647038422059
+cycle/list obj_lst: []
+iden: 0 1620569647140065732
+cycle/list obj_lst: []
+iden: 0 1620569647241187896
+cycle/list obj_lst: []
+iden: 0 1620569647346405289
+cycle/list obj_lst: []
+iden: 0 1620569647440817394
+cycle/list obj_lst: []
+iden: 0 1620569647540706633
+cycle/list obj_lst: []
+iden: 0 1620569647638396592
+cycle/list obj_lst: []
+iden: 0 1620569647739026856
+cycle/list obj_lst: []
+iden: 0 1620569647841398740
+cycle/list obj_lst: []
+iden: 0 1620569647940036795
+cycle/list obj_lst: []
+iden: 0 1620569648039803055
+cycle/list obj_lst: []
+iden: 0 1620569648141656336
+cycle/list obj_lst: []
+iden: 0 1620569648237925616
+cycle/list obj_lst: []
+iden: 0 1620569648337993908
+cycle/list obj_lst: []
+iden: 0 1620569648443099934
+cycle/list obj_lst: []
+iden: 0 1620569648540081480
+cycle/list obj_lst: []
+iden: 0 1620569648636856232
+cycle/list obj_lst: []
+iden: 0 1620569648742081441
+cycle/list obj_lst: []
+iden: 0 1620569648842310676
+cycle/list obj_lst: []
+iden: 0 1620569648943391970
+cycle/list obj_lst: 
+  - 
+    x1: -1000.0
+    x2: -900.0
+    z1: 3414.0
+    z2: 3383.0
+iden: 0 1620569649046560416
+cycle/list obj_lst: 
+  - 
+    x1: -1000.0
+    x2: -800.0
+    z1: 3201.0
+    z2: 3345.0
+iden: 0 1620569649148692269
+cycle/list obj_lst: 
+  - 
+    x1: -1000.0
+    x2: -750.0
+    z1: 3157.0
+    z2: 3272.0
+iden: 0 1620569649249121834
+cycle/list obj_lst: 
+  - 
+    x1: -1000.0
+    x2: -650.0
+    z1: 3297.0
+    z2: 3276.0
+iden: 0 1620569649347765316
+cycle/list obj_lst: 
+  - 
+    x1: -900.0
+    x2: -800.0
+    z1: 3309.0
+    z2: 3165.0
+  - 
+    x1: -800.0
+    x2: -400.0
+    z1: 3165.0
+    z2: 3554.0
+  - 
+    x1: -400.0
+    x2: -450.0
+    z1: 3554.0
+    z2: 3554.0
+  - 
+    x1: -450.0
+    x2: -900.0
+    z1: 3554.0
+    z2: 3309.0
+iden: 0 1620569649447819943
+cycle/list obj_lst: 
+  - 
+    x1: -950.0
+    x2: -700.0
+    z1: 3403.0
+    z2: 3172.0
+  - 
+    x1: -700.0
+    x2: -50.0
+    z1: 3172.0
+    z2: 3513.0
+  - 
+    x1: -50.0
+    x2: -950.0
+    z1: 3513.0
+    z2: 3403.0
+iden: 0 1620569649545934138
+cycle/list obj_lst: 
+  - 
+    x1: -950.0
+    x2: -200.0
+    z1: 3411.0
+    z2: 3486.0
+iden: 0 1620569649647125783
+cycle/list obj_lst: 
+  - 
+    x1: -950.0
+    x2: -100.0
+    z1: 3518.0
+    z2: 3550.0
+iden: 0 1620569649747003376
+cycle/list obj_lst: 
+  - 
+    x1: -800.0
+    x2: -700.0
+    z1: 3523.0
+    z2: 3427.0
+  - 
+    x1: -700.0
+    x2: -50.0
+    z1: 3427.0
+    z2: 3518.0
+  - 
+    x1: -50.0
+    x2: -750.0
+    z1: 3518.0
+    z2: 3523.0
+  - 
+    x1: -750.0
+    x2: -800.0
+    z1: 3523.0
+    z2: 3523.0
+iden: 0 1620569649856091857
+cycle/list obj_lst: 
+  - 
+    x1: -600.0
+    x2: -500.0
+    z1: 3462.0
+    z2: 3267.0
+  - 
+    x1: -500.0
+    x2: -50.0
+    z1: 3267.0
+    z2: 3477.0
+  - 
+    x1: -50.0
+    x2: -600.0
+    z1: 3477.0
+    z2: 3462.0
+iden: 0 1620569649949146874
+cycle/list obj_lst: 
+  - 
+    x1: -500.0
+    x2: 100.0
+    z1: 3352.0
+    z2: 3619.0
+iden: 0 1620569650051647499
+cycle/list obj_lst: 
+  - 
+    x1: -500.0
+    x2: 150.0
+    z1: 3407.0
+    z2: 3545.0
+iden: 0 1620569650149523143
+cycle/list obj_lst: 
+  - 
+    x1: -400.0
+    x2: -350.0
+    z1: 3180.0
+    z2: 3180.0
+  - 
+    x1: -350.0
+    x2: 200.0
+    z1: 3180.0
+    z2: 3509.0
+  - 
+    x1: 200.0
+    x2: -300.0
+    z1: 3509.0
+    z2: 3300.0
+  - 
+    x1: -300.0
+    x2: -400.0
+    z1: 3300.0
+    z2: 3180.0
+iden: 0 1620569650257726879
+cycle/list obj_lst: 
+  - 
+    x1: -400.0
+    x2: 0.0
+    z1: 3263.0
+    z2: 3345.0
+iden: 0 1620569650349556973
+cycle/list obj_lst: 
+  - 
+    x1: -400.0
+    x2: 50.0
+    z1: 3298.0
+    z2: 3308.0
+  - 
+    x1: 50.0
+    x2: 200.0
+    z1: 3308.0
+    z2: 3432.0
+  - 
+    x1: 200.0
+    x2: 100.0
+    z1: 3432.0
+    z2: 3452.0
+  - 
+    x1: 100.0
+    x2: -400.0
+    z1: 3452.0
+    z2: 3298.0
+iden: 0 1620569650449236606
+cycle/list obj_lst: 
+  - 
+    x1: -400.0
+    x2: 50.0
+    z1: 3390.0
+    z2: 3364.0
+iden: 0 1620569650551623826
+cycle/list obj_lst: 
+  - 
+    x1: -400.0
+    x2: 150.0
+    z1: 3409.0
+    z2: 3458.0
+iden: 0 1620569650650165533
+cycle/list obj_lst: 
+  - 
+    x1: -450.0
+    x2: 150.0
+    z1: 3441.0
+    z2: 3466.0
+iden: 0 1620569650753121188
+cycle/list obj_lst: 
+  - 
+    x1: -450.0
+    x2: 150.0
+    z1: 3464.0
+    z2: 3466.0
+iden: 0 1620569650851334030
+cycle/list obj_lst: 
+  - 
+    x1: -450.0
+    x2: 150.0
+    z1: 3436.0
+    z2: 3476.0
+iden: 0 1620569650954591514
+cycle/list obj_lst: 
+  - 
+    x1: -500.0
+    x2: 150.0
+    z1: 3482.0
+    z2: 3471.0
+iden: 0 1620569651053265775
+cycle/list obj_lst: 
+  - 
+    x1: -450.0
+    x2: 150.0
+    z1: 3403.0
+    z2: 3488.0
+iden: 0 1620569651155632644
+cycle/list obj_lst: 
+  - 
+    x1: -450.0
+    x2: 150.0
+    z1: 3361.0
+    z2: 3517.0
+iden: 0 1620569651256039266
+cycle/list obj_lst: 
+  - 
+    x1: -400.0
+    x2: 200.0
+    z1: 3309.0
+    z2: 3339.0
+iden: 0 1620569651360658321
+cycle/list obj_lst: 
+  - 
+    x1: -400.0
+    x2: -300.0
+    z1: 3492.0
+    z2: 3243.0
+  - 
+    x1: -300.0
+    x2: 200.0
+    z1: 3243.0
+    z2: 3483.0
+  - 
+    x1: 200.0
+    x2: -350.0
+    z1: 3483.0
+    z2: 3492.0
+  - 
+    x1: -350.0
+    x2: -400.0
+    z1: 3492.0
+    z2: 3492.0
+iden: 0 1620569651458865868
+cycle/list obj_lst: 
+  - 
+    x1: -350.0
+    x2: -200.0
+    z1: 3450.0
+    z2: 3230.0
+  - 
+    x1: -200.0
+    x2: 250.0
+    z1: 3230.0
+    z2: 3395.0
+  - 
+    x1: 250.0
+    x2: -350.0
+    z1: 3395.0
+    z2: 3450.0
+iden: 0 1620569651558228396
+cycle/list obj_lst: 
+  - 
+    x1: -300.0
+    x2: 300.0
+    z1: 3440.0
+    z2: 3370.0
+iden: 0 1620569651655062780
+cycle/list obj_lst: 
+  - 
+    x1: -100.0
+    x2: 450.0
+    z1: 3332.0
+    z2: 3451.0
+iden: 0 1620569651756732160
+cycle/list obj_lst: 
+  - 
+    x1: 50.0
+    x2: 500.0
+    z1: 3266.0
+    z2: 3391.0
+iden: 0 1620569651858909347
+cycle/list obj_lst: 
+  - 
+    x1: 150.0
+    x2: 600.0
+    z1: 3353.0
+    z2: 3390.0
+iden: 0 1620569651955700713
+cycle/list obj_lst: 
+  - 
+    x1: 250.0
+    x2: 700.0
+    z1: 3359.0
+    z2: 3279.0
+iden: 0 1620569652055076612
+cycle/list obj_lst: 
+  - 
+    x1: 350.0
+    x2: 450.0
+    z1: 3465.0
+    z2: 3166.0
+  - 
+    x1: 450.0
+    x2: 900.0
+    z1: 3166.0
+    z2: 3333.0
+  - 
+    x1: 900.0
+    x2: 400.0
+    z1: 3333.0
+    z2: 3465.0
+  - 
+    x1: 400.0
+    x2: 350.0
+    z1: 3465.0
+    z2: 3465.0
+iden: 0 1620569652157667441
+cycle/list obj_lst: 
+  - 
+    x1: 350.0
+    x2: 550.0
+    z1: 3433.0
+    z2: 3164.0
+  - 
+    x1: 550.0
+    x2: 1000.0
+    z1: 3164.0
+    z2: 3315.0
+  - 
+    x1: 1000.0
+    x2: 500.0
+    z1: 3315.0
+    z2: 3462.0
+  - 
+    x1: 500.0
+    x2: 350.0
+    z1: 3462.0
+    z2: 3433.0
+iden: 0 1620569652257859827
+cycle/list obj_lst: 
+  - 
+    x1: 300.0
+    x2: 700.0
+    z1: 3442.0
+    z2: 3149.0
+  - 
+    x1: 700.0
+    x2: 1000.0
+    z1: 3149.0
+    z2: 3269.0
+  - 
+    x1: 1000.0
+    x2: 650.0
+    z1: 3269.0
+    z2: 3405.0
+  - 
+    x1: 650.0
+    x2: 300.0
+    z1: 3405.0
+    z2: 3442.0
+iden: 0 1620569652359907184
+cycle/list obj_lst: 
+  - 
+    x1: 450.0
+    x2: 850.0
+    z1: 3429.0
+    z2: 3119.0
+  - 
+    x1: 850.0
+    x2: 1000.0
+    z1: 3119.0
+    z2: 3151.0
+  - 
+    x1: 1000.0
+    x2: 800.0
+    z1: 3151.0
+    z2: 3415.0
+  - 
+    x1: 800.0
+    x2: 450.0
+    z1: 3415.0
+    z2: 3429.0
+iden: 0 1620569652461307661
+cycle/list obj_lst: 
+  - 
+    x1: 650.0
+    x2: 950.0
+    z1: 3449.0
+    z2: 3106.0
+  - 
+    x1: 950.0
+    x2: 1000.0
+    z1: 3106.0
+    z2: 3106.0
+  - 
+    x1: 1000.0
+    x2: 900.0
+    z1: 3106.0
+    z2: 3311.0
+  - 
+    x1: 900.0
+    x2: 650.0
+    z1: 3311.0
+    z2: 3449.0
+iden: 0 1620569652560519452
+cycle/list obj_lst: 
+  - 
+    x1: 950.0
+    x2: 1000.0
+    z1: 3283.0
+    z2: 3283.0
+iden: 0 1620569652658481689
+cycle/list obj_lst: []
+iden: 0 1620569652759253122
+cycle/list obj_lst: []
+iden: 0 1620569652861875950
+cycle/list obj_lst: []
+iden: 0 1620569652962025485
+cycle/list obj_lst: []
+iden: 0 1620569653063078062
+cycle/list obj_lst: []
+iden: 0 1620569653169669827
+cycle/list obj_lst: []
+iden: 0 1620569653261818158
+cycle/list obj_lst: []
+iden: 0 1620569653362575407
+cycle/list obj_lst: []
+iden: 0 1620569653464506118
+cycle/list obj_lst: []
+iden: 0 1620569653574032410
+cycle/list obj_lst: []
+iden: 0 1620569653665127592
+cycle/list obj_lst: []
+iden: 0 1620569653764636471
+cycle/list obj_lst: []
+iden: 0 1620569653863477565
+cycle/list obj_lst: []
+iden: 0 1620569653968543744
+cycle/list obj_lst: []
+iden: 0 1620569654064990673
+cycle/list obj_lst: []
+iden: 0 1620569654169972225
+cycle/list obj_lst: []
+iden: 0 1620569654275012072
+cycle/list obj_lst: []
+iden: 0 1620569654368239664
+cycle/list obj_lst: []
+iden: 0 1620569654467115166
+cycle/list obj_lst: []
+iden: 0 1620569654565920687
+cycle/list obj_lst: []
+iden: 0 1620569654666275072
+cycle/list obj_lst: []
+iden: 0 1620569654770223196
+cycle/list obj_lst: []
+iden: 0 1620569654868912534
+cycle/list obj_lst: []
+iden: 0 1620569654970888301
+cycle/list obj_lst: []
+iden: 0 1620569655072454871
+cycle/list obj_lst: []
+iden: 0 1620569655176753619
+cycle/list obj_lst: []
+iden: 0 1620569655276404239
+cycle/list obj_lst: []
+iden: 0 1620569655369131340
+cycle/list obj_lst: []
+iden: 0 1620569655473810972
+cycle/list obj_lst: []
+iden: 0 1620569655573775568
+cycle/list obj_lst: []
+iden: 0 1620569655675097716
+cycle/list obj_lst: []
+iden: 0 1620569655773692130
+cycle/list obj_lst: []
+iden: 0 1620569655877088245
+cycle/list obj_lst: []
+iden: 0 1620569655973037387
+cycle/list obj_lst: []
+iden: 0 1620569656077290267
+cycle/list obj_lst: []
+iden: 0 1620569656177054126
+cycle/list obj_lst: []
+iden: 0 1620569656278603642
+cycle/list obj_lst: []
+iden: 0 1620569656376857989
+cycle/list obj_lst: []
+iden: 0 1620569656474824840
+cycle/list obj_lst: []
+iden: 0 1620569656577162102
+cycle/list obj_lst: []
+iden: 0 1620569656677699857
+cycle/list obj_lst: []
+iden: 0 1620569656782342082
+cycle/list obj_lst: []
+iden: 0 1620569656883251367
+cycle/list obj_lst: []
+iden: 0 1620569656984044136
+cycle/list obj_lst: []
+iden: 0 1620569657084503559
+cycle/list obj_lst: []
+iden: 0 1620569657188197541
+cycle/list obj_lst: []
+iden: 0 1620569657288800481
+cycle/list obj_lst: []
+iden: 0 1620569657385033379
+cycle/list obj_lst: []
+iden: 0 1620569657486466879
+cycle/list obj_lst: []
+iden: 0 1620569657588824975
+cycle/list obj_lst: []
+iden: 0 1620569657688069196
+cycle/list obj_lst: []
+iden: 0 1620569657786847294
+cycle/list obj_lst: []
+iden: 0 1620569657887131109
+cycle/list obj_lst: []
+iden: 0 1620569657993829672
+cycle/list obj_lst: []
+iden: 0 1620569658088988515
+cycle/list obj_lst: []
+iden: 0 1620569658189236257
+cycle/list obj_lst: []
+iden: 0 1620569658291926404
+cycle/list obj_lst: []
+iden: 0 1620569658393636030
+cycle/list obj_lst: []
+iden: 0 1620569658488445712
+cycle/list obj_lst: []
+iden: 0 1620569658588880766
+cycle/list obj_lst: []
+iden: 0 1620569658687788362
+cycle/list obj_lst: 
+  - 
+    x1: 950.0
+    x2: 1000.0
+    z1: 1293.0
+    z2: 1293.0
+iden: 0 1620569658793878918
+cycle/list obj_lst: []
+iden: 0 1620569658893190712
+cycle/list obj_lst: []
+iden: 0 1620569658995221741
+cycle/list obj_lst: []
+iden: 0 1620569659103182508
+cycle/list obj_lst: []
+iden: 0 1620569659201776537
+cycle/list obj_lst: []
+iden: 0 1620569659298070528
+cycle/list obj_lst: []
+iden: 0 1620569659396183954
+cycle/list obj_lst: 
+  - 
+    x1: 750.0
+    x2: 900.0
+    z1: 1054.0
+    z2: 1134.0
+iden: 0 1620569659496934985
+cycle/list obj_lst: []
+iden: 0 1620569659598625242
+cycle/list obj_lst: 
+  - 
+    x1: 700.0
+    x2: 800.0
+    z1: 928.0
+    z2: 946.0
+  - 
+    x1: 800.0
+    x2: 900.0
+    z1: 946.0
+    z2: 1075.0
+  - 
+    x1: 900.0
+    x2: 850.0
+    z1: 1075.0
+    z2: 1075.0
+  - 
+    x1: 850.0
+    x2: 700.0
+    z1: 1075.0
+    z2: 928.0
+iden: 0 1620569659707937784
+cycle/list obj_lst: 
+  - 
+    x1: 700.0
+    x2: 900.0
+    z1: 916.0
+    z2: 1079.0
+iden: 0 1620569659799120579
+cycle/list obj_lst: []
+iden: 0 1620569659902616659
+cycle/list obj_lst: []
+iden: 0 1620569660000975618
+cycle/list obj_lst: []
+iden: 0 1620569660105785529
+cycle/list obj_lst: []
+iden: 0 1620569660202997599
+cycle/list obj_lst: []
+iden: 0 1620569660307046356
+cycle/list obj_lst: []
+iden: 0 1620569660402836634
+cycle/list obj_lst: []
+iden: 0 1620569660500752693
+cycle/list obj_lst: []
+iden: 0 1620569660602081068
+cycle/list obj_lst: []
+iden: 0 1620569660701674507
+cycle/list obj_lst: []
+iden: 0 1620569660800796121
+cycle/list obj_lst: []
+iden: 0 1620569660902848095
+cycle/list obj_lst: []
+iden: 0 1620569661005091159
+cycle/list obj_lst: []
+iden: 0 1620569661102784167
+cycle/list obj_lst: []
+iden: 0 1620569661204112894
