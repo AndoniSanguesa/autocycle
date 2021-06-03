@@ -1,5 +1,4 @@
 #define _USE_MATH_DEFINES
-
 #include <ros/ros.h>
 #include <autocycle_extras/ObjectList.h>
 #include <autocycle_extras/Object.h>
@@ -27,55 +26,65 @@
 
 using namespace std;
 
+// ready is true if there is a new frame from the lidar to analyze
 bool ready = false;
 
+// Callback function for the `frame_ready` topic that sets the ready variable
 void update_ready(const std_msgs::Empty msg){
     ready = true;
 }
 
-// Creates the subscriber that checks for when it is safe to continue
-ros::Subscriber read_sub;
-
-// Creates service client that will call on the fix_roll service to fix the roll...
-ros::ServiceClient roll_client;
-
+// Will contain the points found by the lidar
 vector<autocycle_extras::Point> points;
+
+// Will contain the objects after object clusters are combined by the convex
+// hull function and after intersecting objects have been removed
 vector<autocycle_extras::Object> cond_objs;
 
-// Initializes the variable that will hold the lvx file
+// Initializes the file variable that will read the latest data from the lidar
 ofstream f_done;
 
-// Initializes variables for time
+// stores the latest roll data
 float roll = 0;
-bool result;
 
-int height = 2400;   // vertical dimension in millimeters
-int width = 2000;    // horizontal dimension in millimeters
-int cell_dim = 50;    // dimension of cells in millimeters (cells are squares)
+int height = 2400;   // vertical height of detection window in millimeters
+int width = 2000;    // horizontal width of detection window in millimeters
+int cell_dim = 50;   // dimension of cells in millimeters (cells are squares)
 
-int half_height = height/2;
-int half_width = width/2;
+int half_height = height/2; // Half of the above variable
+int half_width = width/2;   // Half of the above variable
 
-int cell_row = ceil((1.0 * height) / cell_dim);
-int cell_col = ceil((1.0 * width) / cell_dim);
-int old_tracking_id = -1;
-int tracking_id = 0;
+int cell_row = ceil((1.0 * height) / cell_dim); // Number of cells in a row
+int cell_col = ceil((1.0 * width) / cell_dim);  // Number of cells in a column
 
-ros::Publisher obj_lst_pub;
-
+// Stores the current list of objects
 autocycle_extras::ObjectList obj_lst;
+
+// Stores the new set of objects in a temporary vector
+// after adjusting the current objects for the bikes
+// change in position and heading
 autocycle_extras::ObjectList new_obj_lst;
+
+// Publisher that publishes the newest path to a topic that is read by
+// the `get_deltas` node
 ros::Publisher calc_deltas;
+
+// The object that will be published by the above publisher
 autocycle_extras::CalcDeltas to_pub;
 
 // Tunable parameters to determine if something is an object.
-int col_diff = 50;                       // Expected max difference between two adjacent cells in a column.
+
+// If the z value for 2 adjacent cells in a column differ by
+// more than this variable, they are considered different objects
+int col_diff = 50;
+
+/
 int for_jump_diff = col_diff * 1.5;      // Expected min difference between cells in a column to indicate a jump forward.
 int counter_reps = 2;                    // Number of reps required to dictate it is an object.
 int same_obj_diff = 150;                 // maximum diff between horizontal cells to be considered the same object
 int group_dist = 1500;					 // max dist between adjacent objects for convex hull
 float max_dist = 4000;
-float box_dist = 1500;                 // distance in each dimension surrounding line segment
+float box_dist = 1500;                   // distance in each dimension surrounding line segment
 
 float prev_heading = 0;
 float heading = 0;
@@ -117,28 +126,32 @@ int padding_num = (int) (padding / (float) node_size);
 
 // Theta to adjust heading by
 float theta = 0;
+
+// The desired Heading
 float des_heading = 0;
 
+// Variables used to time the computation time
 chrono::high_resolution_clock::time_point state_stop;
 chrono::high_resolution_clock::time_point state_start;
 chrono::milliseconds duration;
 
+// Path to the Data file
 string path_to_lvx = "f_done.lvx";
 
+// Maps a tuple to 2 integers to a unique integer (for hashing)
 int cantor(tuple<int, int> node){
-    // Maps a tuple to 2 integers to a unique integer (for hashing)
     int p1 = get<0>(node);
     int p2 = get<1>(node);
     return (((p1 + p2) * (p1 + p2 +1))/2) + p2;
 }
 
+// Calculates difference between nodes
 tuple<float, float> get_change(tuple<float, float> p1, tuple<float, float> p2){
-    // Calculates difference between nodes
     return(make_tuple(get<0>(p2) - get<0>(p1), get<1>(p2) - get<1>(p1)));
 }
 
+// Generates intermediary points along the generated path to assist in interpolation
 void augment_path(){
-    // Generates intermediary points to assist in interpolation
     vector<tuple<float, float>> new_path;
     tuple<float, float> change;
     float new_x, new_y = 0;
@@ -163,9 +176,8 @@ void augment_path(){
     path = new_path;
 }
 
+// Resets variables between generated paths
 void reset_vars(){
-    // Resets variables between calls
-
     // The nodes that have been deemed blocked by an object
     blocked_nodes.clear();
     center_blocked_nodes.clear();
@@ -177,8 +189,8 @@ void reset_vars(){
     ys.clear();
 }
 
+//Takes cartesian point and returns the corresponding node
 tuple<int, int> get_node_from_point(tuple<float, float> point){
-    //Takes cartesian point and returns the corresponding node
     float x = get<0>(point);
     float y = get<1>(point);
     return (make_tuple(
@@ -187,8 +199,8 @@ tuple<int, int> get_node_from_point(tuple<float, float> point){
     ));
 }
 
+// Returns the list of nodes that an object is blocking
 void get_blocked_nodes(tuple<float, float, float, float> obj){
-    // Returns the list of nodes that an object is blocking
     float x1, x2, y1, y2, tmp, m;
     double delta_x;
     int x, y;
@@ -257,9 +269,9 @@ void get_blocked_nodes(tuple<float, float, float, float> obj){
     }
 }
 
+// Finds the shortest path from the starting node to the
+// end node via a Breadth First Search(BFS)
 void bfs(){
-    // Finds the shortest path from the starting node to the
-    // end node via a Breadth First Search(BFS)
     deque<tuple<int, int>> q;
     unordered_set<int> visited;
     unordered_map<int, tuple<int, int>> parent;
@@ -316,9 +328,8 @@ void bfs(){
     reverse(path.begin(),path.end());
 }
 
+// Updates end_node to approximate the desired heading
 void update_end_node() {
-    // Updates end_node to approximate the desired heading
-
     double m = tan(theta);
     int half_path_height = path_height / 2;
     tuple<int, int> top = get_node_from_point(make_tuple(half_path_height / m, half_path_height));
@@ -334,9 +345,8 @@ void update_end_node() {
     }
 }
 
+// Creates the curve around objects
 void generate_curve() {
-    // Creates the curve around objects
-    // auto start = chrono::high_resolution_clock::now();
     ros::spinOnce();
     theta = des_heading - heading;
 
@@ -363,6 +373,8 @@ void generate_curve() {
     // ROS_INFO_STREAM("PATH PLANNING IS TAKING: " << (float) duration.count() / 1000.0 << " SECONDS");
 }
 
+// Updates the positions of previously found objects according to the
+// telemetry from the bike
 void update_object_positions(float delta_time){
     delta_angle = heading - prev_heading;
     prev_heading = heading;
@@ -388,6 +400,7 @@ void update_object_positions(float delta_time){
     obj_lst.obj_lst = new_obj_lst.obj_lst;
 }
 
+// Generates an Autocycle Object from floats (this should really be removed)
 autocycle_extras::Object get_object(float x1, float x2, float z1, float z2){
 	autocycle_extras::Object obj;
 	obj.x1 = x1;
@@ -397,6 +410,8 @@ autocycle_extras::Object get_object(float x1, float x2, float z1, float z2){
 	return obj;
 }
 
+// Defines a Graph that will be used for determining what smaller objects
+// Are actually part of the same object
 class Graph {
 		int V;
 		vector <vector<int>> adj;
@@ -407,16 +422,19 @@ class Graph {
 		vector<vector<int>> connectedComps();
 };
 
+// Initializes a graph
 Graph::Graph(int a) {
 	V = a;
 	adj.resize(a);
 }
 
+// Adds an edge to the graph
 void Graph::addEdge(int a, int b) {
 	adj[a].push_back(b);
 	adj[b].push_back(a);
 }
 
+// Finds all of the objects that belong to the same larger object
 void Graph::dfs(vector<int> &temp, int vert, vector<bool> &visited) {
 	visited[vert] = true;
 	temp.push_back(vert);
@@ -427,6 +445,7 @@ void Graph::dfs(vector<int> &temp, int vert, vector<bool> &visited) {
 	}
 }
 
+// Generates a vector of all larger objects
 vector<vector<int>> Graph::connectedComps() {
 	vector<bool> visited(V);
 	vector<vector<int>> connected;
@@ -440,6 +459,7 @@ vector<vector<int>> Graph::connectedComps() {
 	return connected;
 }
 
+// Returns distance from a point to a line segment
 float pointToSeg(int x, int z, autocycle_extras::Object seg) {
 	float segx = seg.x1 - seg.x2;
 	float segz = seg.z1 - seg.z2;
@@ -460,6 +480,7 @@ float pointToSeg(int x, int z, autocycle_extras::Object seg) {
 	return sqrt(pow(nx - lpx, 2) + pow(nz - lpz, 2));
 }
 
+// Returns distance between two line segments
 float segDist(autocycle_extras::Object seg1, autocycle_extras::Object seg2) {
 	float dist = pointToSeg(seg1.x1, seg1.z1, seg2);
 	float t1 = pointToSeg(seg1.x2, seg1.z2, seg2);
@@ -477,6 +498,7 @@ float segDist(autocycle_extras::Object seg1, autocycle_extras::Object seg2) {
 	return dist;
 }
 
+// Finds the left-most point in a vector of points
 int leftMost(vector<vector<float>> points) {
 	int min_ind = 0;
 	for (int i = 0; i < points.size(); i++) {
@@ -491,6 +513,7 @@ int leftMost(vector<vector<float>> points) {
 	return min_ind;
 }
 
+// Sets the
 int orientation(vector<float> p,vector<float> q,vector<float> r){
 	float val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1]);
 	if (val) {
@@ -504,6 +527,9 @@ int orientation(vector<float> p,vector<float> q,vector<float> r){
 	}
 }
 
+// Generates line segments representing the convex hull of a group of objects
+// This is used to consolidate the smaller objects that were deemed part
+// of the same larger object
 vector<autocycle_extras::Object> convHull(vector<autocycle_extras::Object> objects) {
 	vector<vector<float>> points;
 	for (int i = 0; i < objects.size(); i++) {
@@ -540,6 +566,8 @@ vector<autocycle_extras::Object> convHull(vector<autocycle_extras::Object> objec
 	return new_objects;
 }
 
+
+// Difference between points used to calculate intersections
 vector<float> diff (vector<float> p1, vector<float> p2) {
     vector<float> vals;
     vals.push_back(p1[1] - p2[1]);
@@ -548,6 +576,7 @@ vector<float> diff (vector<float> p1, vector<float> p2) {
     return vals;
 }
 
+// Rotates a point by theta
 vector<float> rotatePoint(vector<float> point, float theta) {
     vector<float> new_point = {0, 0};
     new_point[0] = point[0] * cos(theta) - point[1] * sin(theta);
@@ -555,12 +584,15 @@ vector<float> rotatePoint(vector<float> point, float theta) {
     return new_point;
 }
 
+// Translates a point according to some translation matrix
 vector<float> transPoint(vector<float> point, vector<float> trans) {
     point[0] += trans[0];
     point[1] += trans[1];
     return point;
 }
 
+// Gets the bounding box for a line segment (the line segments for the
+// bounding box are `box-dist` away from the actual line segment)
 vector<vector<float>> getBoundingBox(float x1, float x2, float z1, float z2) {
     vector<float> mov = {x2, z2};
     vector<float> o1 = {x1 - mov[0], z1 - mov[1]};
@@ -604,6 +636,7 @@ vector<vector<float>> getBoundingBox(float x1, float x2, float z1, float z2) {
     return box;
 }
 
+// Determines whether a new object intersects any existing objects
 bool intersection(float x1, float x2, float z1, float z2, vector<autocycle_extras::Object> objects) {
     vector<vector<float>> points;
     if (x1 < x2) {
@@ -680,6 +713,9 @@ bool intersection(float x1, float x2, float z1, float z2, vector<autocycle_extra
     return false;
 }
 
+// Condenses a group of newly detected objects. This means that any objects
+// That intersected are destroyed and any new objects are coalesed with
+// nearby objects
 vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object> objects) {
 	Graph gr = Graph(objects.size());
 	for (int x = 0; x < objects.size(); x++) {
@@ -706,7 +742,7 @@ vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object
 	return new_objects;
 }
 
-
+// Detects new objects from the latest LiDAR data
 void object_detection() {
     //auto start = chrono::high_resolution_clock::now();
 	obj_lst.obj_lst.clear();
@@ -805,30 +841,36 @@ void object_detection() {
         for(auto & i : obj_lst.obj_lst){
 	    ROS_INFO_STREAM("OBJECT: (" << i.x1 << ", " << i.x2 << ", " << i.z1 << ", " << i.z2 << ")");
 	}
-	obj_lst_pub.publish(obj_lst);
+
 	//auto end = chrono::high_resolution_clock::now();
 	//auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
 	//ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << (float) duration.count()/1000.0 << " SECONDS");
 }
 
+// Gets the latest roll
 void get_roll(const std_msgs::Float32 data){
     roll = data.data;
 }
 
+// Gets the latest Heading
 void get_heading(const std_msgs::Float32 data){
     heading = data.data;
 }
 
+// Gets the latest velocity
 void get_velocity(const std_msgs::Float32 data){
     velocity = data.data;
 }
 
 //ofstream o_file ("/home/ubuntu/Autocycle/BezierAutocycle/ros/bruh.txt", ios::out);
+
+// Parses the lvx file and sets the current points vector
 void parse_lvx(){
     streampos size;
     int data_type, x, y, z;
     char * buff;
     long long next;
+    vector<float> rotated_point;
     ifstream file (path_to_lvx, ios::in|ios::binary|ios::ate);
     if (file.is_open()) {
         // Initialization
@@ -891,6 +933,8 @@ void parse_lvx(){
                         p.z = x;
                         p.x = y;
                         p.y = z;
+                        rotated_point = {p.z, p.y};
+                        rotated_point = rotatePoint(rotatePoint, 2)
 			if(p.z !=0 && p.x > -half_width && p.x < half_width && p.y > -half_height && p.y < half_height){
 			    points.push_back(p);
 			}
@@ -913,6 +957,7 @@ void parse_lvx(){
     //o_file << endl;
 }
 
+// Adjusts detected points for roll from the bike
 void fix_roll(){
   // Initializes variables
   autocycle_extras::Point p;
@@ -928,6 +973,8 @@ void fix_roll(){
   }
 }
 
+
+// The main navigation loop
 int main(int argc, char **argv) {
   // Initializes the Node and registers it with the master.
   ros::init(argc, argv, "navigation_communicator");
@@ -948,8 +995,6 @@ int main(int argc, char **argv) {
   // Creates server proxy for calculating new deltas
   calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
 
-  obj_lst_pub = nh.advertise<autocycle_extras::ObjectList>("cycle/list", 1);
-
   // Sets desired heading (for now the initial heading)
   while(heading == -1){
       ros::spinOnce();
@@ -958,59 +1003,83 @@ int main(int argc, char **argv) {
   // Sets initial desired heading
   des_heading = heading;
 
+  // Reserves the requisite space for the vectors in use
   points.reserve(15000);
   path.reserve(400);
   xs.reserve(400);
   ys.reserve(400);
-  
+
+  // Starts the clock
   auto start = chrono::high_resolution_clock::now();
-  // Navigation loop
+
+  // starts second clock used only for updating object positions
   state_start = std::chrono::high_resolution_clock::now();
+
+  // Navigation loop
   while(ros::ok()){
-    // ROS_INFO_STREAM("Sending request for LVX file.");
-    // Waits until f_done.lvx has been populated
+    // Tells ROS to look for any callbacks waiting to run
     ros::spinOnce();
+
+    // Clears all points in preparation for new Livox data
     points.clear();
 
-    //ROS_INFO_STREAM("LVX file generated.");
-    //ROS_INFO_STREAM("Sending request to analyze LVX File.");
-
-    // Parses the lvx file
-    if(ready){ 
+    // Only runs parse_lvx, fix_roll, and object detection if there is a new frame ready
+    if(ready){
+      // Ends the clock
       auto end = chrono::high_resolution_clock::now();
+
+      // Gets the duration the clock was running
       auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
-      
+
+      // Resets the clock
       start = chrono::high_resolution_clock::now();
       ROS_INFO_STREAM("NAV LOOP TOOK : " << (float) duration.count() / 1000.0 << " SECONDS");
-      
+
+      // Parses the LVX file
       parse_lvx();
+
+      // Sets ready to false
       ready = false;
+
       // Clears f_done.lvx file while waiting for the rest of the loop to be ready
       f_done.open(path_to_lvx, ios::trunc);
       f_done.close();
       //ROS_INFO_STREAM("LVX file analyzed.");
 
+      // ROS checks for call backs (To get the latest possible roll)
       ros::spinOnce();
+
+      // Adjusts for roll
       fix_roll();
 
       //ROS_INFO_STREAM("Points have been adjusted for roll.");
 
+      // Runs object detection on the new data
       object_detection();
     }
 
     //ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
+    // Once again checks for callbacks
     ros::spinOnce();
+
+    // Ends clock for updating object positions
     state_stop = std::chrono::high_resolution_clock::now();
+
+    // Updates the duration since the last `state-stop`
     duration = std::chrono::duration_cast<std::chrono::milliseconds>(state_stop - state_start);
+
+    // Resets the clock for updating object positions
     state_start = std::chrono::high_resolution_clock::now();
+
+    // Updates object positions
     update_object_positions(((float) duration.count())/1000.0);
 
-
-
+    // Generates a new path
     generate_curve();
 
   }
 
+  // Clears the lvx file and shuts down. Mission Complete
   f_done.open(path_to_lvx, ios::trunc);
   f_done.write("done", 4);
   f_done.close();
