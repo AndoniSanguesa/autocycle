@@ -1,0 +1,11 @@
+<launch>
+    <arg name="ang"/>
+    <node
+        pkg="autocycle"
+        type="test_pi_to_ard"
+        name="test_pi_to_ard"
+        output="screen"
+        required="true"
+        args=$"(arg ang)"
+    />
+</launch>

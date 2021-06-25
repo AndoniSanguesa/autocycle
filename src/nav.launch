@@ -15,42 +15,9 @@
   />
   <node
     pkg="autocycle"
-    type="parse_lvx"
-    name="parse_lvx_file"
-    output="screen"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
-    type="generate_curve"
-    name="bezier"
-    output="screen"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
     type="get_deltas"
     name="get_deltas"
     output="screen"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
-    type="get_data"
-    name="get_data"
-    output="screen"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
-    type="object_detection"
-    name="object_detection"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
-    type="static_object_tracking"
-    name="static_object_tracking"
     respawn="true"
   />
   </node
@@ -67,15 +34,8 @@
   />
   </node
     pkg="autocycle"
-    type="fix_roll"
-    name="fix_roll"
-    respawn="true"
-  />
-  <node
-    pkg="autocycle"
-    type="get_tracking_frame"
-    name="get_tracking_frame"
-    output="screen"
+    type="frame_ready"
+    name="frame_ready"
     respawn="true"
   />
 </launch>

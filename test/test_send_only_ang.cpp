@@ -30,7 +30,7 @@ void update_roll(const std_msgs::Float32 data){
 
 int main(int argc, char **argv) {
     // Registers node with the master.
-    ros::init(argc, argv, "read_serial");
+    ros::init(argc, argv, "test_send_only_ang");
     ros::NodeHandle nh;
 
     // Creates service proxy that will grab new deltas
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
         req.x = dist_trav;
         req.roll = roll;
         get_delta.call(req, resp);
-
-        my_serial.write("s 4.5;d " + to_string(resp.delta) + ";");
+        ROS_INFO_STREAM("DELTA OUTPUT: " << resp.delta)
+        my_serial.write("d " + to_string(resp.delta) + ";");
     }
 }

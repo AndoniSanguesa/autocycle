@@ -1,0 +1,25 @@
+<launch/>
+    <arg name-"args">
+    <node
+        pkg="autocycle"
+        type="test_obj_to_ard"
+        name="test_obj_to_ard"
+        output="screen"
+        required="true"
+        args=$"(arg angs)"
+    />
+    <node
+        pkg="autocycle"
+        type="test_send_only_ang"
+        name="test_send_only_ang"
+        output="screen"
+        required="true"
+    />
+    <node
+        pkg="autocycle"
+        type="get_deltas"
+        name="get_deltas"
+        output="screen"
+        required="true"
+    />
+</launch>
