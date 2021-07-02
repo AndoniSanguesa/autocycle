@@ -1,12 +1,10 @@
-<launch/>
-    <arg name-"args">
+<launch>
     <node
         pkg="autocycle"
         type="test_start_nav_one_frame"
         name="test_start_nav_one_frame"
         output="screen"
         required="true"
-        args="$(arg angs)"
     />
     <node
         pkg="autocycle"
