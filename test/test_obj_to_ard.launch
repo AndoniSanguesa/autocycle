@@ -6,7 +6,7 @@
         name="test_obj_to_ard"
         output="screen"
         required="true"
-        args="$(arg angs)"
+        args="$(arg args)"
     />
     <node
         pkg="autocycle"
