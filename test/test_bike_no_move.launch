@@ -6,7 +6,7 @@
         name="test_start_nav_one_frame"
         output="screen"
         required="true"
-        args=$"(arg angs)"
+        args="$(arg angs)"
     />
     <node
         pkg="autocycle"

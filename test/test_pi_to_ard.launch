@@ -6,6 +6,6 @@
         name="test_pi_to_ard"
         output="screen"
         required="true"
-        args=$"(arg ang)"
+        args="$(arg ang)"
     />
 </launch>
