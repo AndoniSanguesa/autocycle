@@ -933,8 +933,6 @@ void parse_lvx(){
                         p.z = x;
                         p.x = y;
                         p.y = z;
-                        rotated_point = {p.z, p.y};
-                        rotated_point = rotatePoint(rotatePoint, 2)
 			if(p.z !=0 && p.x > -half_width && p.x < half_width && p.y > -half_height && p.y < half_height){
 			    points.push_back(p);
 			}

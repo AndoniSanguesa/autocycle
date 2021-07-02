@@ -78,7 +78,6 @@ autocycle_extras::CalcDeltas to_pub;
 // more than this variable, they are considered different objects
 int col_diff = 50;
 
-/
 int for_jump_diff = col_diff * 1.5;      // Expected min difference between cells in a column to indicate a jump forward.
 int counter_reps = 2;                    // Number of reps required to dictate it is an object.
 int same_obj_diff = 150;                 // maximum diff between horizontal cells to be considered the same object
@@ -933,8 +932,6 @@ void parse_lvx(){
                         p.z = x;
                         p.x = y;
                         p.y = z;
-                        rotated_point = {p.z, p.y};
-                        rotated_point = rotatePoint(rotatePoint, 2)
 			if(p.z !=0 && p.x > -half_width && p.x < half_width && p.y > -half_height && p.y < half_height){
 			    points.push_back(p);
 			}
@@ -1075,8 +1072,6 @@ int main(int argc, char **argv) {
 
   // Generates a new path
   generate_curve();
-
-  }
 
   // Clears the lvx file and shuts down. Mission Complete
   f_done.open(path_to_lvx, ios::trunc);

@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
         req.x = dist_trav;
         req.roll = roll;
         get_delta.call(req, resp);
-        ROS_INFO_STREAM("DELTA OUTPUT: " << resp.delta)
+        ROS_INFO_STREAM("DELTA OUTPUT: " << resp.delta);
         my_serial.write("d " + to_string(resp.delta) + ";");
     }
 }

@@ -10,16 +10,16 @@ int main(int argc, char **argv){
     ros::NodeHandle nh;
 
     if(argc == 1){
-        std::cout << "Please specify an angle in degrees (e.g. `roslaunch test_pi_to_ard.launch ang:='10'" << endl;
+        std::cout << "Please specify an angle in degrees (e.g. `roslaunch test_pi_to_ard.launch ang:='10'" << std::endl;
         return 1;
     }
 
     int deg = std::stoi(argv[1]);
 
     if(deg > 45 || deg < -45){
-        std::cout << "That's tooo much man" << endl;
+        std::cout << "That's tooo much man" << std::endl;
         return 1;
     } 
 
-    my_serial.write("d " + to_string(deg) + ";")
+    my_serial.write("d " + std::to_string(deg) + ";")
 }
