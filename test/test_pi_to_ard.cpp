@@ -21,5 +21,5 @@ int main(int argc, char **argv){
         return 1;
     } 
 
-    my_serial.write("d " + std::to_string(deg) + ";")
+    my_serial.write("d " + std::to_string(deg) + ";");
 }

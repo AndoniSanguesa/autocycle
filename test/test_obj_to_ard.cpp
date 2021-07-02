@@ -380,12 +380,12 @@ int main(int argc, char **argv) {
       return 1;
   }
   autocycle_extras::Object obj;
-  obj.x1 = (float) argv[1];
-  obj.x2 = (float) argv[2];
-  obj.z1 = (float) argv[3];
-  obj.z2 = (float) argv[4];
+  obj.x1 =  stof(argv[1]);
+  obj.x2 =  stof(argv[2]);
+  obj.z1 =  stof(argv[3]);
+  obj.z2 =  stof(argv[4]);
 
-  obj_lst.emplace_back(obj);
+  obj_lst.obj_lst.emplace_back(obj);
 
   // Initializes the Node and registers it with the master.
   ros::init(argc, argv, "test_obj_to_ard");
