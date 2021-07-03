@@ -28,7 +28,7 @@ int main(int argc, char **argv){
   string temp = "";
   std_msgs::Float32 to_pub;
   int cur_publisher = 0;
-  ros::Publisher publishers [9] = {state_pub, roll_pub, steer_pub, droll_pub, dsteer_pub, vel_pub, torque_pub, head_pub, dhead_pub, met_pub};
+  ros::Publisher publishers [10] = {state_pub, roll_pub, steer_pub, droll_pub, dsteer_pub, vel_pub, torque_pub, head_pub, dhead_pub, met_pub};
 
   // Creates serial object to read from
   // TODO: Figure out what to do with the timeout
