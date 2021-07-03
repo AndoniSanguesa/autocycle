@@ -41,10 +41,10 @@ int main(int argc, char **argv){
     if((char) temp.back() == '\n'){
       temp.pop_back();
       ROS_INFO_STREAM("READ LINE : " << temp);
-//       if(temp.find("setup") != -1){
-//         ROS_INFO_STREAM("I THINK THE LINES ARE THE SAME!!!!");
-//         ready = true;
-//       }
+      if(temp.find("setup") != -1){
+         ROS_INFO_STREAM("I THINK THE LINES ARE THE SAME!!!!");
+      ready = true;
+      }
       temp.clear();
     }
   }
