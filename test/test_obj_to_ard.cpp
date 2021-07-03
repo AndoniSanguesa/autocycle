@@ -137,6 +137,14 @@ chrono::milliseconds duration;
 // Path to the Data file
 string path_to_lvx = "f_done.lvx";
 
+string path_to_string(){
+    string output = "";
+    for(auto &t; path){
+        string.append("(" + to_string(get<0>t + ", " + get<1>t + "), ");
+    }
+    return output;
+}
+
 // Maps a tuple to 2 integers to a unique integer (for hashing)
 int cantor(tuple<int, int> node){
     int p1 = get<0>(node);
@@ -406,7 +414,7 @@ int main(int argc, char **argv) {
   // enerates a new path
   generate_curve();
     
-  ROS_INFO_STREAM("PATH: " << path[0] << ", " << path[1] << ", " << path[2]);
+  ROS_INFO_STREAM("PATH: " << path_to_string());
 
   return 0;
 }
