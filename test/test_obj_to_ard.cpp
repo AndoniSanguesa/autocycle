@@ -405,6 +405,8 @@ int main(int argc, char **argv) {
 
   // enerates a new path
   generate_curve();
+    
+  ROS_INFO_STREAM("PATH: " << path);
 
   return 0;
 }
