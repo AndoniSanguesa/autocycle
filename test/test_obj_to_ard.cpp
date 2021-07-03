@@ -141,9 +141,9 @@ string path_to_string(){
     string output = "";
     for(auto &t : path){
         output.append("(");
-        output.append(to_string(get<0>(t));
+        output.append(to_string(get<0>(t)));
         output.append(", ");
-        output.append(to_string(get<1>(t));
+        output.append(to_string(get<1>(t)));
         output.append("), ");
     }
     return output;
