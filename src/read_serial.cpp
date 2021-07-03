@@ -26,7 +26,6 @@ int main(int argc, char **argv){
 
   // Initializing vars
   string temp = "";
-  string end_string = "Finished setup.\n";
   std_msgs::Float32 to_pub;
   int cur_publisher = 0;
   ros::Publisher publishers [10] = {state_pub, roll_pub, steer_pub, droll_pub, dsteer_pub, vel_pub, torque_pub, head_pub, dhead_pub, met_pub};
@@ -42,7 +41,7 @@ int main(int argc, char **argv){
     if((char) temp.back() == '\n'){
       temp.pop_back();
       ROS_INFO_STREAM("READ LINE : " << temp);
-      if(end_string.compare(temp) == 0){
+      if(temp.find("setup") != -1){
         ROS_INFO_STREAM("I THINK THE LINES ARE THE SAME!!!!");
         ready = true;
       }
