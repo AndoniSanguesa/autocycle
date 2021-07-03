@@ -16,10 +16,10 @@ int main(int argc, char **argv){
 
     int deg = std::stoi(argv[1]);
 
-    if(deg > 45 || deg < -45){
+    if(deg > 30 || deg < -30){
         std::cout << "That's tooo much man" << std::endl;
         return 1;
     } 
 
-    my_serial.write("d " + std::to_string(deg) + ";");
+    my_serial.write("d " + std::to_string(deg * 0.01745329251) + ";");
 }
