@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <serial/serial.h>
 #include <string>
+#include<unistd.h>
 
 // Creates serial object to write to
 serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
@@ -23,5 +24,6 @@ int main(int argc, char **argv){
 
     while(ros::ok()){
         my_serial.write("d" + std::to_string(deg * 0.01745329251) + ";");
+        usleep(100000);
     }
 }
