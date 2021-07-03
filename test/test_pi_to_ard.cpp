@@ -21,5 +21,7 @@ int main(int argc, char **argv){
         return 1;
     } 
 
-    my_serial.write("d " + std::to_string(deg * 0.01745329251) + ";");
+    while(ros::ok()){
+        my_serial.write("d " + std::to_string(deg * 0.01745329251) + ";");
+    }
 }
