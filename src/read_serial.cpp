@@ -53,7 +53,7 @@ int main(int argc, char **argv){
       istringstream temp_as_stream(temp);
       temp_as_stream >> to_pub.data;
       temp.clear();
-      publishers[cur_publisher%9].publish(to_pub);
+      publishers[cur_publisher%10].publish(to_pub);
       cur_publisher++;
     }
   }
