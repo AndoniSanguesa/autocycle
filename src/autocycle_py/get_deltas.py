@@ -45,6 +45,7 @@ def calculate_deltas(data):
 
 
 def delta(data):
+    print(f"THIS IS THE TCK VALUE: {tck}")
     return get_delta(data.x, data.roll) if tck else -1
 
 
