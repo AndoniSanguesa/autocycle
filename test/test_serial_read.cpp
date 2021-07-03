@@ -1,39 +1,39 @@
 #include <ros/ros.h>
-#include <std_msgs/Float64.h>
+#include <std_msgs/Float32.h>
 
-void readState(std_msgs::Float64 msg){
+void readState(std_msgs::Float32 msg){
     ROS_INFO_STREAM("State: " << msg.data);
 }
 
-void readRoll(std_msgs::Float64 msg){
+void readRoll(std_msgs::Float32 msg){
     ROS_INFO_STREAM("Roll: " << msg.data);
 }
 
-void readSteer(std_msgs::Float64 msg){
+void readSteer(std_msgs::Float32 msg){
     ROS_INFO_STREAM("Steer: " << msg.data);
 }
 
-void readDroll(std_msgs::Float64 msg){
+void readDroll(std_msgs::Float32 msg){
     ROS_INFO_STREAM("Droll: " << msg.data);
 }
 
-void readDsteer(std_msgs::Float64 msg){
+void readDsteer(std_msgs::Float32 msg){
     ROS_INFO_STREAM("Dsteer: " << msg.data);
 }
 
-void readVel(std_msgs::Float64 msg){
+void readVel(std_msgs::Float32 msg){
     ROS_INFO_STREAM("Vel: " << msg.data);
 }
 
-void readHead(std_msgs::Float64 msg){
+void readHead(std_msgs::Float32 msg){
     ROS_INFO_STREAM("Heading: " << msg.data);
 }
 
-void readDhead(std_msgs::Float64 msg){
+void readDhead(std_msgs::Float32 msg){
     ROS_INFO_STREAM("Dheading: " << msg.data);
 }
 
-void readMet(std_msgs::Float64 msg){
+void readMet(std_msgs::Float32 msg){
     ROS_INFO_STREAM("Met: " << msg.data);
 }
 
