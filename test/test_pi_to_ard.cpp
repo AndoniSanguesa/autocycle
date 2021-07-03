@@ -3,7 +3,7 @@
 #include <string>
 
 // Creates serial object to write to
-// serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
+serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
 int main(int argc, char **argv){
     ros::init(argc, argv, "test_pi_to_ard");
@@ -22,7 +22,6 @@ int main(int argc, char **argv){
     } 
 
     while(ros::ok()){
-        ROS_INFO_STREAM("d " + std::to_string(deg * 0.01745329251) + ";");
-        //my_serial.write("d " + std::to_string(deg * 0.01745329251) + ";");
+        my_serial.write("d " + std::to_string(deg * 0.01745329251) + ";");
     }
 }
