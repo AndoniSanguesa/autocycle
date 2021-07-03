@@ -8,4 +8,11 @@
         required="true"
         args="$(arg ang)"
     />
+    <node
+        pkg="autocycle"
+        type="read_serial"
+        name="read_serial"
+        output="screen"
+        required="true"
+    />
 </launch>
