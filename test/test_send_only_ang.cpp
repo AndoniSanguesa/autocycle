@@ -37,6 +37,8 @@ int main(int argc, char **argv) {
     ros::ServiceClient get_delta = nh.serviceClient<autocycle_extras::GetDelta>("get_delta");
     autocycle_extras::GetDelta::Request req;
     autocycle_extras::GetDelta::Response resp;
+	
+    ros::service::waitForService("get_delta");
 
     // Creates Service that will reset the distance
     ros::Subscriber get_path = nh.subscribe("cycle/path", 1, &reset_distance);
