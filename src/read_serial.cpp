@@ -37,8 +37,10 @@ int main(int argc, char **argv){
   bool ready = false;
   while(not ready){
     temp.append(my_serial.read());
+    
     if((char) temp.back() == '\n'){
       temp.pop_back();
+      ROS_INFO_STREAM("READ LINE : " << temp);
       if(temp.compare("Finished setup.") == 0){
         ready = true;
       }
@@ -48,7 +50,7 @@ int main(int argc, char **argv){
   
   while(ros::ok()){
     temp.append(my_serial.read());
-    if((char) temp.back() == '\t'){
+    if((char) temp.back() == '\t' || (char) temp.back() == '\n'){
       temp.pop_back();
       istringstream temp_as_stream(temp);
       temp_as_stream >> to_pub.data;
