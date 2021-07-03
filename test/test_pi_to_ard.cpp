@@ -3,7 +3,7 @@
 #include <string>
 
 // Creates serial object to write to
-serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
+// serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
 int main(int argc, char **argv){
     ros::init(argc, argv, "test_pi_to_ard");
