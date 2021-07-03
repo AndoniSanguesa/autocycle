@@ -41,13 +41,12 @@ def calculate_deltas(data):
     xs.insert(0, 0)
     ys.insert(0, 0)
     tck = interp.splprep([xs, ys], s=0.5)[0]
+    print(f"THIS IS THE TCK VALUE: {tck}")
     return []
 
 
 def delta(data):
-    print(f"THIS IS THE TCK VALUE: {tck}")
     return get_delta(data.x, data.roll) if tck else -1
-
 
 def start():
     global dist_travelled, iden, tck
