@@ -26,7 +26,7 @@ int main(int argc, char **argv){
 
   // Initializing vars
   string temp = "";
-  string end_string = "Finished setup.";
+  string end_string = "Finished setup.\n";
   std_msgs::Float32 to_pub;
   int cur_publisher = 0;
   ros::Publisher publishers [10] = {state_pub, roll_pub, steer_pub, droll_pub, dsteer_pub, vel_pub, torque_pub, head_pub, dhead_pub, met_pub};
@@ -36,7 +36,7 @@ int main(int argc, char **argv){
   serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
   bool ready = false;
-  while(not ready){
+  while(!ready){
     temp.append(my_serial.read());
     
     if((char) temp.back() == '\n'){
