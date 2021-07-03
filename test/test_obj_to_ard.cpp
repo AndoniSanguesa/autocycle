@@ -140,7 +140,7 @@ string path_to_lvx = "f_done.lvx";
 string path_to_string(){
     string output = "";
     for(auto &t : path){
-        output.append("(" + to_string(get<0>t + ", " + get<1>t + "), ");
+        output.append("(" + to_string(get<0>(t) + ", " + get<1>(t) + "), ");
     }
     return output;
 }
