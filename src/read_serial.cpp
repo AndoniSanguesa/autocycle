@@ -43,7 +43,7 @@ int main(int argc, char **argv){
       temp.pop_back();
       ROS_INFO_STREAM("READ LINE : " << temp);
       if(end_string.compare(temp) == 0){
-        ROS_INFO_STERAM("I THINK THE LINES ARE THE SAME!!!!");
+        ROS_INFO_STREAM("I THINK THE LINES ARE THE SAME!!!!");
         ready = true;
       }
       temp.clear();
