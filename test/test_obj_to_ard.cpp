@@ -418,8 +418,11 @@ int main(int argc, char **argv) {
   // Sets initial desired heading
   des_heading = heading;
 
-  // generates a new path
-  generate_curve();
+  // enerates a new path
+  while(ros::ok()){
+    generate_curve();
+  }
+
 
   return 0;
 }
