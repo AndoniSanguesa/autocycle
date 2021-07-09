@@ -404,7 +404,7 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "test_obj_to_ard");
   ros::NodeHandle nh;
     
-  ros::service::waitForService("g_delta");
+  ros::service::waitForService("get_delta");
 
   // Creates server proxy for calculating new deltas
   calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
@@ -418,7 +418,6 @@ int main(int argc, char **argv) {
   des_heading = heading;
 
 
-  usleep(1e7);
   // enerates a new path
   generate_curve();
     

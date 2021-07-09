@@ -5,12 +5,11 @@
 #include <std_msgs/Float32.h>
 #include <chrono>
 #include <std_srvs/Empty.h>
-#include <unistd.h>
 
 using namespace std;
 
 // Creates serial object to write to
-serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
+// serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
 float dist_trav = 0;
 float velocity = 0;
@@ -38,8 +37,6 @@ int main(int argc, char **argv) {
     ros::ServiceClient get_delta = nh.serviceClient<autocycle_extras::GetDelta>("get_delta");
     autocycle_extras::GetDelta::Request req;
     autocycle_extras::GetDelta::Response resp;
-	
-    ros::service::waitForService("get_delta");
 
     // Creates Service that will reset the distance
     ros::Subscriber get_path = nh.subscribe("cycle/path", 1, &reset_distance);
@@ -57,7 +54,7 @@ int main(int argc, char **argv) {
     ros::Rate loop_rate(10);
 
     while(ros::ok()){
-	loop_rate.sleep();
+	    loop_rate.sleep();
         ros::spinOnce();
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -67,8 +64,6 @@ int main(int argc, char **argv) {
         req.roll = roll;
         get_delta.call(req, resp);
         ROS_INFO_STREAM("DELTA OUTPUT: " << resp.delta);
-	usleep(100000);
-	
-        //my_serial.write("d " + to_string(resp.delta) + ";");
+        my_serial.write("d " + to_string(resp.delta) + ";");
     }
 }
