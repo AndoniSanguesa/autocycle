@@ -21,11 +21,11 @@
         output="screen"
         required="true"
     />
-    <node
-        pkg="autocycle"
-        type="read_serial"
-        name="read_serial"
-        output="screen"
-        required="true"
-    />
+<!--     <node -->
+<!--         pkg="autocycle" -->
+<!--         type="read_serial" -->
+<!--         name="read_serial" -->
+<!--         output="screen" -->
+<!--         required="true" -->
+<!--     /> -->
 </launch>
