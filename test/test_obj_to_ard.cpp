@@ -417,10 +417,10 @@ int main(int argc, char **argv) {
   // Sets initial desired heading
   des_heading = heading;
 
-
-  usleep(1e7);
   // enerates a new path
-  generate_curve();
+  while(ros::ok()){
+    generate_curve();
+  }
     
 
   return 0;
