@@ -18,7 +18,7 @@ float roll = 0;
 float time_elapsed = 0;
 
 void reset_distance(const autocycle_extras::CalcDeltas data){
-    dist_trav = 0;
+    dist_trav = dist_trav;
 }
 
 void update_velocity(const std_msgs::Float32 data){
@@ -63,6 +63,7 @@ int main(int argc, char **argv) {
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         auto start = std::chrono::high_resolution_clock::now();
         dist_trav += velocity * (((float) duration.count())/1000.0);
+        dist_trav += 0.01
         req.x = dist_trav;
         req.roll = roll;
         get_delta.call(req, resp);
