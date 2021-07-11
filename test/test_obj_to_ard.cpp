@@ -3,6 +3,7 @@
 #include <autocycle_extras/ObjectList.h>
 #include <autocycle_extras/Object.h>
 #include <autocycle_extras/Point.h>
+#include <autocycle_extras/Path.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
