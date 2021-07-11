@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
         ROS_INFO_STREAM("DELTA OUTPUT: " << resp.delta);
 	    usleep(100000);
 	    if(dist_trav >= 10){
-	        return 1
+	        return 1;
 	    }
 	
         //my_serial.write("d " + to_string(resp.delta) + ";");
