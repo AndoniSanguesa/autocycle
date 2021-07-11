@@ -69,10 +69,10 @@ autocycle_extras::ObjectList new_obj_lst;
 
 // Publisher that publishes the newest path to a topic that is read by
 // the `get_deltas` node
-ros::Publisher calc_deltas;
+ros::ServiceClient calc_deltas;
 
 // The object that will be published by the above publisher
-autocycle_extras::CalcDeltas to_pub;
+autocycle_extras::Path to_pub;
 
 // Tunable parameters to determine if something is an object.
 
@@ -376,10 +376,10 @@ void generate_curve() {
         get_blocked_nodes(i);
     }
     bfs();
-    to_pub.path_x = xs;
-    to_pub.path_y = ys;
+    to_pub.request.path_x = xs;
+    to_pub.request.path_y = ys;
 
-    calc_deltas.publish(to_pub);
+    calc_delta.call(to_pub);
 
     // auto end = chrono::high_resolution_clock::now();
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
@@ -409,7 +409,7 @@ int main(int argc, char **argv) {
   ros::service::waitForService("calc_delta");
 
   // Creates server proxy for calculating new deltas
-  calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
+  calc_deltas = n.serviceClient<autocycle_extras::Path>("get_delta");
 
   // Sets desired heading (for now the initial heading)
   while(heading == -1){
