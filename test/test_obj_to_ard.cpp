@@ -406,7 +406,7 @@ int main(int argc, char **argv) {
   ros::service::waitForService("calc_delta");
 
   // Creates server proxy for calculating new deltas
-  calc_deltas = nh.serviceClient<autocycle_extras::Path>("get_delta");
+  calc_deltas = nh.serviceClient<autocycle_extras::Path>("calc_delta");
 
   // Sets desired heading (for now the initial heading)
   while(heading == -1){
