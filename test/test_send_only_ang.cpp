@@ -10,7 +10,7 @@
 using namespace std;
 
 // Creates serial object to write to
-serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
+// serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
 float dist_trav = 0;
 float velocity = 0;

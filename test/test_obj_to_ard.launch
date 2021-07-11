@@ -7,13 +7,13 @@
         output="screen"
         args="$(arg args)"
     />
-    <!-- <node
+    <node
         pkg="autocycle"
         type="test_send_only_ang"
         name="test_send_only_ang"
         output="screen"
         required="true"
-    /> -->
+    />
     <node
         pkg="autocycle"
         type="get_deltas"
