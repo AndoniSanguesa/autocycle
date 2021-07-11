@@ -57,18 +57,21 @@ int main(int argc, char **argv) {
     ros::Rate loop_rate(10);
 
     while(ros::ok()){
-	loop_rate.sleep();
+	    loop_rate.sleep();
         ros::spinOnce();
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         auto start = std::chrono::high_resolution_clock::now();
         dist_trav += velocity * (((float) duration.count())/1000.0);
-        dist_trav += 0.01;
+        dist_trav += 0.1;
         req.x = dist_trav;
         req.roll = roll;
         get_delta.call(req, resp);
         ROS_INFO_STREAM("DELTA OUTPUT: " << resp.delta);
-	usleep(100000);
+	    usleep(100000);
+	    if(dist_trav >= 10){
+	        return 1
+	    }
 	
         //my_serial.write("d " + to_string(resp.delta) + ";");
     }
