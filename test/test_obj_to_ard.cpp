@@ -379,7 +379,7 @@ void generate_curve() {
     to_pub.request.path_x = xs;
     to_pub.request.path_y = ys;
 
-    calc_delta.call(to_pub);
+    calc_deltas.call(to_pub);
     ROS_INFO_STREAM("I HAVE CALLED THE SERVICE");
 
     // auto end = chrono::high_resolution_clock::now();
@@ -406,7 +406,7 @@ int main(int argc, char **argv) {
   ros::service::waitForService("calc_delta");
 
   // Creates server proxy for calculating new deltas
-  calc_deltas = n.serviceClient<autocycle_extras::Path>("get_delta");
+  calc_deltas = nh.serviceClient<autocycle_extras::Path>("get_delta");
 
   // Sets desired heading (for now the initial heading)
   while(heading == -1){
@@ -420,7 +420,6 @@ int main(int argc, char **argv) {
   while(ros::ok()){
     generate_curve();
   }
-    
 
   return 0;
 }
