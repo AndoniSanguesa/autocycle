@@ -390,10 +390,6 @@ void generate_curve() {
 
 // The main navigation loop
 int main(int argc, char **argv) {
-  if(argc < 5){
-      cout << "You fool. You need to give me parameters. (e.g. roslaunch test_obj_to_ard.launch args:='2 3 4 1')" << endl;
-      return 1;
-  }
   autocycle_extras::Object obj;
   obj.x1 =  stof(argv[1]);
   obj.x2 =  stof(argv[2]);
@@ -420,7 +416,7 @@ int main(int argc, char **argv) {
   // Sets initial desired heading
   des_heading = heading;
 
-  // enerates a new path
+  // Generates a new path
   while(ros::ok()){
     generate_curve();
   }
