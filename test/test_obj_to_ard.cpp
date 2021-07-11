@@ -380,6 +380,7 @@ void generate_curve() {
     to_pub.request.path_y = ys;
 
     calc_delta.call(to_pub);
+    ROS_INFO_STREAM("I HAVE CALLED THE SERVICE");
 
     // auto end = chrono::high_resolution_clock::now();
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
