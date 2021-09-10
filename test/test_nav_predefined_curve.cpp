@@ -1022,7 +1022,7 @@ int main(int argc, char **argv) {
   // Once again checks for callbacks
   ros::spinOnce();
 
-  obj_lst.obj_lst.push_back(get_object(-1000, 1000, 3495, 3480))
+  obj_lst.obj_lst.push_back(get_object(-1000, 1000, 3495, 3480));
 
   // Generates a new path
   generate_curve();
