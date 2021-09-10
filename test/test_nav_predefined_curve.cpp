@@ -981,7 +981,7 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "navigation_communicator");
   ros::NodeHandle nh;
 
-  ros::service::waitForService("calc_delta")
+  ros::service::waitForService("calc_delta");
 
   // Creates subscriber for updating roll
   ros::Subscriber update_roll = nh.subscribe("sensors/roll", 1, &get_roll);
