@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
         auto start = std::chrono::high_resolution_clock::now();
         dist_trav += velocity * (((float) duration.count())/1000.0);
         req.x = dist_trav;
-        req.roll = roll;
+        req.vel = velocity;
         get_delta.call(req, resp);
     }
 }
