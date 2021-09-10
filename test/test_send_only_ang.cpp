@@ -62,14 +62,14 @@ int main(int argc, char **argv) {
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         auto start = std::chrono::high_resolution_clock::now();
-        dist_trav += velocity * (((float) duration.count())/1000.0);
+        //dist_trav += velocity * (((float) duration.count())/1000.0);
         dist_trav += 0.01;
         req.x = dist_trav;
-        req.roll = roll;
+        req.roll = 0;
         get_delta.call(req, resp);
         ROS_INFO_STREAM("DELTA OUTPUT: " << resp.delta);
 	    usleep(10000);
-	    if(dist_trav >= 10){
+	    if(dist_trav >= 15){
 	        return 1;
 	    }
 	

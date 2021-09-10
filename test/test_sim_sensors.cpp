@@ -27,6 +27,7 @@ int main(int argc, char** argv){
         to_pub.data = 0;
         roll_pub.publish(to_pub);
         heading_pub.publish(to_pub);
+        to_pub.data = 4.5;
         vel_pub.publish(to_pub);
     }
 }
