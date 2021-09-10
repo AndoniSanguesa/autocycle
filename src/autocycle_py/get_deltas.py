@@ -6,41 +6,50 @@ from scipy import interpolate as interp
 import time
 
 tck = []
+full_len = 0
 
 def get_dervs(x, acc=0.000001):
     """Calculates the derivatives of the curve"""
+    if not full_len:
+        return 0
+    u = x/full_len
     subs = lambda x: interp.splev(x, tck)
-    this_val = subs(x)
-    next_val = subs(x + acc)
-    prev_val = subs(x - acc)
+    this_val = subs(u)
+    next_val = subs(u + acc)
+    prev_val = subs(u - acc)
     return (((next_val[0] - 2 * this_val[0] + prev_val[0]) / (acc ** 2),
              (next_val[1] - 2 * this_val[1] + prev_val[1]) / (acc ** 2)),
             ((this_val[0] - next_val[0]) / acc,
              (this_val[1] - next_val[1]) / acc))
 
 
-def get_delta(i, roll):
+def get_delta(i, vel):
     """Calculates steering angle"""
     global step
     ## Calls the data getter to give us the latest roll
-    num = 1.02 * np.cos(roll)
-    step = 0.01  # decrease step size for greater precision
-    cosdelt = np.cos(0.08)
-    derv = get_dervs(i)
-    calc1 = abs(derv[1][0] * derv[0][1] - derv[1][1] * derv[0][0])
-    if calc1 != 0:
-        calc2 = (cosdelt * (((derv[1][0] ** 2 + derv[1][1] ** 2) ** (3 / 2)) / calc1))
-        if calc2 != 0:
-            return num / calc2
+    dervs = get_dervs(i)
+
+    wheel_base = 1
+    radius_of_turn = ((dervs[1][0] ** 2 + dervs[1][1] ** 2) ** (3 / 2)) / (
+            (dervs[1][0] * dervs[0][1]) - (dervs[1][1] * dervs[0][0]))
+    g = 32.2
+    load_front_ax = 1
+    load_rear_ax = 1
+    corn_stiff_front = 1
+    corn_stiff_rear = 1
+
+    return wheel_base/radius_of_turn + ((load_front_ax/corn_stiff_front)-(load_rear_ax/corn_stiff_rear))*((vel**2)/(g*radius_of_turn))
+
 
 
 def calculate_deltas(data):
-    global tck
+    global tck, full_len
     xs = list(data.path_x)
     ys = list(data.path_y)
     xs.insert(0, 0)
     ys.insert(0, 0)
     tck = interp.splprep([xs, ys], s=0.5)[0]
+    full_len = (sum(interp.splint(0, 1, tck, full_output=0))) * 2
     return []
 
 
