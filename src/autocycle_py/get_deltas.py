@@ -52,7 +52,7 @@ def calculate_deltas(data):
 
 
 def delta(data):
-    return get_delta(data.x, data.roll) if tck else -1
+    return get_delta(data.x, data.vel) if tck else -1
 
 def start():
     global dist_travelled, iden, tck

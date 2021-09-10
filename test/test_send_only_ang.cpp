@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
         //dist_trav += velocity * (((float) duration.count())/1000.0);
         dist_trav += 0.01;
         req.x = dist_trav;
-        req.roll = 0;
+        req.vel = velocity;
         get_delta.call(req, resp);
         ROS_INFO_STREAM("DELTA OUTPUT: " << resp.delta);
 	    usleep(10000);
