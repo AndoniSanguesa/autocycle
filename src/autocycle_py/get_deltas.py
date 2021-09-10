@@ -40,8 +40,6 @@ def get_delta(i, vel):
 
     return wheel_base/radius_of_turn + ((load_front_ax/corn_stiff_front)-(load_rear_ax/corn_stiff_rear))*((vel**2)/(g*radius_of_turn))
 
-
-
 def calculate_deltas(data):
     global tck, full_len
     xs = list(data.path_x)

@@ -3,6 +3,7 @@
 #include <autocycle_extras/ObjectList.h>
 #include <autocycle_extras/Object.h>
 #include <autocycle_extras/Point.h>
+#include <autocycle_extras/Path.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -71,6 +72,9 @@ ros::Publisher calc_deltas;
 
 // The object that will be published by the above publisher
 autocycle_extras::CalcDeltas to_pub;
+
+ros::ServiceClient delta_cli;
+autocycle_extras::Path delta_cli_data;
 
 // Tunable parameters to determine if something is an object.
 
@@ -362,10 +366,10 @@ void generate_curve() {
         get_blocked_nodes(i);
     }
     bfs();
-    to_pub.path_x = xs;
-    to_pub.path_y = ys;
+    delta_cli_data.request.path_x = xs;
+    delta_cli_data.request.path_y = ys;
 
-    calc_deltas.publish(to_pub);
+    delta_cli.call(delta_cli_data);
 
     // auto end = chrono::high_resolution_clock::now();
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
@@ -977,6 +981,8 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "navigation_communicator");
   ros::NodeHandle nh;
 
+  ros::service::waitForService("calc_delta")
+
   // Creates subscriber for updating roll
   ros::Subscriber update_roll = nh.subscribe("sensors/roll", 1, &get_roll);
 
@@ -990,7 +996,8 @@ int main(int argc, char **argv) {
   ros::Subscriber ready_sub = nh.subscribe("cycle/frame_ready", 1, &update_ready);
 
   // Creates server proxy for calculating new deltas
-  calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
+  // calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
+  delta_cli = nh.serviceClient<autocycle_extras::Path>("calc_delta");
 
   // Sets desired heading (for now the initial heading)
   while(heading == -1){
