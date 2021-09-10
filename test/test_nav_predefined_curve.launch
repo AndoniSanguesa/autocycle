@@ -1,0 +1,30 @@
+<launch>
+    <node
+        pkg="autocycle"
+        type="test_nav_predefined_curve"
+        name="test_nav_predefined_curve"
+        output="screen"
+        required="true"
+    />
+    <node
+        pkg="autocycle"
+        type="test_send_only_ang"
+        name="test_send_only_ang"
+        output="screen"
+        required="true"
+    />
+    <node
+        pkg="autocycle"
+        type="test_sim_sensors"
+        name="sim_sensors"
+        output="screen"
+        respawn="true"
+    />
+    <node
+        pkg="autocycle"
+        type="get_deltas"
+        name="get_deltas"
+        output="screen"
+        required="true"
+    />
+</launch>
