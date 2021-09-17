@@ -3,6 +3,7 @@
 #include <autocycle_extras/ObjectList.h>
 #include <autocycle_extras/Object.h>
 #include <autocycle_extras/Point.h>
+#include <autocycle_extras/Path.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -72,6 +73,9 @@ ros::Publisher calc_deltas;
 // The object that will be published by the above publisher
 autocycle_extras::CalcDeltas to_pub;
 
+ros::ServiceClient delta_cli;
+autocycle_extras::Path delta_cli_data;
+
 // Tunable parameters to determine if something is an object.
 
 // If the z value for 2 adjacent cells in a column differ by
@@ -110,7 +114,7 @@ unordered_set<int> center_blocked_nodes;
 vector<tuple<float, float>> path;
 
 // Starting node
-tuple<int, int> start_node;
+tuple<int, int> start_node = {y_dim/2, 0};
 
 // End node
 tuple<int, int> end_node;
@@ -365,7 +369,11 @@ void generate_curve() {
     to_pub.path_x = xs;
     to_pub.path_y = ys;
 
-    calc_deltas.publish(to_pub);
+    delta_cli_data.request.path_x = xs;
+    delta_cli_data.request.path_y = ys;
+
+    delta_cli.call(delta_cli_data);
+
 
     // auto end = chrono::high_resolution_clock::now();
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
@@ -990,7 +998,8 @@ int main(int argc, char **argv) {
   ros::Subscriber ready_sub = nh.subscribe("cycle/frame_ready", 1, &update_ready);
 
   // Creates server proxy for calculating new deltas
-  calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
+  //calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
+  delta_cli = nh.serviceClient<autocycle_extras::Path>("calc_delta");
 
   // Sets desired heading (for now the initial heading)
   while(heading == -1){

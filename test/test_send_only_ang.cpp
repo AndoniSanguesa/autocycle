@@ -67,6 +67,7 @@ int main(int argc, char **argv) {
         req.x = dist_trav;
         req.vel = velocity;
         get_delta.call(req, resp);
+        my_serial.write("s 1;");
         ROS_INFO_STREAM("DELTA OUTPUT: " << resp.delta);
             usleep(250000);
 	    if(dist_trav >= 15){

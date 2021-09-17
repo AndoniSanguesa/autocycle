@@ -5,6 +5,7 @@
 #include <std_msgs/Float32.h>
 #include <chrono>
 #include <std_srvs/Empty.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -64,6 +65,7 @@ int main(int argc, char **argv) {
         req.vel = velocity;
         get_delta.call(req, resp);
 
-        my_serial.write("s 4.5;d " + to_string(resp.delta) + ";");
+        usleep(250000);
+        my_serial.write("s 1;d " + to_string(resp.delta) + ";");
     }
 }
