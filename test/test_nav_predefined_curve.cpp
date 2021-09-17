@@ -327,6 +327,10 @@ void bfs(){
             break;
         }
     }
+    xs.push_back(get<1>(start_node)*node_size + node_size);
+    ys.push_back(-get<0>(node)*node_size +(path_heigh / 2));
+    xs.push_back(0);
+    ys.puch_back(0);
     path.emplace_back(start_node);
     reverse(path.begin(),path.end());
 }
