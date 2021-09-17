@@ -14,8 +14,8 @@
     />
     <node
         pkg="autocycle"
-        type="test_sim_sensors"
-        name="sim_sensors"
+        type="read_serial"
+        name="read_serial"
         output="screen"
         respawn="true"
     />
