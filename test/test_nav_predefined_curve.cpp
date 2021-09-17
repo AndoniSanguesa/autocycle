@@ -101,7 +101,6 @@ int path_height = 20;
 // Size of each node
 int node_size = 1;
 
-
 // The dimensions of the graph (how many nodes in each direction)
 int x_dim = path_width / node_size;
 int y_dim = path_height / node_size;
@@ -114,7 +113,7 @@ unordered_set<int> center_blocked_nodes;
 vector<tuple<float, float>> path;
 
 // Starting node
-tuple<int, int> start_node;
+tuple<int, int> start_node = {y_dim/2, 0};
 
 // End node
 tuple<int, int> end_node;
