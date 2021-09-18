@@ -757,6 +757,10 @@ void object_detection() {
 	vector<vector<float>> cells(cell_row, vector<float>(cell_col, 0));
 	for (int i = 0; i < points.size(); i++) {
 		float z = points[i].z;
+		if(z < 1000){
+		    continue;
+		}
+
 		int x = (points[i].x + (width / 2)) / cell_dim;
 		int y = (points[i].y + (height / 2)) / cell_dim;
 		if (cells[y][x] == 0 || z < cells[y][x]) {
