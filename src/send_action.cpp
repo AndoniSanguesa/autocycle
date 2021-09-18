@@ -14,7 +14,7 @@ serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleT
 
 float dist_trav = 0;
 float velocity = 0;
-float roll = 0;
+float state = 0;
 float time_elapsed = 0;
 
 void reset_distance(const autocycle_extras::CalcDeltas data){
@@ -25,8 +25,8 @@ void update_velocity(const std_msgs::Float32 data){
     velocity = data.data;
 }
 
-void update_roll(const std_msgs::Float32 data){
-    roll = data.data;
+void update_state(const std_msgs::Float32 data){
+    state = data.data;
 }
 
 int main(int argc, char **argv) {
@@ -45,18 +45,23 @@ int main(int argc, char **argv) {
     // Creates subscriber for updating velocity
     ros::Subscriber get_vel = nh.subscribe("sensors/vel", 1, &update_velocity);
 
-    // Creates subscriber for updating roll
-    ros::Subscriber get_roll = nh.subscribe("sensors/roll", 1, &update_roll);
+    // Creates subscriber for updating state
+    ros::Subscriber get_state = nh.subscribe("sensors/state", 1, &update_state);
 
     // Starts the clock!
     auto start = std::chrono::high_resolution_clock::now();
     
     // Rates the delta querying speed
-    ros::Rate loop_rate(10);
+    // ros::Rate loop_rate(10);
 
     while(ros::ok()){
 	    loop_rate.sleep();
         ros::spinOnce();
+
+        if(state!=0 && state!=3){
+            ros::shutdown();
+        }
+
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         auto start = std::chrono::high_resolution_clock::now();
@@ -68,4 +73,5 @@ int main(int argc, char **argv) {
         usleep(250000);
         my_serial.write("s 1;d " + to_string(resp.delta) + ";");
     }
+    my_serial.write("s 0;")
 }
