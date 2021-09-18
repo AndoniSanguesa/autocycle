@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "read_serial");
     ros::NodeHandle nh;
 
-    ross::service::waitForService("due_ready");
+    ros::service::waitForService("due_ready");
 
     // Creates service proxy that will grab new deltas
     ros::ServiceClient get_delta = nh.serviceClient<autocycle_extras::GetDelta>("get_delta");
