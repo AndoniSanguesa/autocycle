@@ -998,6 +998,9 @@ int main(int argc, char **argv) {
   // Creates subscriber that updates velocity
   ros::Subscriber ready_sub = nh.subscribe("cycle/frame_ready", 1, &update_ready);
 
+  
+  ros::service::waitForService("due_ready");
+
   // Creates server proxy for calculating new deltas
   //calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
   delta_cli = nh.serviceClient<autocycle_extras::Path>("calc_delta");

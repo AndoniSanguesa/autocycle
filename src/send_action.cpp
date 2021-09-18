@@ -34,6 +34,8 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "read_serial");
     ros::NodeHandle nh;
 
+    ross::service::waitForService("due_ready");
+
     // Creates service proxy that will grab new deltas
     ros::ServiceClient get_delta = nh.serviceClient<autocycle_extras::GetDelta>("get_delta");
     autocycle_extras::GetDelta::Request req;
@@ -54,12 +56,15 @@ int main(int argc, char **argv) {
     // Rates the delta querying speed
     // ros::Rate loop_rate(10);
 
+    my_serial.write("t1,10000;");
+
     while(ros::ok()){
-	    loop_rate.sleep();
+	// loop_rate.sleep();
         ros::spinOnce();
 
         if(state!=0 && state!=3){
-            ros::shutdown();
+            ROS_WARN_STREAM("state: " << state);
+	    ros::shutdown();
         }
 
         auto end = std::chrono::high_resolution_clock::now();
@@ -71,7 +76,7 @@ int main(int argc, char **argv) {
         get_delta.call(req, resp);
 
         usleep(250000);
-        my_serial.write("s 1;d " + to_string(resp.delta) + ";");
+        my_serial.write("d" + to_string(resp.delta) + ";");
     }
-    my_serial.write("s 0;")
+    my_serial.write("s 0;");
 }

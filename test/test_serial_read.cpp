@@ -45,9 +45,7 @@ int main(int argc, char **argv){
     // Registers the node with the master
     ros::init(argc, argv, "test_serial_read");
     ros::NodeHandle nh;
-
-    my_serial.write("1 1,10000;");
-
+ 
     // Creates subscribers for all data types
     ros::Subscriber state_sub = nh.subscribe("sensors/state", 1, &readState);
     ros::Subscriber roll_sub = nh.subscribe("sensors/roll", 1, &readRoll);

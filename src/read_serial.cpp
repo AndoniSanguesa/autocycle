@@ -1,16 +1,27 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
 #include <serial/serial.h>
+#include <autocycle_extras/GetDelta.h>
 #include <fstream>
 #include <sstream>
 #include <string>
 
+#include <iostream>
+
 using namespace std;
+
+bool dummy(autocycle_extras::GetDelta::Request &req,
+	   autocycle_extras::GetDelta::Response &resp){
+    return true;
+}
 
 int main(int argc, char **argv){
   // Registers node with the master.
   ros::init(argc, argv, "read_serial");
   ros::NodeHandle nh;
+  
+  ofstream myfile;
+  myfile.open("stream_log.txt");
 
   // Registers the appropriate publishers
   ros::Publisher state_pub = nh.advertise<std_msgs::Float32>("sensors/state", 1);
@@ -29,6 +40,7 @@ int main(int argc, char **argv){
   char back_char;
   std_msgs::Float32 to_pub;
   int cur_publisher = 0;
+  string names [10] = {"state", "roll", "steer", "droll", "dsteer", "vel", "torque", "heading", "dheading", "met"};
   ros::Publisher publishers [10] = {state_pub, roll_pub, steer_pub, droll_pub, dsteer_pub, vel_pub, torque_pub, head_pub, dhead_pub, met_pub};
 
   // Creates serial object to read from
@@ -49,7 +61,10 @@ int main(int argc, char **argv){
       temp.clear();
     }
   }
-  
+
+  ros::ServiceServer dummy_serv = nh.advertiseService("due_ready", dummy);
+
+  my_serial.write("t1,10000;");  
   while(ros::ok()){
     temp.append(my_serial.read());
     back_char = (char) temp.back();
@@ -59,9 +74,14 @@ int main(int argc, char **argv){
       temp_as_stream >> to_pub.data;
       temp.clear();
       if (cur_publisher%16 < 10){
+        ROS_INFO_STREAM("COLLECTED DATA");
         publishers[cur_publisher%16].publish(to_pub);
+	myfile << names[cur_publisher%16];
+	myfile << to_string(to_pub.data);
+	myfile << endl;
       }
       cur_publisher++;
     }
   }
+  myfile.close();
 }
