@@ -26,6 +26,7 @@ int main(int argc, char **argv){
 
   // Initializing vars
   string temp = "";
+  char back_char;
   std_msgs::Float32 to_pub;
   int cur_publisher = 0;
   ros::Publisher publishers [10] = {state_pub, roll_pub, steer_pub, droll_pub, dsteer_pub, vel_pub, torque_pub, head_pub, dhead_pub, met_pub};
@@ -51,12 +52,15 @@ int main(int argc, char **argv){
   
   while(ros::ok()){
     temp.append(my_serial.read());
-    if((char) temp.back() == '\t' || (char) temp.back() == '\n'){
+    back_char = (char) temp.back();
+    if(back_char == '\t' || back_char == '\n'){
       temp.pop_back();
       istringstream temp_as_stream(temp);
       temp_as_stream >> to_pub.data;
       temp.clear();
-      publishers[cur_publisher%10].publish(to_pub);
+      if (cur_publisher%16 < 10){
+        publishers[cur_publisher%16].publish(to_pub);
+      }
       cur_publisher++;
     }
   }
