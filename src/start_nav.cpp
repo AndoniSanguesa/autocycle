@@ -323,6 +323,7 @@ void bfs(){
         try {
             node = parent.at(cantor(node));
         } catch (out_of_range const &) {
+            ros::shutdown();
             ROS_INFO_STREAM("THE BIKE SHOULD BE STOPPED"); // TODO: stop the bike
             break;
         }
