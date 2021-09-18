@@ -323,8 +323,8 @@ void bfs(){
         try {
             node = parent.at(cantor(node));
         } catch (out_of_range const &) {
-            ros::shutdown();
             ROS_INFO_STREAM("THE BIKE SHOULD BE STOPPED"); // TODO: stop the bike
+            ros::shutdown();
             break;
         }
     }
@@ -925,26 +925,28 @@ void parse_lvx(){
                         //frame_cnt++;
                         // x val
                         file.read(buff, 4);
-                        x = *((uint32_t *) buff);
+                        z = *((uint32_t *) buff);
 
                         // y val. We can record it if we determine we need it
                         file.read(buff, 4);
-                        y = *((uint32_t *) buff);
-
+                        x = *((uint32_t *) buff);
                         // z val
                         file.read(buff, 4);
-                        z = *((uint32_t *) buff);
+                        y = *((uint32_t *) buff);
 
-                        //xs.push_back(x);
-                        //zs.push_back(z);
+                        //z = z*0.9994 - y*0.0349
+                        //y = z*0.0349 + y*0.9994
 
                         // Ignores tag and reflexivity
                         file.ignore(2);
 
                         autocycle_extras::Point p;
-                        p.z = x;
-                        p.x = y;
-                        p.y = z;
+                        p.z = z;
+                        p.x = x;
+                        p.y = y;
+
+
+
 			if(p.z !=0 && p.x > -half_width && p.x < half_width && p.y > -half_height && p.y < half_height){
 			    points.push_back(p);
 			}
