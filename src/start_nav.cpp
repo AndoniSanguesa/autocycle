@@ -242,10 +242,6 @@ void get_blocked_nodes(tuple<float, float, float, float> obj){
                     }
                 }
             }
-
-            for(auto & ind : cur_blocked){
-                blocked_nodes.insert(cantor(ind));
-            }
         }
         if(!vert){
             cur_point[0] = cur_point[0] + delta_x;
@@ -258,7 +254,6 @@ void get_blocked_nodes(tuple<float, float, float, float> obj){
     node = get_node_from_point(make_tuple(x2, y2));
     if(center_blocked_nodes.find(cantor(node)) == center_blocked_nodes.end()){
         center_blocked_nodes.insert(cantor(node));
-        vector<tuple<int, int>> cur_blocked;
         x = get<1>(node);
         y = get<0>(node);
 
@@ -269,6 +264,10 @@ void get_blocked_nodes(tuple<float, float, float, float> obj){
                 }
             }
         }
+    }
+
+    for(auto & ind : cur_blocked){
+        blocked_nodes.insert(cantor(ind));
     }
 }
 
