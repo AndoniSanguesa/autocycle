@@ -35,6 +35,7 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;
 
     ros::service::waitForService("due_ready");
+    ros::service::waitForService("get_delta")
 
     // Creates service proxy that will grab new deltas
     ros::ServiceClient get_delta = nh.serviceClient<autocycle_extras::GetDelta>("get_delta");
@@ -42,7 +43,7 @@ int main(int argc, char **argv) {
     autocycle_extras::GetDelta::Response resp;
 
     // Creates Service that will reset the distance
-    ros::Subscriber get_path = nh.subscribe("cycle/path", 1, &reset_distance);
+    ros::Subscriber get_path = nh.subscribe("cycle/calc_deltas", 1, &reset_distance);
 
     // Creates subscriber for updating velocity
     ros::Subscriber get_vel = nh.subscribe("sensors/vel", 1, &update_velocity);
