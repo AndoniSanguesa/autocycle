@@ -26,4 +26,11 @@
         output="screen"
         required="true"
     />
+    <node
+        pkg="autocycle"
+        type="calc_deltas"
+        name="calc_deltas"
+        output="screen"
+        required="true"
+    />
 </launch>
