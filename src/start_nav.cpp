@@ -250,6 +250,7 @@ void get_blocked_nodes(tuple<float, float, float, float> obj){
 
     node = get_node_from_point(make_tuple(x2, y2));
     if(center_blocked_nodes.find(cantor(node)) == center_blocked_nodes.end()){
+        vector<tuple<int, int>> cur_blocked;
         center_blocked_nodes.insert(cantor(node));
         x = get<1>(node);
         y = get<0>(node);
