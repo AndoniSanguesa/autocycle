@@ -74,7 +74,6 @@ int main(int argc, char **argv) {
 	    ROS_INFO_STREAM("BRUHHHHH");
 	    return 1;
 	}
-	
         //my_serial.write("d " + to_string(resp.delta) + ";");
     }
 }
