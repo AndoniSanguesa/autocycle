@@ -71,10 +71,10 @@ autocycle_extras::ObjectList new_obj_lst;
 ros::Publisher calc_deltas;
 
 // The object that will be published by the above publisher
-autocycle_extras::CalcDeltas to_pub;
+autocycle_extras::CalcDeltas calc_deltas_pub;
 
-ros::ServiceClient delta_cli;
-autocycle_extras::Path delta_cli_data;
+//ros::ServiceClient delta_cli;
+//autocycle_extras::Path delta_cli_data;
 
 // Tunable parameters to determine if something is an object.
 
@@ -369,10 +369,10 @@ void generate_curve() {
         get_blocked_nodes(i);
     }
     bfs();
-    delta_cli_data.request.path_x = xs;
-    delta_cli_data.request.path_y = ys;
+    calc_deltas_pub.path_x = xs;
+    calc_deltas_pub.path_y = ys;
 
-    delta_cli.call(delta_cli_data);
+    calc_deltas.publish(calc_deltas_pub);
 
     // auto end = chrono::high_resolution_clock::now();
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
@@ -999,8 +999,8 @@ int main(int argc, char **argv) {
   ros::Subscriber ready_sub = nh.subscribe("cycle/frame_ready", 1, &update_ready);
 
   // Creates server proxy for calculating new deltas
-  // calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
-  delta_cli = nh.serviceClient<autocycle_extras::Path>("calc_delta");
+  calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/calc_deltas", 1);
+  //delta_cli = nh.serviceClient<autocycle_extras::Path>("calc_delta");
 
   // Sets desired heading (for now the initial heading)
   while(heading == -1){
