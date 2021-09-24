@@ -43,3 +43,6 @@ def start():
     # Creates service proxy for delta updating
     update_delta_proxy = rospy.ServiceProxy("update_deltas", TCK)
 
+    # ROS waits for callbacks
+    rospy.spin()
+
