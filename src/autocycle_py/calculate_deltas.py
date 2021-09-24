@@ -21,6 +21,10 @@ def calculate_deltas(data):
     update_delta_proxy(*tck, full_len)
 
 
+def dummy_fun(data):
+    return []
+
+
 def start():
     global update_delta_proxy
 
@@ -32,6 +36,9 @@ def start():
 
     # Creates Subscriber for new paths to generate deltas for
     rospy.Subscriber("cycle/calc_deltas", CalcDeltas, calculate_deltas)
+
+    # Creates Dummy Service to confirm subscriber is ready to go
+    dummy = rospy.Service("calc_deltas", TCK, dummy_fun)
 
     # Creates service proxy for delta updating
     update_delta_proxy = rospy.ServiceProxy("update_deltas", TCK)

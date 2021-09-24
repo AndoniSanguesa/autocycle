@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
         get_delta.call(req, resp);
         my_serial.write("s 1;");
         ROS_INFO_STREAM("DELTA OUTPUT: " << resp.delta);
-            usleep(250000);
+        usleep(250000);
 	    if(dist_trav >= 15){
 	        return 1;
 	    }
