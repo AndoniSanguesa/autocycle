@@ -28,8 +28,8 @@
     />
     <node
         pkg="autocycle"
-        type="calc_deltas"
-        name="calc_deltas"
+        type="calculate_deltas"
+        name="calculate_deltas"
         output="screen"
         required="true"
     />
