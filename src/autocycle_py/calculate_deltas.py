@@ -29,7 +29,7 @@ def start():
     global update_delta_proxy
 
     # Initializes the ROS node
-    rospy.init("calculate_deltas")
+    rospy.init_node("calculate_deltas")
 
     # Waits for the service that allows for deltas to be updated to start
     rospy.wait_for_service("update_deltas")
