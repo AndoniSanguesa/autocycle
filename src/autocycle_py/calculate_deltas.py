@@ -18,8 +18,8 @@ def calculate_deltas(data):
     ys.insert(0, 0)
     tck = interp.splprep([xs, ys], s=0.5)[0]
     full_len = (sum(interp.splint(0, 1, tck, full_output=0))) * 2
-    t = [x.item() for x in tck[0]]
-    c = [x.item() for x in tck[1]]
+    t = tck[0].tolist()
+    c = tck[1].tolist()
 
     update_delta_proxy(t, c, tck[2].item(), full_len)
 
