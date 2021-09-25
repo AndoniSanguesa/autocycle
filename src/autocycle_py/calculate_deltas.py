@@ -4,6 +4,7 @@ from autocycle_extras.srv import TCK
 from scipy import interpolate as interp
 
 
+
 tck = []
 full_len = 0
 update_delta_proxy = None
@@ -18,8 +19,10 @@ def calculate_deltas(data):
     ys.insert(0, 0)
     tck = interp.splprep([xs, ys], s=0.5)[0]
     full_len = (sum(interp.splint(0, 1, tck, full_output=0))) * 2
+    t = [x.item() for x in tck[0]]
+    c = [x.item() for x in tck[1]]
 
-    update_delta_proxy(*tck, full_len)
+    update_delta_proxy(t, c, tck[2].item(), full_len)
 
 
 def dummy_fun(data):
