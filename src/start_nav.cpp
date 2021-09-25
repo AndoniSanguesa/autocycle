@@ -999,6 +999,7 @@ int main(int argc, char **argv) {
 
   
   ros::service::waitForService("due_ready");
+  ros::service::waitForService("calc_deltas");
 
   // Creates server proxy for calculating new deltas
   calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/calc_deltas", 1);
