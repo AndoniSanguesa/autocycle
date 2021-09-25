@@ -11,6 +11,7 @@ update_delta_proxy = None
 
 def calculate_deltas(data):
     global tck, full_len
+    print("BRUHH")
     xs = list(data.path_x)
     ys = list(data.path_y)
     xs.insert(0, 0)

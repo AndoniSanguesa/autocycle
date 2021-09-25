@@ -24,7 +24,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <tuple>
-
+#include <unistd.h>
 using namespace std;
 
 // ready is true if there is a new frame from the lidar to analyze
@@ -376,7 +376,7 @@ void generate_curve() {
     calc_deltas_pub.path_y = ys;
 
     calc_deltas.publish(calc_deltas_pub);
-
+    ROS_INFO_STREAM("YOOOOOOOOOOO");
     // auto end = chrono::high_resolution_clock::now();
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     // ROS_INFO_STREAM("PATH PLANNING IS TAKING: " << (float) duration.count() / 1000.0 << " SECONDS");
@@ -987,8 +987,8 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "navigation_communicator");
   ros::NodeHandle nh;
 
-  ros::service::waitForService("calc_delta");
-
+  ros::service::waitForService("calc_deltas");
+  usleep(10000);
   // Creates subscriber for updating roll
   ros::Subscriber update_roll = nh.subscribe("sensors/roll", 1, &get_roll);
 
@@ -1038,8 +1038,9 @@ int main(int argc, char **argv) {
   obj_lst.obj_lst.push_back(get_object(-1000, 1000, 3495, 3480));
 
   // Generates a new path
-  generate_curve();
-
+  while(true){
+    generate_curve();
+  }
   // Clears the lvx file and shuts down. Mission Complete
   f_done.open(path_to_lvx, ios::trunc);
   f_done.write("done", 4);
