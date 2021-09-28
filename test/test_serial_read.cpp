@@ -1,5 +1,9 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
+#include <serial/serial.h>
+
+// Creates serial object to write to
+serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
 void readState(std_msgs::Float32 msg){
     ROS_INFO_STREAM("State: " << msg.data);
@@ -41,7 +45,7 @@ int main(int argc, char **argv){
     // Registers the node with the master
     ros::init(argc, argv, "test_serial_read");
     ros::NodeHandle nh;
-
+ 
     // Creates subscribers for all data types
     ros::Subscriber state_sub = nh.subscribe("sensors/state", 1, &readState);
     ros::Subscriber roll_sub = nh.subscribe("sensors/roll", 1, &readRoll);
@@ -53,5 +57,9 @@ int main(int argc, char **argv){
     ros::Subscriber dhead_sub = nh.subscribe("sensors/dheading", 1, &readDhead);
     ros::Subscriber met_sub = nh.subscribe("sensors/met", 1, &readMet);
 
-    ros::spin();
+    while(ros::ok()){
+        ros::spinOnce();
+    }
+
+    my_serial.write("s 0;");
 }

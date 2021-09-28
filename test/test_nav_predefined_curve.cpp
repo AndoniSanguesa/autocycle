@@ -49,7 +49,7 @@ ofstream f_done;
 float roll = 0;
 
 int height = 2400;   // vertical height of detection window in millimeters
-int width = 10000;    // horizontal width of detection window in millimeters
+int width = 2000;    // horizontal width of detection window in millimeters
 int cell_dim = 50;   // dimension of cells in millimeters (cells are squares)
 
 int half_height = height/2; // Half of the above variable
@@ -67,11 +67,14 @@ autocycle_extras::ObjectList obj_lst;
 autocycle_extras::ObjectList new_obj_lst;
 
 // Publisher that publishes the newest path to a topic that is read by
-// the `calc_deltas` node
+// the `get_deltas` node
 ros::Publisher calc_deltas;
 
 // The object that will be published by the above publisher
 autocycle_extras::CalcDeltas calc_deltas_pub;
+
+//ros::ServiceClient delta_cli;
+//autocycle_extras::Path delta_cli_data;
 
 // Tunable parameters to determine if something is an object.
 
@@ -83,7 +86,7 @@ int for_jump_diff = col_diff * 1.5;      // Expected min difference between cell
 int counter_reps = 2;                    // Number of reps required to dictate it is an object.
 int same_obj_diff = 150;                 // maximum diff between horizontal cells to be considered the same object
 int group_dist = 1500;					 // max dist between adjacent objects for convex hull
-float max_dist = 20000;
+float max_dist = 4000;
 float box_dist = 1500;                   // distance in each dimension surrounding line segment
 
 float prev_heading = 0;
@@ -97,7 +100,6 @@ int path_height = 20;
 
 // Size of each node
 int node_size = 1;
-
 
 // The dimensions of the graph (how many nodes in each direction)
 int x_dim = path_width / node_size;
@@ -239,6 +241,10 @@ void get_blocked_nodes(tuple<float, float, float, float> obj){
                     }
                 }
             }
+
+            for(auto & ind : cur_blocked){
+                blocked_nodes.insert(cantor(ind));
+            }
         }
         if(!vert){
             cur_point[0] = cur_point[0] + delta_x;
@@ -250,8 +256,8 @@ void get_blocked_nodes(tuple<float, float, float, float> obj){
 
     node = get_node_from_point(make_tuple(x2, y2));
     if(center_blocked_nodes.find(cantor(node)) == center_blocked_nodes.end()){
-        vector<tuple<int, int>> cur_blocked;
         center_blocked_nodes.insert(cantor(node));
+        vector<tuple<int, int>> cur_blocked;
         x = get<1>(node);
         y = get<0>(node);
 
@@ -320,12 +326,11 @@ void bfs(){
             node = parent.at(cantor(node));
         } catch (out_of_range const &) {
             ROS_INFO_STREAM("THE BIKE SHOULD BE STOPPED"); // TODO: stop the bike
-            ros::shutdown();
             break;
         }
     }
-    ys.push_back(get<1>(start_node)*node_size + node_size);
-    xs.push_back(-get<0>(node)*node_size + (path_height / 2));
+    xs.push_back(get<1>(start_node)*node_size + node_size);
+    ys.push_back(-get<0>(node)*node_size +(path_height / 2));
     path.emplace_back(start_node);
     reverse(path.begin(),path.end());
     reverse(xs.begin(), xs.end());
@@ -371,7 +376,6 @@ void generate_curve() {
     calc_deltas_pub.path_y = ys;
 
     calc_deltas.publish(calc_deltas_pub);
-
 
     // auto end = chrono::high_resolution_clock::now();
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
@@ -754,10 +758,6 @@ void object_detection() {
 	vector<vector<float>> cells(cell_row, vector<float>(cell_col, 0));
 	for (int i = 0; i < points.size(); i++) {
 		float z = points[i].z;
-		if(z < 1000){
-		    continue;
-		}
-
 		int x = (points[i].x + (width / 2)) / cell_dim;
 		int y = (points[i].y + (height / 2)) / cell_dim;
 		if (cells[y][x] == 0 || z < cells[y][x]) {
@@ -775,6 +775,7 @@ void object_detection() {
 			if (cells[row][col] == 0) {
 				counter = 0;
 				min_obj = 0;
+				prev = 0;
 				continue;
 			}
 			if (counter == 0){
@@ -788,15 +789,13 @@ void object_detection() {
 			} else {
 				counter += 1;
 			}
-			if (prev != 0 && prev > cells[row][col] + for_jump_diff) {
+			if (prev > cells[row][col] + for_jump_diff && row - 2 > 0 && cells[row-2][col] != 0) {
 				closest = min(closest, cells[row][col]);
 			}
 			if (counter > counter_reps) {
 				closest = min(closest, min_obj);
 			}
-            if (cells[row][col] != 0) {
-                prev = cells[row][col];
-            }
+			prev = cells[row][col];
 		}
 		close_vec[col] = closest;
 	}
@@ -923,28 +922,26 @@ void parse_lvx(){
                         //frame_cnt++;
                         // x val
                         file.read(buff, 4);
-                        z = *((uint32_t *) buff);
+                        x = *((uint32_t *) buff);
 
                         // y val. We can record it if we determine we need it
                         file.read(buff, 4);
-                        x = *((uint32_t *) buff);
-                        // z val
-                        file.read(buff, 4);
                         y = *((uint32_t *) buff);
 
-                        //z = z*0.9994 - y*0.0349
-                        //y = z*0.0349 + y*0.9994
+                        // z val
+                        file.read(buff, 4);
+                        z = *((uint32_t *) buff);
+
+                        //xs.push_back(x);
+                        //zs.push_back(z);
 
                         // Ignores tag and reflexivity
                         file.ignore(2);
 
                         autocycle_extras::Point p;
-                        p.z = z;
-                        p.x = x;
-                        p.y = y;
-
-
-
+                        p.z = x;
+                        p.x = y;
+                        p.y = z;
 			if(p.z !=0 && p.x > -half_width && p.x < half_width && p.y > -half_height && p.y < half_height){
 			    points.push_back(p);
 			}
@@ -990,6 +987,8 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "navigation_communicator");
   ros::NodeHandle nh;
 
+  ros::service::waitForService("calc_deltas");
+
   // Creates subscriber for updating roll
   ros::Subscriber update_roll = nh.subscribe("sensors/roll", 1, &get_roll);
 
@@ -1002,12 +1001,9 @@ int main(int argc, char **argv) {
   // Creates subscriber that updates velocity
   ros::Subscriber ready_sub = nh.subscribe("cycle/frame_ready", 1, &update_ready);
 
-  
-  ros::service::waitForService("due_ready");
-  ros::service::waitForService("calc_deltas");
-
   // Creates server proxy for calculating new deltas
   calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/calc_deltas", 1);
+  //delta_cli = nh.serviceClient<autocycle_extras::Path>("calc_delta");
 
   // Sets desired heading (for now the initial heading)
   while(heading == -1){
@@ -1029,69 +1025,20 @@ int main(int argc, char **argv) {
   // starts second clock used only for updating object positions
   state_start = std::chrono::high_resolution_clock::now();
 
-  // Navigation loop
-  while(ros::ok()){
-    // Tells ROS to look for any callbacks waiting to run
-    ros::spinOnce();
+  // Tells ROS to look for any callbacks waiting to run
+  ros::spinOnce();
 
-    // Clears all points in preparation for new Livox data
-    points.clear();
+  // Clears all points in preparation for new Livox data
+  points.clear();
 
-    // Only runs parse_lvx, fix_roll, and object detection if there is a new frame ready
-    if(ready){
-      // Ends the clock
-      auto end = chrono::high_resolution_clock::now();
+  //ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
+  // Once again checks for callbacks
+  ros::spinOnce();
 
-      // Gets the duration the clock was running
-      auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+  obj_lst.obj_lst.push_back(get_object(-1000, 1000, 3495, 3480));
 
-      // Resets the clock
-      start = chrono::high_resolution_clock::now();
-      ROS_INFO_STREAM("NAV LOOP TOOK : " << (float) duration.count() / 1000.0 << " SECONDS");
-
-      // Parses the LVX file
-      parse_lvx();
-
-      // Sets ready to false
-      ready = false;
-
-      // Clears f_done.lvx file while waiting for the rest of the loop to be ready
-      f_done.open(path_to_lvx, ios::trunc);
-      f_done.close();
-      //ROS_INFO_STREAM("LVX file analyzed.");
-
-      // ROS checks for call backs (To get the latest possible roll)
-      ros::spinOnce();
-
-      // Adjusts for roll
-      fix_roll();
-
-      //ROS_INFO_STREAM("Points have been adjusted for roll.");
-
-      // Runs object detection on the new data
-      object_detection();
-    }
-
-    //ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
-    // Once again checks for callbacks
-    ros::spinOnce();
-
-    // Ends clock for updating object positions
-    state_stop = std::chrono::high_resolution_clock::now();
-
-    // Updates the duration since the last `state-stop`
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>(state_stop - state_start);
-
-    // Resets the clock for updating object positions
-    state_start = std::chrono::high_resolution_clock::now();
-
-    // Updates object positions
-    update_object_positions(((float) duration.count())/1000.0);
-
-    // Generates a new path
-    generate_curve();
-
-  }
+  // Generates a new path
+  generate_curve();
 
   // Clears the lvx file and shuts down. Mission Complete
   f_done.open(path_to_lvx, ios::trunc);

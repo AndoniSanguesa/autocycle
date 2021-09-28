@@ -20,19 +20,28 @@
     output="screen"
     respawn="true"
   />
-  </node
+  <node
+    pkg="autocycle"
+    type="calculate_deltas"
+    name="calculate_deltas"
+    output="screen"
+    respawn="true"
+  />
+  <node
     pkg="autocycle"
     type="read_serial"
     name="read_serial"
+    output="screen"
     respawn="true"
   />
-  </node
+  <node
     pkg="autocycle"
     type="send_action"
     name="send_action"
-    respawn="true"
+    output="screen"
+    required="true"
   />
-  </node
+  <node
     pkg="autocycle"
     type="frame_ready"
     name="frame_ready"

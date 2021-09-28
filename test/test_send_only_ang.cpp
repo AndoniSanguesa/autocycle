@@ -17,7 +17,7 @@ float roll = 0;
 float time_elapsed = 0;
 
 void reset_distance(const autocycle_extras::CalcDeltas data){
-    dist_trav = 0;
+    dist_trav = dist_trav;
 }
 
 void update_velocity(const std_msgs::Float32 data){
@@ -38,6 +38,12 @@ int main(int argc, char **argv) {
     autocycle_extras::GetDelta::Request req;
     autocycle_extras::GetDelta::Response resp;
 
+    req.x = 0;
+    req.vel = 0;
+    resp.delta = -1;
+	
+    ros::service::waitForService("get_delta");
+
     // Creates Service that will reset the distance
     ros::Subscriber get_path = nh.subscribe("cycle/path", 1, &reset_distance);
 
@@ -49,7 +55,12 @@ int main(int argc, char **argv) {
 
     // Starts the clock!
     auto start = std::chrono::high_resolution_clock::now();
-    
+
+    // Waits until a path is ready to be followed
+    while(resp.delta == -1){
+        get_delta.call(req, resp);
+    }
+
     // Rates the delta querying speed
     ros::Rate loop_rate(10);
 
@@ -60,10 +71,16 @@ int main(int argc, char **argv) {
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         auto start = std::chrono::high_resolution_clock::now();
         dist_trav += velocity * (((float) duration.count())/1000.0);
+        //dist_trav += 0.25;
         req.x = dist_trav;
-        req.roll = roll;
+        req.vel = velocity;
         get_delta.call(req, resp);
+        my_serial.write("s 1;");
         ROS_INFO_STREAM("DELTA OUTPUT: " << resp.delta);
+        usleep(250000);
+	    if(dist_trav >= 15){
+	        return 1;
+	    }
         my_serial.write("d " + to_string(resp.delta) + ";");
     }
 }

@@ -3,6 +3,7 @@
 #include <autocycle_extras/ObjectList.h>
 #include <autocycle_extras/Object.h>
 #include <autocycle_extras/Point.h>
+#include <autocycle_extras/Path.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -68,10 +69,10 @@ autocycle_extras::ObjectList new_obj_lst;
 
 // Publisher that publishes the newest path to a topic that is read by
 // the `get_deltas` node
-ros::Publisher calc_deltas;
+ros::ServiceClient calc_deltas;
 
 // The object that will be published by the above publisher
-autocycle_extras::CalcDeltas to_pub;
+autocycle_extras::Path to_pub;
 
 // Tunable parameters to determine if something is an object.
 
@@ -375,10 +376,10 @@ void generate_curve() {
         get_blocked_nodes(i);
     }
     bfs();
-    to_pub.path_x = xs;
-    to_pub.path_y = ys;
+    to_pub.request.path_x = xs;
+    to_pub.request.path_y = ys;
 
-    calc_deltas.publish(to_pub);
+    calc_deltas.call(to_pub);
 
     // auto end = chrono::high_resolution_clock::now();
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
@@ -388,10 +389,6 @@ void generate_curve() {
 
 // The main navigation loop
 int main(int argc, char **argv) {
-  if(argc < 5){
-      cout << "You fool. You need to give me parameters. (e.g. roslaunch test_obj_to_ard.launch args:='2 3 4 1')" << endl;
-      return 1;
-  }
   autocycle_extras::Object obj;
   obj.x1 =  stof(argv[1]);
   obj.x2 =  stof(argv[2]);
@@ -405,9 +402,10 @@ int main(int argc, char **argv) {
   ros::NodeHandle nh;
     
   ros::service::waitForService("get_delta");
+  ros::service::waitForService("calc_delta");
 
   // Creates server proxy for calculating new deltas
-  calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/path", 1);
+  calc_deltas = nh.serviceClient<autocycle_extras::Path>("calc_delta");
 
   // Sets desired heading (for now the initial heading)
   while(heading == -1){
@@ -417,10 +415,8 @@ int main(int argc, char **argv) {
   // Sets initial desired heading
   des_heading = heading;
 
-
   // enerates a new path
   generate_curve();
-    
-
+  
   return 0;
 }
