@@ -191,6 +191,9 @@ void get_blocked_nodes(tuple<float, float, float, float> obj){
                     }
                 }
             }
+            for(auto & ind : cur_blocked){
+                blocked_nodes.insert(cantor(ind));
+            }
         }
         if(!vert){
             cur_point[0] = cur_point[0] + delta_x;
