@@ -1,16 +1,9 @@
 #define _USE_MATH_DEFINES
 #include <ros/ros.h>
-#include <autocycle_extras/ObjectList.h>
-#include <autocycle_extras/Object.h>
-#include <autocycle_extras/Point.h>
-#include <autocycle_extras/Path.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
-#include <std_msgs/String.h>
-#include <std_msgs/Bool.h>
 #include <std_msgs/Empty.h>
-#include <std_srvs/Empty.h>
 #include <std_msgs/Float32.h>
 #include <stdio.h>
 #include <math.h>
@@ -27,118 +20,75 @@
 
 using namespace std;
 
-// ready is true if there is a new frame from the lidar to analyze
-bool ready = false;
+// General use variable initialization
+
+bool ready = false;                                    // True if new LiDAR frame is ready for analysis
+vector<tuple<float, float, float>> lvx_points;         // Contains points parsed from LiDAR data
+ofstream f_done;                                       // Output file that will contain LiDAR info
+string path_to_lvx = "f_done.lvx";                     // Path to the data file
+float height_of_lidar = 763;                           // Height of the LiDAR in millimeters
+vector<tuple<float, float, float, float>> obj_lst;     // Current list of objects
+vector<tuple<float, float, float, float>> new_obj_lst; // Temporary vector used in adjusting state
+vector<tuple<float, float, float, float>> cond_objs;   // Contains objects post-convex hull
+
+// ROS varibale initialization
+ros::Publisher calc_deltas;                   // ROS publisher that publishes new paths for delta calculation
+autocycle_extras::CalcDeltas calc_deltas_pub; // ROS message object that will be published by `calc_deltas`
+
+// Sensor data variables
+
+float roll = 0;     // Latest roll value
+float heading = 0;  // Latest heading value
+float velocity = 0; // Latest velocity value
+
+// Object Detection Parameters
+
+int height = 2400;                              // vertical height of detection window in millimeters
+int width = 10000;                              // horizontal width of detection window in millimeters
+float max_dist = 20000;                         // Maximum distance to detect objects for
+int cell_dim = 50;                              // dimension of cells in millimeters (cells are squares)
+int half_height = height/2;                     // Half of the above variable
+int half_width = width/2;                       // Half of the above variable
+int cell_row = ceil((1.0 * height) / cell_dim); // Number of cells in a row
+int cell_col = ceil((1.0 * width) / cell_dim);  // Number of cells in a column
+int col_diff = 50;                              // If the z value for 2 adjacent cells in a column differ by more than this variable, they are considered different objects
+int for_jump_diff = col_diff * 1.5;             // Minimum negative change in z value to indicate an object
+int counter_reps = 2;                           // Number of consecutive consistent column values needed to immediately determine that an object is present
+int same_obj_diff = 150;                        // Horizontally adjacent Z distances under this value are considered the same object
+int group_dist = 1500;                          // max dist between adjacent objects for convex hull
+float box_dist = 1500;                          // distance in each dimension surrounding line segment for convex hull
+
+// Path Planning Variables
+
+int path_width = 20;                                   // Width of graph in meters
+int path_height = 20;                                  // Height of graph in meters
+int node_size = 1;                                     // Size of node in graph in meters
+int x_dim = path_width / node_size;                    // Width of graph in nodes
+int y_dim = path_height / node_size;                   // Height of graph in nodes
+unordered_set<int> blocked_nodes;                      // Nodes that should be avoided for path generation
+unordered_set<int> center_blocked_nodes;               // The `anchor` blocked nodes, used only in generated the full `blocked_nodes` set
+float padding = 1.5;                                   // Amount of padding to place around objects in meters
+int padding_num = (int) (padding / (float) node_size); // Number of nodes around object to block out
+vector<tuple<float, float>> path;                      // The path generated
+tuple<int, int> start_node = {y_dim/2, 0};             // Starting node for path
+tuple<int, int> end_node;                              // End node for path
+vector<float> ys;                                      // Path y values
+vector<float> xs;                                      // Path x values
+float des_heading = 0;                                 // The desired heading relative to global heading
+float theta = 0;                                       // The desired heading relative to the current heading
+
+// State Tracking Variables
+
+float prev_heading = 0;                                    // Previous heading value
+float delta_angle, delta_angle_cos, delta_angle_sin, dist; // Change in heading, trig values related to that change and change in position since last state
+chrono::high_resolution_clock::time_point state_stop;      // Time just before a new state is to be computed
+chrono::high_resolution_clock::time_point state_start;     // Time just after a new state has been computed
+chrono::milliseconds duration;                             // Duration in milliseconds between state updates
 
 // Callback function for the `frame_ready` topic that sets the ready variable
 void update_ready(const std_msgs::Empty msg){
     ready = true;
 }
-
-// Will contain the points found by the lidar
-vector<autocycle_extras::Point> points;
-
-// Will contain the objects after object clusters are combined by the convex
-// hull function and after intersecting objects have been removed
-vector<autocycle_extras::Object> cond_objs;
-
-// Initializes the file variable that will read the latest data from the lidar
-ofstream f_done;
-
-// stores the latest roll data
-float roll = 0;
-
-int height = 2400;   // vertical height of detection window in millimeters
-int width = 2000;    // horizontal width of detection window in millimeters
-int cell_dim = 50;   // dimension of cells in millimeters (cells are squares)
-
-int half_height = height/2; // Half of the above variable
-int half_width = width/2;   // Half of the above variable
-
-int cell_row = ceil((1.0 * height) / cell_dim); // Number of cells in a row
-int cell_col = ceil((1.0 * width) / cell_dim);  // Number of cells in a column
-
-// Stores the current list of objects
-autocycle_extras::ObjectList obj_lst;
-
-// Stores the new set of objects in a temporary vector
-// after adjusting the current objects for the bikes
-// change in position and heading
-autocycle_extras::ObjectList new_obj_lst;
-
-// Publisher that publishes the newest path to a topic that is read by
-// the `get_deltas` node
-ros::Publisher calc_deltas;
-
-// The object that will be published by the above publisher
-autocycle_extras::CalcDeltas calc_deltas_pub;
-
-//ros::ServiceClient delta_cli;
-//autocycle_extras::Path delta_cli_data;
-
-// Tunable parameters to determine if something is an object.
-
-// If the z value for 2 adjacent cells in a column differ by
-// more than this variable, they are considered different objects
-int col_diff = 50;
-
-int for_jump_diff = col_diff * 1.5;      // Expected min difference between cells in a column to indicate a jump forward.
-int counter_reps = 2;                    // Number of reps required to dictate it is an object.
-int same_obj_diff = 150;                 // maximum diff between horizontal cells to be considered the same object
-int group_dist = 1500;					 // max dist between adjacent objects for convex hull
-float max_dist = 4000;
-float box_dist = 1500;                   // distance in each dimension surrounding line segment
-
-float prev_heading = 0;
-float heading = 0;
-float velocity = 0;
-float delta_angle, c, s, dist;
-
-// Size of plot
-int path_width = 20;
-int path_height = 20;
-
-// Size of each node
-int node_size = 1;
-
-// The dimensions of the graph (how many nodes in each direction)
-int x_dim = path_width / node_size;
-int y_dim = path_height / node_size;
-
-// The nodes that have been deemed blocked by an object
-unordered_set<int> blocked_nodes;
-unordered_set<int> center_blocked_nodes;
-
-// The path being taken
-vector<tuple<float, float>> path;
-
-// Starting node
-tuple<int, int> start_node = {y_dim/2, 0};
-
-// End node
-tuple<int, int> end_node;
-
-// x values and y values
-vector<float> ys;
-vector<float> xs;
-
-// Calculate Padding
-float padding = 1.5;
-int padding_num = (int) (padding / (float) node_size);
-
-// Theta to adjust heading by
-float theta = 0;
-
-// The desired Heading
-float des_heading = 0;
-
-// Variables used to time the computation time
-chrono::high_resolution_clock::time_point state_stop;
-chrono::high_resolution_clock::time_point state_start;
-chrono::milliseconds duration;
-
-// Path to the Data file
-string path_to_lvx = "f_done.lvx";
 
 // Maps a tuple to 2 integers to a unique integer (for hashing)
 int cantor(tuple<int, int> node){
@@ -241,10 +191,6 @@ void get_blocked_nodes(tuple<float, float, float, float> obj){
                     }
                 }
             }
-
-            for(auto & ind : cur_blocked){
-                blocked_nodes.insert(cantor(ind));
-            }
         }
         if(!vert){
             cur_point[0] = cur_point[0] + delta_x;
@@ -256,8 +202,8 @@ void get_blocked_nodes(tuple<float, float, float, float> obj){
 
     node = get_node_from_point(make_tuple(x2, y2));
     if(center_blocked_nodes.find(cantor(node)) == center_blocked_nodes.end()){
-        center_blocked_nodes.insert(cantor(node));
         vector<tuple<int, int>> cur_blocked;
+        center_blocked_nodes.insert(cantor(node));
         x = get<1>(node);
         y = get<0>(node);
 
@@ -326,11 +272,12 @@ void bfs(){
             node = parent.at(cantor(node));
         } catch (out_of_range const &) {
             ROS_INFO_STREAM("THE BIKE SHOULD BE STOPPED"); // TODO: stop the bike
+            ros::shutdown();
             break;
         }
     }
-    xs.push_back(get<1>(start_node)*node_size + node_size);
-    ys.push_back(-get<0>(node)*node_size +(path_height / 2));
+    ys.push_back(get<1>(start_node)*node_size + node_size);
+    xs.push_back(-get<0>(node)*node_size + (path_height / 2));
     path.emplace_back(start_node);
     reverse(path.begin(),path.end());
     reverse(xs.begin(), xs.end());
@@ -362,10 +309,12 @@ void generate_curve() {
     reset_vars();
     update_end_node();
     vector<tuple<float, float, float, float>> real_obj_lst;
-    real_obj_lst.reserve(obj_lst.obj_lst.size());
+    real_obj_lst.reserve(obj_lst.size());
+    float x1, x2, z1, z2;
 
-    for(auto & i : obj_lst.obj_lst){
-        real_obj_lst.emplace_back(make_tuple(i.z1/1000, i.z2/1000, i.x1/1000, i.x2/1000));
+    for(auto & i : obj_lst){
+        tie (x1, x2, z1, z2) = i;
+        real_obj_lst.emplace_back(make_tuple(z1/1000, z2/1000, x1/1000, x2/1000));
     }
 
     for (auto & i : real_obj_lst) {
@@ -377,6 +326,7 @@ void generate_curve() {
 
     calc_deltas.publish(calc_deltas_pub);
 
+
     // auto end = chrono::high_resolution_clock::now();
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     // ROS_INFO_STREAM("PATH PLANNING IS TAKING: " << (float) duration.count() / 1000.0 << " SECONDS");
@@ -387,36 +337,28 @@ void generate_curve() {
 void update_object_positions(float delta_time){
     delta_angle = heading - prev_heading;
     prev_heading = heading;
-    new_obj_lst.obj_lst.clear();
+    new_obj_lst.clear();
 
-    c = cos(delta_angle);
-    s = sin(delta_angle);
+    delta_angle_cos = cos(delta_angle);
+    delta_angle_sin = sin(delta_angle);
     dist = velocity * delta_time;
 
-    for(auto & i : obj_lst.obj_lst){
-    autocycle_extras::Object rotated;
-        rotated.z1 = i.z1*c - i.x1*s;
-        rotated.x1 = i.z1*s + i.x1*c - dist;
-        rotated.z2 = i.z2*c - i.x2*s;
-        rotated.x2 = i.z2*s + i.x2*c - dist;
-        if(rotated.z1 < 0 && rotated.z2 < 0){
-            ROS_INFO_STREAM("BRERUUERDSHGSJKDFHSDIEUR");
-	    continue;
-        }
-        new_obj_lst.obj_lst.emplace_back(rotated);
-    }
-    obj_lst.obj_lst.clear();
-    obj_lst.obj_lst = new_obj_lst.obj_lst;
-}
+    float x1, x2, z1, z2, rx1, rx2, rz1, rz2;
 
-// Generates an Autocycle Object from floats (this should really be removed)
-autocycle_extras::Object get_object(float x1, float x2, float z1, float z2){
-	autocycle_extras::Object obj;
-	obj.x1 = x1;
-	obj.x2 = x2;
-	obj.z1 = z1;
-	obj.z2 = z2;
-	return obj;
+    for(auto & i : obj_lst){
+        tie (x1, x2, z1, z2) = i;
+        tuple<float, float, float, float> rotated;
+        rz1 = z1*delta_angle_cos - x1*delta_angle_sin;
+        rx1 = z1*delta_angle_sin + x1*delta_angle_cos - dist;
+        rz2 = z2*delta_angle_cos - x2*delta_angle_sin;
+        rx2 = z2*delta_angle_sin + x2*delta_angle_cos - dist;
+        if(rz1 < 0 && rz2 < 0){
+	        continue;
+        }
+        new_obj_lst.emplace_back(rotated);
+    }
+    obj_lst.clear();
+    obj_lst = new_obj_lst;
 }
 
 // Defines a Graph that will be used for determining what smaller objects
@@ -469,14 +411,16 @@ vector<vector<int>> Graph::connectedComps() {
 }
 
 // Returns distance from a point to a line segment
-float pointToSeg(int x, int z, autocycle_extras::Object seg) {
-	float segx = seg.x1 - seg.x2;
-	float segz = seg.z1 - seg.z2;
-	float lpx = seg.x1 - x;
-	float lpz = seg.z1 - z;
-	float seg_len = sqrt(pow(seg.x1 - seg.x2, 2) + pow(seg.z1 - seg.z2, 2));
+float pointToSeg(int x, int z, tuple<float, float, float, float> seg) {
+    float x1, x2, z1, z2;
+    tie (x1, x2, z1, z2) = seg;
+	float segx = x1 - x2;
+	float segz = z1 - z2;
+	float lpx = x1 - x;
+	float lpz = z1 - z;
+	float seg_len = sqrt(pow(x1 - x2, 2) + pow(z1 - z2, 2));
 	if (seg_len == 0) {
-		return sqrt(pow(seg.x1 - lpx, 2) + pow(seg.z1 - lpz, 2));
+		return sqrt(pow(x1 - lpx, 2) + pow(z1 - lpz, 2));
 	}
 	float t = segx / seg_len * lpx / seg_len + segz / seg_len * lpz / seg_len;
 	if (t < 0) {
@@ -490,17 +434,20 @@ float pointToSeg(int x, int z, autocycle_extras::Object seg) {
 }
 
 // Returns distance between two line segments
-float segDist(autocycle_extras::Object seg1, autocycle_extras::Object seg2) {
-	float dist = pointToSeg(seg1.x1, seg1.z1, seg2);
-	float t1 = pointToSeg(seg1.x2, seg1.z2, seg2);
+float segDist(tuple<float, float, float, float> seg1, tuple<float, float, float, float> seg2) {
+    float seg1x1, seg1x2, seg1z1, seg1z2, seg2x1, seg2x2, seg2z1, seg2z2;
+    tie (seg1x1, seg1x2, seg1z1, seg1z2) = seg1;
+    tie (seg2x1, seg2x2, seg2z1, seg2z2) = seg2;
+	float dist = pointToSeg(seg1x1, seg1z1, seg2);
+	float t1 = pointToSeg(seg1x2, seg1z2, seg2);
 	if (dist > t1) {
 		dist = t1;
 	}
-	float t2 = pointToSeg(seg2.x1, seg2.z1, seg1);
+	float t2 = pointToSeg(seg2x1, seg2z1, seg1);
 	if (dist > t2) {
 		dist = t2;
 	}
-	float t3 = pointToSeg(seg2.x2, seg2.z2, seg1);
+	float t3 = pointToSeg(seg2x2, seg2z2, seg1);
 	if (dist > t3) {
 		dist = t3;
 	}
@@ -539,11 +486,13 @@ int orientation(vector<float> p,vector<float> q,vector<float> r){
 // Generates line segments representing the convex hull of a group of objects
 // This is used to consolidate the smaller objects that were deemed part
 // of the same larger object
-vector<autocycle_extras::Object> convHull(vector<autocycle_extras::Object> objects) {
+vector<tuple<float, float, float, float>> convHull(vector<tuple<float, float, float, float>> objects) {
 	vector<vector<float>> points;
-	for (int i = 0; i < objects.size(); i++) {
-		points.push_back({objects[i].x1, objects[i].z1});
-		points.push_back({objects[i].x2, objects[i].z2});
+	float x1, x2, z1, z2;
+	for (tuple<float, float, float, float> o : objects) {
+	    tie (x1, x2, z1, z2) = o;
+		points.push_back({x1, z1});
+		points.push_back({x2, z2});
 	}
 	int n = points.size();
 	if (n < 3) {
@@ -567,11 +516,11 @@ vector<autocycle_extras::Object> convHull(vector<autocycle_extras::Object> objec
 			break;
 		}
 	}
-	vector<autocycle_extras::Object> new_objects;
+	vector<tuple<float, float, float, float>> new_objects;
 	for (int i = 1; i < hull.size(); i++) {
-		new_objects.push_back(get_object(points[hull[i-1]][0], points[hull[i]][0], points[hull[i-1]][1], points[hull[i]][1]));
+		new_objects.push_back(make_tuple(points[hull[i-1]][0], points[hull[i]][0], points[hull[i-1]][1], points[hull[i]][1]));
 	}
-	new_objects.push_back(get_object(points[hull[hull.size()-1]][0], points[hull[0]][0], points[hull[hull.size()-1]][1], points[hull[0]][1]));
+	new_objects.push_back(make_tuple(points[hull[hull.size()-1]][0], points[hull[0]][0], points[hull[hull.size()-1]][1], points[hull[0]][1]));
 	return new_objects;
 }
 
@@ -646,8 +595,9 @@ vector<vector<float>> getBoundingBox(float x1, float x2, float z1, float z2) {
 }
 
 // Determines whether a new object intersects any existing objects
-bool intersection(float x1, float x2, float z1, float z2, vector<autocycle_extras::Object> objects) {
+bool intersection(float x1, float x2, float z1, float z2) {
     vector<vector<float>> points;
+    float x3, x4, z3, z4;
     if (x1 < x2) {
         points = getBoundingBox(x1, x2, z1, z2);
     } else if (x1 > x2){
@@ -677,13 +627,10 @@ bool intersection(float x1, float x2, float z1, float z2, vector<autocycle_extra
                                                      min(points[2][1], points[3][1]), max(points[2][1], points[3][1])},
                                              {min(points[3][0], points[0][0]), max(points[3][0], points[0][0]),
                                                      min(points[3][1], points[0][1]), max(points[3][1], points[0][1])}};
-    for (autocycle_extras::Object o : objects) {
-        float x3 = o.x1;
-        float x4 = o.x2;
-        float z3 = o.z1;
-        float z4 = o.z2;
-        vector<float> p2m = {o.x1 - points[1][0], o.z1 - points[1][1]};
-        vector<float> p2m2 = {o.x2 - points[1][0], o.z2 - points[1][1]};
+    for (tuple<float, float, float, float> o : obj_lst) {
+        tie (x3, x4, z3, z4) = o;
+        vector<float> p2m = {x3 - points[1][0], z3 - points[1][1]};
+        vector<float> p2m2 = {x4 - points[1][0], z4 - points[1][1]};
         float p2m_p2p3 = (p2m[0] * p2p3[0] +  p2m[1] * p2p3[1]);
         float p2m_p2p1 = (p2m[0] * p2p1[0] +  p2m[1] * p2p1[1]);
         float p2m2_p2p3 = (p2m2[0] * p2p3[0] +  p2m2[1] * p2p3[1]);
@@ -725,7 +672,7 @@ bool intersection(float x1, float x2, float z1, float z2, vector<autocycle_extra
 // Condenses a group of newly detected objects. This means that any objects
 // That intersected are destroyed and any new objects are coalesed with
 // nearby objects
-vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object> objects) {
+vector<tuple<float, float, float, float>> condenseObjects(vector<tuple<float, float, float, float>> objects) {
 	Graph gr = Graph(objects.size());
 	for (int x = 0; x < objects.size(); x++) {
 		for (int y = x+1; y < objects.size(); y++) {
@@ -735,17 +682,17 @@ vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object
 		}
 	}
 	vector<vector<int>> groups = gr.connectedComps();
-	vector<vector<autocycle_extras::Object>> grouped_objs;
+	vector<vector<tuple<float, float, float, float>>> grouped_objs;
 	for (int i = 0; i < groups.size(); i++) {
-		vector<autocycle_extras::Object> temp;
+		vector<tuple<float, float, float, float>> temp;
 		for (int y = 0; y < groups[i].size(); y++) {
 			temp.push_back(objects[groups[i][y]]);
 		}
 		grouped_objs.push_back(temp);
 	}
-	vector<autocycle_extras::Object> new_objects;
+	vector<tuple<float, float, float, float>> new_objects;
 	for (int i = 0; i < grouped_objs.size(); i++) {
-		vector<autocycle_extras::Object> temp = convHull(grouped_objs[i]);
+		vector<tuple<float, float, float, float>> temp = convHull(grouped_objs[i]);
 		new_objects.insert(new_objects.end(), temp.begin(), temp.end());
 	}
 	return new_objects;
@@ -754,12 +701,17 @@ vector<autocycle_extras::Object> condenseObjects(vector<autocycle_extras::Object
 // Detects new objects from the latest LiDAR data
 void object_detection() {
     //auto start = chrono::high_resolution_clock::now();
-	obj_lst.obj_lst.clear();
+	obj_lst.clear();
 	vector<vector<float>> cells(cell_row, vector<float>(cell_col, 0));
-	for (int i = 0; i < points.size(); i++) {
-		float z = points[i].z;
-		int x = (points[i].x + (width / 2)) / cell_dim;
-		int y = (points[i].y + (height / 2)) / cell_dim;
+	for (int i = 0; i < lvx_points.size(); i++) {
+		float z = get<2>(lvx_points[i]);
+
+		if(z < 1000){
+		    continue;
+		}
+
+		int x = (get<0>(lvx_points[i]) + (width / 2)) / cell_dim;
+		int y = (get<1>(lvx_points[i]) + (height / 2)) / cell_dim;
 		if (cells[y][x] == 0 || z < cells[y][x]) {
 			cells[y][x] = z;
 		}
@@ -775,7 +727,6 @@ void object_detection() {
 			if (cells[row][col] == 0) {
 				counter = 0;
 				min_obj = 0;
-				prev = 0;
 				continue;
 			}
 			if (counter == 0){
@@ -789,22 +740,30 @@ void object_detection() {
 			} else {
 				counter += 1;
 			}
-			if (prev > cells[row][col] + for_jump_diff && row - 2 > 0 && cells[row-2][col] != 0) {
+			if (prev != 0 && prev > cells[row][col] + for_jump_diff) {
 				closest = min(closest, cells[row][col]);
 			}
 			if (counter > counter_reps) {
 				closest = min(closest, min_obj);
 			}
-			prev = cells[row][col];
+            if (cells[row][col] != 0) {
+                prev = cells[row][col];
+            }
 		}
 		close_vec[col] = closest;
 	}
 	int left_bound = 0;
 	int right_bound = 0;
+	float x1, x2, z1, z2;
 	float prev = max_dist;
-	vector<autocycle_extras::Object> z_boys;
+	vector<tuple<float, float, float, float>> z_boys;
 
 	for (int col = 0; col < cell_col; col++) {
+	    x1 = left_bound * cell_dim - width / 2;
+	    x2 = (right_bound + 1) * cell_dim - width / 2;
+	    z1 = close_vec[left_bound];
+	    z2 = close_vec[right_bound];
+
 		if (close_vec[col] < max_dist) {
 			if (prev == max_dist) {
 				left_bound = col;
@@ -814,41 +773,32 @@ void object_detection() {
 				right_bound++;
 				prev = close_vec[col];
 			} else {
-                if (not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
-                                     close_vec[left_bound], close_vec[right_bound], obj_lst.obj_lst)) {
-                    z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
-                                                (right_bound + 1) * cell_dim - width / 2,
-                                                close_vec[left_bound],
-                                                close_vec[right_bound]));
+                if (not intersection(x1, x2, z1, z2)) {
+                    z_boys.push_back(make_tuple(x1, x2, z1, z2));
                 }
 				prev = max_dist;
 			}
 		} else if (prev < max_dist) {
-            if (not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
-                                 close_vec[left_bound], close_vec[right_bound], obj_lst.obj_lst)) {
-                z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
-                                            (right_bound + 1) * cell_dim - width / 2,
-                                            close_vec[left_bound],
-                                            close_vec[right_bound]));
+           if (not intersection(x1, x2, z1, z2)) {
+                z_boys.push_back(make_tuple(x1, x2, z1, z2));
             }
 			prev = max_dist;
 		}
 	}
 
-    if (prev < max_dist &&
-        not intersection(left_bound * cell_dim - width / 2, (right_bound + 1) * cell_dim - width / 2,
-                         close_vec[left_bound], close_vec[right_bound], obj_lst.obj_lst)) {
-        z_boys.push_back(get_object(left_bound * cell_dim - width / 2,
-                                    (right_bound + 1) * cell_dim - width / 2,
-                                    close_vec[left_bound],
-                                    close_vec[right_bound]));
+    x1 = left_bound * cell_dim - width / 2;
+    x2 = (right_bound + 1) * cell_dim - width / 2;
+    z1 = close_vec[left_bound];
+    z2 = close_vec[right_bound];
+
+    if (prev < max_dist && not intersection(x1, x2, z1, z2)) {
+        z_boys.push_back(make_tuple(x1, x2, z1, z2));
     }
 
-
 	cond_objs = condenseObjects(z_boys);
-	obj_lst.obj_lst.insert(obj_lst.obj_lst.end(), cond_objs.begin(), cond_objs.end());
-        for(auto & i : obj_lst.obj_lst){
-	    ROS_INFO_STREAM("OBJECT: (" << i.x1 << ", " << i.x2 << ", " << i.z1 << ", " << i.z2 << ")");
+	obj_lst.insert(obj_lst.end(), cond_objs.begin(), cond_objs.end());
+        for(auto & i : obj_lst){
+	    ROS_INFO_STREAM("OBJECT: (" << get<0>(i) << ", " << get<1>(i) << ", " << get<2>(i) << ", " << get<3>(i) << ")");
 	}
 
 	//auto end = chrono::high_resolution_clock::now();
@@ -922,29 +872,24 @@ void parse_lvx(){
                         //frame_cnt++;
                         // x val
                         file.read(buff, 4);
-                        x = *((uint32_t *) buff);
+                        z = *((uint32_t *) buff);
 
                         // y val. We can record it if we determine we need it
                         file.read(buff, 4);
-                        y = *((uint32_t *) buff);
-
+                        x = *((uint32_t *) buff);
                         // z val
                         file.read(buff, 4);
-                        z = *((uint32_t *) buff);
+                        y = *((uint32_t *) buff);
 
-                        //xs.push_back(x);
-                        //zs.push_back(z);
+                        //z = z*0.9994 - y*0.0349
+                        //y = z*0.0349 + y*0.9994
 
                         // Ignores tag and reflexivity
                         file.ignore(2);
 
-                        autocycle_extras::Point p;
-                        p.z = x;
-                        p.x = y;
-                        p.y = z;
-			if(p.z !=0 && p.x > -half_width && p.x < half_width && p.y > -half_height && p.y < half_height){
-			    points.push_back(p);
-			}
+                        if(z !=0 && x > -half_width && x < half_width && y > -height_of_lidar && y < half_height){
+                            lvx_points.push_back(make_tuple(x, y, z));
+                        }
 			//o_file << "(" << p.x << ", " << p.y << ", " << p.z << ") ";
                        // if(-50 < p.x and p.x < 50){
 		       //     ROS_INFO_STREAM(p.z);
@@ -960,23 +905,19 @@ void parse_lvx(){
     else {
         ROS_ERROR_STREAM("File could not be opened");
     }
-    points.shrink_to_fit();
+    lvx_points.shrink_to_fit();
     //o_file << endl;
 }
 
 // Adjusts detected points for roll from the bike
 void fix_roll(){
-  // Initializes variables
-  autocycle_extras::Point p;
-  autocycle_extras::Point np;
+  tuple<float, float, float> np; // new point tuple
+  float x, y, z;                 // Point position variables
 
-  // Updates each point in `req` and pushes it to the new vector
-  for(int i=0;i<points.size();i++){
-    p = points[i];
-    np.x = (p.x*cos(roll)) - (p.y*sin(roll));
-    np.y = (p.x*sin(roll)) + (p.y*cos(roll));
-    np.z = p.z;
-    points[i] = np;
+  // Updates each point for the given roll
+  for(int i=0;i<lvx_points.size();i++){
+    tie (x, y, z) = lvx_points[i];
+    lvx_points[i] = make_tuple(x*cos(roll) - y*sin(roll), x*sin(roll) + y*cos(roll), z);
   }
 }
 
