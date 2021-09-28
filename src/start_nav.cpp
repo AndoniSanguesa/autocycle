@@ -22,14 +22,14 @@ using namespace std;
 
 // General use variable initialization
 
-bool ready = false;                                   // True if new LiDAR frame is ready for analysis
-vector<tuple<float, float, float>> lvx_points;        // Contains points parsed from LiDAR data
-ofstream f_done;                                      // Output file that will contain LiDAR info
-string path_to_lvx = "f_done.lvx";                    // Path to the data file
-float height_of_lidar = 763                           // Height of the LiDAR in millimeters
-vector<tuple<float, float, float, float>> obj_lst     // Current list of objects
-vector<tuple<float, float, float, float>> new_obj_lst // Temporary vector used in adjusting state
-vector<tuple<float, float, float, float>> cond_objs   // Contains objects post-convex hull
+bool ready = false;                                    // True if new LiDAR frame is ready for analysis
+vector<tuple<float, float, float>> lvx_points;         // Contains points parsed from LiDAR data
+ofstream f_done;                                       // Output file that will contain LiDAR info
+string path_to_lvx = "f_done.lvx";                     // Path to the data file
+float height_of_lidar = 763;                           // Height of the LiDAR in millimeters
+vector<tuple<float, float, float, float>> obj_lst;     // Current list of objects
+vector<tuple<float, float, float, float>> new_obj_lst; // Temporary vector used in adjusting state
+vector<tuple<float, float, float, float>> cond_objs;   // Contains objects post-convex hull
 
 // ROS varibale initialization
 ros::Publisher calc_deltas;                   // ROS publisher that publishes new paths for delta calculation
@@ -55,7 +55,7 @@ int col_diff = 50;                              // If the z value for 2 adjacent
 int for_jump_diff = col_diff * 1.5;             // Minimum negative change in z value to indicate an object
 int counter_reps = 2;                           // Number of consecutive consistent column values needed to immediately determine that an object is present
 int same_obj_diff = 150;                        // Horizontally adjacent Z distances under this value are considered the same object
-int group_dist = 1500;					        // max dist between adjacent objects for convex hull
+int group_dist = 1500;                          // max dist between adjacent objects for convex hull
 float box_dist = 1500;                          // distance in each dimension surrounding line segment for convex hull
 
 // Path Planning Variables
@@ -412,7 +412,7 @@ vector<vector<int>> Graph::connectedComps() {
 
 // Returns distance from a point to a line segment
 float pointToSeg(int x, int z, tuple<float, float, float, float> seg) {
-    float x1, x2, z1. z2;
+    float x1, x2, z1, z2;
     tie (x1, x2, z1, z2) = seg;
 	float segx = x1 - x2;
 	float segz = z1 - z2;
@@ -488,6 +488,7 @@ int orientation(vector<float> p,vector<float> q,vector<float> r){
 // of the same larger object
 vector<tuple<float, float, float, float>> convHull(vector<tuple<float, float, float, float>> objects) {
 	vector<vector<float>> points;
+	float x1, x2, z1, z2;
 	for (tuple<float, float, float, float> o : objects) {
 	    tie (x1, x2, z1, z2) = o;
 		points.push_back({x1, z1});
@@ -596,6 +597,7 @@ vector<vector<float>> getBoundingBox(float x1, float x2, float z1, float z2) {
 // Determines whether a new object intersects any existing objects
 bool intersection(float x1, float x2, float z1, float z2) {
     vector<vector<float>> points;
+    float x3, x4, z3, z4;
     if (x1 < x2) {
         points = getBoundingBox(x1, x2, z1, z2);
     } else if (x1 > x2){
@@ -918,7 +920,7 @@ void fix_roll(){
     x = get<0>(p);
     y = get<1>(p);
     z = get<2>(p);
-    lvx_points[i] = make_tuple(x*cos(roll) - y*sin(roll), x*sin(roll) + y*cos(roll), z)
+    lvx_points[i] = make_tuple(x*cos(roll) - y*sin(roll), x*sin(roll) + y*cos(roll), z);
   }
 }
 
