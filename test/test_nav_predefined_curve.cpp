@@ -24,7 +24,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <tuple>
-
+#include <unistd.h>
 using namespace std;
 
 // ready is true if there is a new frame from the lidar to analyze
@@ -320,7 +320,8 @@ void bfs(){
     node = end_node;
     while(node != start_node) {
         path.emplace_back(node);
-        xs.push_back(get<1>(node)*node_size + node_size);
+        ROS_INFO_STREAM("(" << get<1>(node) << ", " << get<0>(node) << ")");
+	xs.push_back(get<1>(node)*node_size + node_size);
         ys.push_back(-get<0>(node)*node_size + (path_height / 2));
         try {
             node = parent.at(cantor(node));
@@ -331,10 +332,10 @@ void bfs(){
     }
     xs.push_back(get<1>(start_node)*node_size + node_size);
     ys.push_back(-get<0>(node)*node_size +(path_height / 2));
-    xs.push_back(0);
-    ys.push_back(0);
     path.emplace_back(start_node);
     reverse(path.begin(),path.end());
+    reverse(xs.begin(), xs.end());
+    reverse(ys.begin(), ys.end());
 }
 
 // Updates end_node to approximate the desired heading
@@ -376,7 +377,7 @@ void generate_curve() {
     calc_deltas_pub.path_y = ys;
 
     calc_deltas.publish(calc_deltas_pub);
-
+    //ROS_INFO_STREAM("YOOOOOOOOOOO");
     // auto end = chrono::high_resolution_clock::now();
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     // ROS_INFO_STREAM("PATH PLANNING IS TAKING: " << (float) duration.count() / 1000.0 << " SECONDS");
@@ -987,8 +988,8 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "navigation_communicator");
   ros::NodeHandle nh;
 
-  ros::service::waitForService("calc_delta");
-
+  ros::service::waitForService("calc_deltas");
+  usleep(10000);
   // Creates subscriber for updating roll
   ros::Subscriber update_roll = nh.subscribe("sensors/roll", 1, &get_roll);
 
@@ -1036,10 +1037,10 @@ int main(int argc, char **argv) {
   ros::spinOnce();
 
   obj_lst.obj_lst.push_back(get_object(-1000, 1000, 3495, 3480));
-
+  usleep(100000);
   // Generates a new path
   generate_curve();
-
+  
   // Clears the lvx file and shuts down. Mission Complete
   f_done.open(path_to_lvx, ios::trunc);
   f_done.write("done", 4);

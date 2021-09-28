@@ -1,0 +1,3 @@
+float64 dist_to_edge
+float64 edge_to_path
+float64 edge_len
