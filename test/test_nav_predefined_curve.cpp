@@ -331,10 +331,10 @@ void bfs(){
     }
     xs.push_back(get<1>(start_node)*node_size + node_size);
     ys.push_back(-get<0>(node)*node_size +(path_height / 2));
-    xs.push_back(0);
-    ys.push_back(0);
     path.emplace_back(start_node);
     reverse(path.begin(),path.end());
+    reverse(xs.begin(), xs.end());
+    reverse(ys.begin(), ys.end());
 }
 
 // Updates end_node to approximate the desired heading
@@ -987,7 +987,7 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "navigation_communicator");
   ros::NodeHandle nh;
 
-  ros::service::waitForService("calc_delta");
+  ros::service::waitForService("calc_deltas");
 
   // Creates subscriber for updating roll
   ros::Subscriber update_roll = nh.subscribe("sensors/roll", 1, &get_roll);
