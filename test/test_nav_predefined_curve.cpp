@@ -970,7 +970,7 @@ int main(int argc, char **argv) {
   ros::spinOnce();
 
   // Clears all points in preparation for new Livox data
-  points.clear();
+  lvx_points.clear();
 
   //ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
   // Once again checks for callbacks
