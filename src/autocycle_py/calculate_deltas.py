@@ -21,7 +21,7 @@ def calculate_deltas(data):
     t = tck[0].tolist()
     c1 = tck[1][0].tolist()
     c2 = tck[1][1].tolist()
-    update_delta_proxy(t, c1, c2, tck[2].item(), full_len)
+    update_delta_proxy(t, c1, c2, tck[2], full_len)
 
 
 def dummy_fun(data):
