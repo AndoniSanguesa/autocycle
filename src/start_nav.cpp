@@ -49,7 +49,7 @@ ofstream f_done;
 float roll = 0;
 
 int height = 2400;   // vertical height of detection window in millimeters
-int width = 2000;    // horizontal width of detection window in millimeters
+int width = 10000;    // horizontal width of detection window in millimeters
 int cell_dim = 50;   // dimension of cells in millimeters (cells are squares)
 
 int half_height = height/2; // Half of the above variable
@@ -83,7 +83,7 @@ int for_jump_diff = col_diff * 1.5;      // Expected min difference between cell
 int counter_reps = 2;                    // Number of reps required to dictate it is an object.
 int same_obj_diff = 150;                 // maximum diff between horizontal cells to be considered the same object
 int group_dist = 1500;					 // max dist between adjacent objects for convex hull
-float max_dist = 4000;
+float max_dist = 20000;
 float box_dist = 1500;                   // distance in each dimension surrounding line segment
 
 float prev_heading = 0;
@@ -775,7 +775,6 @@ void object_detection() {
 			if (cells[row][col] == 0) {
 				counter = 0;
 				min_obj = 0;
-				prev = 0;
 				continue;
 			}
 			if (counter == 0){
@@ -789,13 +788,15 @@ void object_detection() {
 			} else {
 				counter += 1;
 			}
-			if (prev > cells[row][col] + for_jump_diff && row - 2 > 0 && cells[row-2][col] != 0) {
+			if (prev != 0 && prev > cells[row][col] + for_jump_diff) {
 				closest = min(closest, cells[row][col]);
 			}
 			if (counter > counter_reps) {
 				closest = min(closest, min_obj);
 			}
-			prev = cells[row][col];
+            if (cells[row][col] != 0) {
+                prev = cells[row][col];
+            }
 		}
 		close_vec[col] = closest;
 	}

@@ -5,7 +5,6 @@
 #include <std_msgs/Float32.h>
 #include <chrono>
 #include <std_srvs/Empty.h>
-#include <unistd.h>
 
 using namespace std;
 
@@ -82,7 +81,6 @@ int main(int argc, char **argv) {
 	    if(dist_trav >= 15){
 	        return 1;
 	    }
-	
         my_serial.write("d " + to_string(resp.delta) + ";");
     }
 }
