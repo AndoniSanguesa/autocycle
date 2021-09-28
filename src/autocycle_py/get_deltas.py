@@ -44,7 +44,7 @@ def delta(data):
 
 def update_deltas(data):
     global tck, full_len
-    tck = (data.t, data.c, data.k)
+    tck = (data.t, [data.c1, data.c2], data.k)
     full_len = data.full_len
     return []
 
