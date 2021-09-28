@@ -65,13 +65,12 @@ int main(int argc, char **argv) {
         //dist_trav += velocity * (((float) duration.count())/1000.0);
         dist_trav += 0.25;
         req.x = dist_trav;
-        req.vel = velocity;
+        req.vel = 4.5;
         get_delta.call(req, resp);
         //my_serial.write("s 1;");
-        ROS_INFO_STREAM("DELTA OUTPUT: " << resp.delta);
+        ROS_INFO_STREAM("DIST TRAVELED: " << dist_trav << "\nDELTA OUTPUT: " << resp.delta);
         usleep(250000);
 	if(dist_trav >= 15){
-	    ROS_INFO_STREAM("BRUHHHHH");
 	    return 1;
 	}
         //my_serial.write("d " + to_string(resp.delta) + ";");
