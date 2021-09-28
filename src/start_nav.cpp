@@ -324,8 +324,12 @@ void bfs(){
             break;
         }
     }
+    ys.push_back(get<1>(start_node)*node_size + node_size);
+    xs.push_back(-get<0>(node)*node_size + (path_height / 2));
     path.emplace_back(start_node);
     reverse(path.begin(),path.end());
+    reverse(xs.begin(), xs.end());
+    reverse(ys.begin(), ys.end());
 }
 
 // Updates end_node to approximate the desired heading
