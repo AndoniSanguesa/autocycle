@@ -42,11 +42,6 @@ int main(int argc, char **argv) {
     autocycle_extras::GetDelta::Request req;
     autocycle_extras::GetDelta::Response resp;
 
-    // Initializes delta requests and response. Used to wait for an actual delta
-    resp.delta = -1;
-    req.vel = 0;
-    req.x = 0;
-
     // Creates Service that will reset the distance
     ros::Subscriber get_path = nh.subscribe("cycle/calc_deltas", 1, &reset_distance);
 
@@ -58,12 +53,7 @@ int main(int argc, char **argv) {
 
     // Starts the clock!
     auto start = std::chrono::high_resolution_clock::now();
-
-    // Waits until a path is ready to be followed
-    while(resp.delta == -1){
-        get_delta.call(req, resp);
-    }
-
+    
     // Rates the delta querying speed
     // ros::Rate loop_rate(10);
 
