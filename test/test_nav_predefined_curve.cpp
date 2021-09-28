@@ -955,7 +955,7 @@ int main(int argc, char **argv) {
   des_heading = heading;
 
   // Reserves the requisite space for the vectors in use
-  points.reserve(15000);
+  lvx_points.reserve(15000);
   path.reserve(400);
   xs.reserve(400);
   ys.reserve(400);
