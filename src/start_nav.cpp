@@ -49,7 +49,7 @@ ofstream f_done;
 float roll = 0;
 
 int height = 2400;   // vertical height of detection window in millimeters
-int width = 2000;    // horizontal width of detection window in millimeters
+int width = 8000;    // horizontal width of detection window in millimeters
 int cell_dim = 50;   // dimension of cells in millimeters (cells are squares)
 
 int half_height = height/2; // Half of the above variable
@@ -83,8 +83,9 @@ int for_jump_diff = col_diff * 1.5;      // Expected min difference between cell
 int counter_reps = 2;                    // Number of reps required to dictate it is an object.
 int same_obj_diff = 150;                 // maximum diff between horizontal cells to be considered the same object
 int group_dist = 1500;					 // max dist between adjacent objects for convex hull
-float max_dist = 4000;
+float max_dist = 20000;
 float box_dist = 1500;                   // distance in each dimension surrounding line segment
+float height_to_lidar = 736
 
 float prev_heading = 0;
 float heading = 0;
@@ -944,7 +945,7 @@ void parse_lvx(){
 
 
 
-			if(p.z !=0 && p.x > -half_width && p.x < half_width && p.y > -half_height && p.y < half_height){
+			if(p.z !=0 && p.x > -half_width && p.x < half_width && p.y > -height_to_lidar && p.y < half_height){
 			    points.push_back(p);
 			}
 			//o_file << "(" << p.x << ", " << p.y << ", " << p.z << ") ";
