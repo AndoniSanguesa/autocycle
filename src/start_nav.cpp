@@ -85,6 +85,7 @@ int same_obj_diff = 150;                 // maximum diff between horizontal cell
 int group_dist = 1500;					 // max dist between adjacent objects for convex hull
 float max_dist = 20000;
 float box_dist = 1500;                   // distance in each dimension surrounding line segment
+height_of_lidar = 763
 
 float prev_heading = 0;
 float heading = 0;
@@ -945,7 +946,7 @@ void parse_lvx(){
 
 
 
-			if(p.z !=0 && p.x > -half_width && p.x < half_width && p.y > -half_height && p.y < half_height){
+			if(p.z !=0 && p.x > -half_width && p.x < half_width && p.y > -height_of_lidar && p.y < half_height){
 			    points.push_back(p);
 			}
 			//o_file << "(" << p.x << ", " << p.y << ", " << p.z << ") ";
