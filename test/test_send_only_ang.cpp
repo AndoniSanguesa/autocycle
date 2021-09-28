@@ -38,6 +38,10 @@ int main(int argc, char **argv) {
     ros::ServiceClient get_delta = nh.serviceClient<autocycle_extras::GetDelta>("get_delta");
     autocycle_extras::GetDelta::Request req;
     autocycle_extras::GetDelta::Response resp;
+
+    req.x = 0;
+    req.vel = 0;
+    resp.delta = -1;
 	
     ros::service::waitForService("get_delta");
     ros::service::waitForService("calc_deltas");
@@ -52,7 +56,12 @@ int main(int argc, char **argv) {
 
     // Starts the clock!
     auto start = std::chrono::high_resolution_clock::now();
-    
+
+    // Waits until a path is ready to be followed
+    while(resp.delta == -1){
+        get_delta.call(req, resp);
+    }
+
     // Rates the delta querying speed
     ros::Rate loop_rate(10);
 
