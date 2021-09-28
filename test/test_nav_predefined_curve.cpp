@@ -132,7 +132,7 @@ void augment_path(){
 void reset_vars(){
     // The nodes that have been deemed blocked by an object
     blocked_nodes.clear();
-    center_blocked_nodes.clear();
+    center_blocked_nodes.();
 
     // The path being taken
     path.clear();
@@ -279,8 +279,8 @@ void bfs(){
             break;
         }
     }
-    ys.push_back(get<1>(start_node)*node_size + node_size);
-    xs.push_back(-get<0>(node)*node_size + (path_height / 2));
+    xs.push_back(get<1>(start_node)*node_size + node_size);
+    ys.push_back(-get<0>(node)*node_size + (path_height / 2));
     path.emplace_back(start_node);
     reverse(path.begin(),path.end());
     reverse(xs.begin(), xs.end());
