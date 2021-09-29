@@ -43,8 +43,8 @@ float velocity = 0; // Latest velocity value
 
 // Object Detection Parameters
 
-int height = 2400;                              // vertical height of detection window in millimeters
-int width = 10000;                              // horizontal width of detection window in millimeters
+int height = 1000;                              // vertical height of detection window in millimeters
+int width = 500;                              // horizontal width of detection window in millimeters
 float max_dist = 20000;                         // Maximum distance to detect objects for
 int cell_dim = 50;                              // dimension of cells in millimeters (cells are squares)
 int half_height = height/2;                     // Half of the above variable
@@ -674,6 +674,7 @@ void object_detection() {
     //auto start = chrono::high_resolution_clock::now();
 	obj_lst.clear();
 	vector<vector<float>> cells(cell_row, vector<float>(cell_col, 0));
+    vector<vector<float>> underground(cell_row, vector<float>(cell_col, 0));
 	for (int i = 0; i < lvx_points.size(); i++) {
 		float z = get<2>(lvx_points[i]);
 
@@ -686,7 +687,14 @@ void object_detection() {
 		if (cells[y][x] == 0 || z < cells[y][x]) {
 			cells[y][x] = z;
 		}
+        underground[y][x] = underground[y][x] + 1;
 	}
+    for (int i = 0; i < underground.size(); i++) {
+        for(int j = 0; j < underground[i].size(); j++){
+            ROS_INFO_STREAM(underground[i][j] << " ");
+        }
+        ROS_INFO_STREAM("\n");
+    }
 	vector<float> close_vec(cell_col);
 	for (int col = 0; col < cell_col; col++) {
 		float prev = 0;
@@ -858,7 +866,7 @@ void parse_lvx(){
                         // Ignores tag and reflexivity
                         file.ignore(2);
 
-                        if(z !=0 && x > -half_width && x < half_width && y > -height_of_lidar && y < half_height){
+                        if(z !=0 && x > -half_width && x < half_width && y > -half_height && y < half_height){
                             lvx_points.push_back(make_tuple(x, y, z));
                         }
 			//o_file << "(" << p.x << ", " << p.y << ", " << p.z << ") ";
