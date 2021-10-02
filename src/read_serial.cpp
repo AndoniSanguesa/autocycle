@@ -64,7 +64,6 @@ int main(int argc, char **argv){
 
   ros::ServiceServer dummy_serv = nh.advertiseService("due_ready", dummy);
 
-  my_serial.write("t1,10000;");  
   while(ros::ok()){
     temp.append(my_serial.read());
     back_char = (char) temp.back();
