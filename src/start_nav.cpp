@@ -711,7 +711,7 @@ void object_detection() {
         sd_ref += pow(get<3>(lvx_points[i])-mean_ref,2);
 	}
 
-	sd_ref = sqrt(sd_ref/(lvx_points.size()-1))
+	sd_ref = sqrt(sd_ref/(lvx_points.size()-1));
 
 	ROS_INFO_STREAM("\nMIN REFLEX: " << min_ref << "\nMAX REFLEX: " << max_ref << "\nMEAN REFLEX: " << mean_ref << "\nSTANDARD DEVIATION: " << sd_ref);
 
@@ -919,7 +919,7 @@ void fix_roll(){
 
   // Updates each point for the given roll
   for(int i=0;i<lvx_points.size();i++){
-    tie (x, y, z) = lvx_points[i];
+    tie (x, y, z, ignore) = lvx_points[i];
     lvx_points[i] = make_tuple(x*cos(roll) - y*sin(roll), x*sin(roll) + y*cos(roll), z);
   }
 }
