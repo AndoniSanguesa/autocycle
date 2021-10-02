@@ -915,12 +915,12 @@ void parse_lvx(){
 // Adjusts detected points for roll from the bike
 void fix_roll(){
   tuple<float, float, float> np; // new point tuple
-  float x, y, z;                 // Point position variables
+  float x, y, z, reflect;                 // Point position variables
 
   // Updates each point for the given roll
   for(int i=0;i<lvx_points.size();i++){
-    tie (x, y, z, ignore) = lvx_points[i];
-    lvx_points[i] = make_tuple(x*cos(roll) - y*sin(roll), x*sin(roll) + y*cos(roll), z);
+    tie (x, y, z, reflect) = lvx_points[i];
+    lvx_points[i] = make_tuple(x*cos(roll) - y*sin(roll), x*sin(roll) + y*cos(roll), z, reflect);
   }
 }
 
