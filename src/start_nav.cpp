@@ -45,6 +45,7 @@ float velocity = 0; // Latest velocity value
 
 int height = 2400;                              // vertical height of detection window in millimeters
 int width = 10000;                              // horizontal width of detection window in millimeters
+int min_points_in_box = 0;                      // Minimum number of points in a box for that box to be considered to hold valuable info
 float max_dist = 20000;                         // Maximum distance to detect objects for
 int cell_dim = 50;                              // dimension of cells in millimeters (cells are squares)
 int half_height = height/2;                     // Half of the above variable
@@ -674,6 +675,7 @@ void object_detection() {
     //auto start = chrono::high_resolution_clock::now();
 	obj_lst.clear();
 	vector<vector<float>> cells(cell_row, vector<float>(cell_col, 0));
+	vector<vector<float>> cell_count(cell_row, vector<float>(cell_col, 0));
 	for (int i = 0; i < lvx_points.size(); i++) {
 		float z = get<2>(lvx_points[i]);
 
@@ -686,6 +688,23 @@ void object_detection() {
 		if (cells[y][x] == 0 || z < cells[y][x]) {
 			cells[y][x] = z;
 		}
+		cell_count[y][x] += 1;
+	}
+	ROS_INFO_STREAM("MATRIX Z VALUES:");
+	for (int row = 0; row < cell_row; row++){
+        string line = "| ";
+	    for(int col = 0; col < cell_col; col++){
+            line += to_string(cells[row][col]) + " | ";
+	    }
+	    ROS_INFO_STREAM(line);
+	}
+	ROS_INFO_STREAM("MATRIX COUNT VALUES:");
+	for (int row = 0; row < cell_row; row++){
+        string line = "| ";
+	    for(int col = 0; col < cell_col; col++){
+            line += to_string(cell_count[row][col]) + " | ";
+	    }
+	    ROS_INFO_STREAM(line);
 	}
 	vector<float> close_vec(cell_col);
 	for (int col = 0; col < cell_col; col++) {
@@ -695,7 +714,7 @@ void object_detection() {
 		float min_obj = 0;
 
 		for (int row = 0; row < cell_row; row++) {
-			if (cells[row][col] == 0) {
+			if (cells[row][col] == 0 || cell_count[row][col] <= min_points_in_box) {
 				counter = 0;
 				min_obj = 0;
 				continue;
