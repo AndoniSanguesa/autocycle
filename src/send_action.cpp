@@ -57,8 +57,8 @@ int main(int argc, char **argv) {
     ros::Subscriber get_state = nh.subscribe("sensors/state", 1, &update_state);
 
     // Starts the clock!
-    auto start = std::chrono::high_resolution_clock::now();
-
+    std::chrono::time_point<std::chrono::high_resolution_clock> start = std::chrono::high_resolution_clock::now();
+    std::chrono::time_point<std::chrono::high_resolution_clock> end;
     // Waits until a path is ready to be followed
     while(resp.delta == -1){
         get_delta.call(req, resp);
@@ -78,16 +78,19 @@ int main(int argc, char **argv) {
 	    ros::shutdown();
         }
 
-        auto end = std::chrono::high_resolution_clock::now();
+        end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        auto start = std::chrono::high_resolution_clock::now();
+        start = std::chrono::high_resolution_clock::now();
         dist_trav += velocity * (((float) duration.count())/1000.0);
         req.x = dist_trav;
         req.vel = velocity;
         get_delta.call(req, resp);
 
         usleep(250000);
-        my_serial.write("d" + to_string(resp.delta) + ";");
+
+        if(resp.delta < 0.25 && resp.delta > -0.25){
+            my_serial.write("d" + to_string(resp.delta) + ";");
+        }
     }
     my_serial.write("s 0;");
 }
