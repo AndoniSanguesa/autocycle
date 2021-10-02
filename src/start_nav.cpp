@@ -854,8 +854,8 @@ void parse_lvx(){
                         file.read(buff, 4);
                         y = *((uint32_t *) buff);
 
-                        v_ang = atan2(y/z) * 180 / 3.14159265;
-                        h_ang = atan2(x/z) * 180 / 3.14159265;
+                        v_ang = atan2(y,z) * 180 / 3.14159265;
+                        h_ang = atan2(x,z) * 180 / 3.14159265;
 
                         //z = z*0.9994 - y*0.0349
                         //y = z*0.0349 + y*0.9994
