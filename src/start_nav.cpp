@@ -18,11 +18,13 @@
 #include <unordered_set>
 #include <tuple>
 
+
 using namespace std;
 
 // General use variable initialization
 
 bool ready = false;                                    // True if new LiDAR frame is ready for analysis
+float limit_fov = 2;                                   // Number of degrees to limit
 vector<tuple<float, float, float>> lvx_points;         // Contains points parsed from LiDAR data
 ofstream f_done;                                       // Output file that will contain LiDAR info
 string path_to_lvx = "f_done.lvx";                     // Path to the data file
@@ -797,7 +799,7 @@ void get_velocity(const std_msgs::Float32 data){
 // Parses the lvx file and sets the current points vector
 void parse_lvx(){
     streampos size;
-    int data_type, x, y, z;
+    int data_type, x, y, z, v_ang, h_ang;
     char * buff;
     long long next;
     vector<float> rotated_point;
@@ -852,13 +854,17 @@ void parse_lvx(){
                         file.read(buff, 4);
                         y = *((uint32_t *) buff);
 
+                        v_ang = atan2(y/z) * 180 / 3.14159265;
+                        h_ang = atan2(x/z) * 180 / 3.14159265;
+
                         //z = z*0.9994 - y*0.0349
                         //y = z*0.0349 + y*0.9994
 
                         // Ignores tag and reflexivity
                         file.ignore(2);
 
-                        if(z !=0 && x > -half_width && x < half_width && y > -height_of_lidar && y < half_height){
+                        if(z !=0 && x > -half_width && x < half_width && y > -height_of_lidar && y < half_height &&
+                           v_ang > -12.55 + limit_fov && v_ang < 12.55 - limit_fov && h_ang > -40.85 + limit_fov && h_ang < 40.85 - limit_fov){
                             lvx_points.push_back(make_tuple(x, y, z));
                         }
 			//o_file << "(" << p.x << ", " << p.y << ", " << p.z << ") ";
