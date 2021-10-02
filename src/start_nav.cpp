@@ -23,7 +23,8 @@ using namespace std;
 // General use variable initialization
 
 bool ready = false;                                    // True if new LiDAR frame is ready for analysis
-vector<tuple<float, float, float>> lvx_points;         // Contains points parsed from LiDAR data
+float max_reflect = 0;                                 // Maximum allowable reflectivity (0-255)
+vector<tuple<float, float, float, float>> lvx_points;  // Contains points parsed from LiDAR data
 ofstream f_done;                                       // Output file that will contain LiDAR info
 string path_to_lvx = "f_done.lvx";                     // Path to the data file
 float height_of_lidar = 763;                           // Height of the LiDAR in millimeters
@@ -44,7 +45,7 @@ float velocity = 0; // Latest velocity value
 // Object Detection Parameters
 
 int height = 2400;                              // vertical height of detection window in millimeters
-int width = 10000;                              // horizontal width of detection window in millimeters
+int width = 500;                              // horizontal width of detection window in millimeters
 float max_dist = 20000;                         // Maximum distance to detect objects for
 int cell_dim = 50;                              // dimension of cells in millimeters (cells are squares)
 int half_height = height/2;                     // Half of the above variable
@@ -674,7 +675,23 @@ void object_detection() {
     //auto start = chrono::high_resolution_clock::now();
 	obj_lst.clear();
 	vector<vector<float>> cells(cell_row, vector<float>(cell_col, 0));
+	float cur_ref, sd_ref;
+	float min_ref = -1;
+	float max_ref = -1;
+	float mean_ref = 0;
 	for (int i = 0; i < lvx_points.size(); i++) {
+	    cur_ref = get<3>(lvx_points[i]);
+
+        if(min_ref == -1 || cur_ref < min_ref){
+            min_ref = cur_ref;
+        }
+
+        if(max_ref == -1 || cur_ref > max_ref){
+            max_ref = cur_ref;
+        }
+
+        mean_ref += cur_ref;
+
 		float z = get<2>(lvx_points[i]);
 
 		if(z < 1000){
@@ -687,6 +704,17 @@ void object_detection() {
 			cells[y][x] = z;
 		}
 	}
+
+	mean_ref = mean_ref / lvx_points.size();
+
+	for (int i = 0; i < lvx_points.size(); i++) {
+        sd_ref += pow(get<3>(lvx_points[i])-mean_ref,2);
+	}
+
+	sd_ref = sqrt(sd_ref/(lvx_points.size()-1))
+
+	ROS_INFO_STREAM("\nMIN REFLEX: " << min_ref << "\nMAX REFLEX: " << max_ref << "\nMEAN REFLEX: " << mean_ref << "\nSTANDARD DEVIATION: " << sd_ref);
+
 	vector<float> close_vec(cell_col);
 	for (int col = 0; col < cell_col; col++) {
 		float prev = 0;
@@ -797,7 +825,7 @@ void get_velocity(const std_msgs::Float32 data){
 // Parses the lvx file and sets the current points vector
 void parse_lvx(){
     streampos size;
-    int data_type, x, y, z;
+    int data_type, x, y, z, reflect;
     char * buff;
     long long next;
     vector<float> rotated_point;
@@ -855,11 +883,15 @@ void parse_lvx(){
                         //z = z*0.9994 - y*0.0349
                         //y = z*0.0349 + y*0.9994
 
-                        // Ignores tag and reflexivity
-                        file.ignore(2);
+                        // Ignores tag
+                        file.ignore(1);
 
-                        if(z !=0 && x > -half_width && x < half_width && y > -height_of_lidar && y < half_height){
-                            lvx_points.push_back(make_tuple(x, y, z));
+                        // Reflectivity
+                        file.read(buff, 1);
+                        reflect = (float) *((unsigned char *) buff);
+
+                        if(z !=0 && x > -half_width && x < half_width && y > -height_of_lidar && y < half_height && reflect < max_reflect){
+                            lvx_points.push_back(make_tuple(x, y, z, reflect));
                         }
 			//o_file << "(" << p.x << ", " << p.y << ", " << p.z << ") ";
                        // if(-50 < p.x and p.x < 50){
