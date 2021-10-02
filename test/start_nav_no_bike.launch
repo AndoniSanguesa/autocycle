@@ -15,6 +15,13 @@
   />
   <node
     pkg="autocycle"
+    type="calculate_deltas"
+    name="calculate_deltas"
+    output="screen"
+    respawn="true"
+  />
+  <node
+    pkg="autocycle"
     type="get_deltas"
     name="get_deltas"
     output="screen"

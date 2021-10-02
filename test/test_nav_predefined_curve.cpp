@@ -102,37 +102,11 @@ tuple<float, float> get_change(tuple<float, float> p1, tuple<float, float> p2){
     return(make_tuple(get<0>(p2) - get<0>(p1), get<1>(p2) - get<1>(p1)));
 }
 
-// Generates intermediary points along the generated path to assist in interpolation
-void augment_path(){
-    vector<tuple<float, float>> new_path;
-    tuple<float, float> change;
-    float new_x, new_y = 0;
-    unsigned long last_ind;
-
-    new_path.reserve(path.size()*2);
-    new_path.push_back(path[0]);
-    xs.clear();
-    ys.clear();
-
-    for(int i = 1; i < path.size(); i++){
-        last_ind = new_path.size()-1;
-        change = get_change(new_path[last_ind], path[i]);
-        new_x = get<1>(new_path[last_ind])+(get<0>(change)*0.5);
-        new_y = get<0>(new_path[last_ind])+(get<1>(change)*0.5);
-        new_path.emplace_back(new_y, new_x);
-        new_path.push_back(path[i]);
-        xs.push_back(new_x*node_size + node_size);
-        ys.push_back(-new_y*node_size + (path_height / 2));
-    }
-
-    path = new_path;
-}
-
 // Resets variables between generated paths
 void reset_vars(){
     // The nodes that have been deemed blocked by an object
     blocked_nodes.clear();
-    center_blocked_nodes.();
+    center_blocked_nodes.clear();
 
     // The path being taken
     path.clear();
