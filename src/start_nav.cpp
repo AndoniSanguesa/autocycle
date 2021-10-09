@@ -318,7 +318,6 @@ void update_object_positions(float delta_time){
 
     for(auto & i : obj_lst){
         tie (x1, x2, z1, z2) = i;
-        tuple<float, float, float, float> rotated;
         rx1 = x1*delta_angle_cos - z1*delta_angle_sin;
         rz1 = x1*delta_angle_sin + z1*delta_angle_cos - dist;
         rx2 = x2*delta_angle_cos - z2*delta_angle_sin;
@@ -326,7 +325,7 @@ void update_object_positions(float delta_time){
         if(rz1 < 0 && rz2 < 0){
 	        continue;
         }
-        new_obj_lst.emplace_back(rotated);
+        new_obj_lst.emplace_back(make_tuple(rx1, rx2, rz1, rz2));
     }
     obj_lst.clear();
     obj_lst = new_obj_lst;
