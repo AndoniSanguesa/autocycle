@@ -5,7 +5,6 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-
 #include <iostream>
 
 using namespace std;
@@ -21,7 +20,7 @@ int main(int argc, char **argv){
   ros::NodeHandle nh;
   
   ofstream myfile;
-  myfile.open("stream_log.txt");
+  myfile.open("/home/ubuntu/stream_log.txt");
 
   // Registers the appropriate publishers
   ros::Publisher state_pub = nh.advertise<std_msgs::Float32>("sensors/state", 1);
@@ -75,9 +74,9 @@ int main(int argc, char **argv){
       if (cur_publisher%16 < 10){
         ROS_INFO_STREAM("COLLECTED DATA");
         publishers[cur_publisher%16].publish(to_pub);
-	myfile << names[cur_publisher%16];
-	myfile << to_string(to_pub.data);
-	myfile << endl;
+        myfile << names[cur_publisher%16];
+        myfile << to_string(to_pub.data);
+        myfile << endl;
       }
       cur_publisher++;
     }
