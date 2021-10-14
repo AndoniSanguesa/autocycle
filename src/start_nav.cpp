@@ -122,13 +122,9 @@ tuple<int, int> get_node_from_point(tuple<float, float> point){
     ));
 }
 
-tuple<float, float> get_change(tuple<float, float> p1, tuple<float, float> p2){
-    return make_tuple(get<0>(p2) - get<0>(p1), get<1>(p2) - get<1>(p1))
-}
-
 void augment_path(){
     vector<float> new_xs, new_ys;
-    tuple<float, float> new_point, cur_point, change;
+    tuple<float, float> next_point, cur_point, change;
     new_xs.push_back(xs[0]);
     new_ys.push_back(ys[0]);
     cur_point = make_tuple(ys[0], xs[0]);
@@ -230,7 +226,7 @@ bool line_intersect_object(tuple<tuple<int, int>, tuple<int, int>> end_points){
     tuple<int, int> node;
 
     if(get<0>(p2) < get<0>(p1)){
-        tuple<float, float> = p1;
+        tuple<float, float> tmp = p1;
         p1 = p2;
         p2 = tmp;
     }
@@ -270,7 +266,7 @@ bool check_if_heading_path_available(){
     last_point = make_tuple(asin(relative_heading)*30 + get<0>(start_node), acos(relative_heading)*30 + get<1>(start_node)+1);
     temp_xs.push_back(get<1>(last_point));
     temp_ys.push_back(get<0>(last_point));
-    if(!line_intersect_object(first_point, fin_point)){
+    if(!line_intersect_object(first_point, last_point)){
         xs = temp_xs;
         ys = temp_ys;
         return true;
