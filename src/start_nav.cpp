@@ -266,7 +266,7 @@ bool check_if_heading_path_available(){
     last_point = make_tuple(asin(relative_heading)*30 + get<0>(start_node), acos(relative_heading)*30 + get<1>(start_node)+1);
     temp_xs.push_back(get<1>(last_point));
     temp_ys.push_back(get<0>(last_point));
-    if(!line_intersect_object(first_point, last_point)){
+    if(!line_intersect_object(make_tuple(first_point, last_point))){
         xs = temp_xs;
         ys = temp_ys;
         return true;
