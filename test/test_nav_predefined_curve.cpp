@@ -1013,7 +1013,6 @@ int main(int argc, char **argv) {
 
   // Reserves the requisite space for the vectors in use
   lvx_points.reserve(15000);
-  path.reserve(400);
   xs.reserve(400);
   ys.reserve(400);
 
