@@ -68,8 +68,7 @@ int y_dim = path_height / node_size;                   // Height of graph in nod
 unordered_set<int> blocked_nodes;                      // Nodes that should be avoided for path generation
 unordered_set<int> center_blocked_nodes;               // The `anchor` blocked nodes, used only in generated the full `blocked_nodes` set
 float padding = 1.5;                                   // Amount of padding to place around objects in meters
-int padding_num = (int) (padding / (float) node_size); // Number of nodes around object to block out
-vector<tuple<float, float>> path;                      // The path generated
+int padding_num = (int) (padding / (float) node_size); // Number of nodes around object to block out                    // The path generated
 tuple<int, int> start_node = {y_dim/2, 0};             // Starting node for path
 tuple<int, int> end_node;                              // End node for path
 vector<float> ys;                                      // Path y values
@@ -109,8 +108,6 @@ void reset_vars(){
     center_blocked_nodes.clear();
 
     // The path being taken
-    path.clear();
-    path.reserve(400);
     xs.clear();
     ys.clear();
 }
@@ -123,6 +120,32 @@ tuple<int, int> get_node_from_point(tuple<float, float> point){
             (int) (((-y) + ((float) path_height / 2)) / (float) node_size),
             (int) (x / (float) node_size)
     ));
+}
+
+void augment_path(){
+    vector<float> new_xs, new_ys;
+    tuple<float, float> next_point, cur_point, change;
+    new_xs.push_back(xs[0]);
+    new_ys.push_back(ys[0]);
+    cur_point = make_tuple(ys[0], xs[0]);
+
+    for(int i=1;i<xs.size();i++){
+        next_point = make_tuple(ys[i], xs[i]);
+        change = get_change(cur_point, next_point);
+        new_xs.push_back(get<1>(cur_point)+(get<1>(change)*0.5));
+        new_ys.push_back(get<0>(cur_point)+(get<0>(change)*0.5));
+        cur_point = next_point;
+    }
+    xs = new_xs;
+    ys = new_ys;
+}
+
+// Converts graph node into corresponding cartesian point
+tuple<float, float> get_point_from_node(tuple<float, float> node){
+    float y = get<0>(node);
+    float x = get<1>(node);
+
+    return(make_tuple(x * node_size, -((y  * node_size) - (path_height / 2))));
 }
 
 // Returns the list of nodes that an object is blocking
@@ -197,6 +220,60 @@ void get_blocked_nodes(tuple<float, float, float, float> obj){
     }
 }
 
+bool line_intersect_object(tuple<tuple<int, int>, tuple<int, int>> end_points){
+    tuple<float, float> p1 = get_point_from_node(get<0>(end_points));
+    tuple<float, float> p2 = get_point_from_node(get<1>(end_points));
+    tuple<int, int> node;
+
+    if(get<0>(p2) < get<0>(p1)){
+        tuple<float, float> tmp = p1;
+        p1 = p2;
+        p2 = tmp;
+    }
+
+    float m = (get<1>(p2) - get<1>(p1))/(get<0>(p2) - get<0>(p1));
+    float delta_y = asin(m)*node_size;
+    float delta_x = acos(m)*node_size;
+    float cur_x = get<0>(p1);
+    float cur_y = get<1>(p1);
+
+    while(cur_x < get<0>(p2)){
+        node = get_node_from_point(make_tuple(cur_x, cur_y));
+        if(blocked_nodes.find(cantor(node)) != blocked_nodes.end()){
+            return true;
+        }
+        cur_x += delta_x;
+        cur_y += delta_y;
+    }
+
+    node = get_node_from_point(p2);
+    if(blocked_nodes.find(cantor(node)) != blocked_nodes.end()){
+        return true;
+    }
+    return false;
+}
+
+bool check_if_heading_path_available(){
+    vector<float> temp_xs, temp_ys;
+    tuple<float, float> first_point, last_point;
+    float relative_heading = des_heading - heading;
+    temp_xs.push_back(get<1>(start_node));
+    temp_xs.push_back(get<1>(start_node)+1);
+    temp_ys.push_back(get<0>(start_node));
+    temp_ys.push_back(get<0>(start_node));
+
+    first_point = make_tuple(get<1>(start_node)+1, get<0>(start_node));
+    last_point = make_tuple(asin(relative_heading)*30 + get<0>(start_node), acos(relative_heading)*30 + get<1>(start_node)+1);
+    temp_xs.push_back(get<1>(last_point));
+    temp_ys.push_back(get<0>(last_point));
+    if(!line_intersect_object(make_tuple(first_point, last_point))){
+        xs = temp_xs;
+        ys = temp_ys;
+        return true;
+    }
+    return false;
+}
+
 // Finds the shortest path from the starting node to the
 // end node via a Breadth First Search(BFS)
 void bfs(){
@@ -242,7 +319,6 @@ void bfs(){
 
     node = end_node;
     while(node != start_node) {
-        path.emplace_back(node);
         xs.push_back(get<1>(node)*node_size + node_size);
         ys.push_back(-get<0>(node)*node_size + (path_height / 2));
         try {
@@ -255,8 +331,6 @@ void bfs(){
     }
     xs.push_back(get<1>(start_node)*node_size + node_size);
     ys.push_back(-get<0>(node)*node_size + (path_height / 2));
-    path.emplace_back(start_node);
-    reverse(path.begin(),path.end());
     reverse(xs.begin(), xs.end());
     reverse(ys.begin(), ys.end());
 }
@@ -297,7 +371,13 @@ void generate_curve() {
     for (auto & i : real_obj_lst) {
         get_blocked_nodes(i);
     }
-    bfs();
+
+    if(!check_if_heading_path_available){
+        bfs();
+    } else{
+        augment_path();
+    }
+
     calc_deltas_pub.path_x = xs;
     calc_deltas_pub.path_y = ys;
 
