@@ -134,6 +134,8 @@ void augment_path(){
         change = get_change(cur_point, next_point);
         new_xs.push_back(get<1>(cur_point)+(get<1>(change)*0.5));
         new_ys.push_back(get<0>(cur_point)+(get<0>(change)*0.5));
+        new_xs.push_back(get<1>(next_point))
+        new_ys.push_back(get<0>(next_point))
         cur_point = next_point;
     }
     xs = new_xs;
@@ -256,19 +258,21 @@ bool line_intersect_object(tuple<tuple<int, int>, tuple<int, int>> end_points){
 bool check_if_heading_path_available(){
     vector<float> temp_xs, temp_ys;
     tuple<float, float> first_point, last_point;
-    float relative_heading = des_heading - heading;
+    float relative_heading = heading - des_heading;
     temp_xs.push_back(get<1>(start_node));
     temp_xs.push_back(get<1>(start_node)+1);
     temp_ys.push_back(get<0>(start_node));
     temp_ys.push_back(get<0>(start_node));
 
-    first_point = make_tuple(get<1>(start_node)+1, get<0>(start_node));
-    last_point = make_tuple(asin(relative_heading)*30 + get<0>(start_node), acos(relative_heading)*30 + get<1>(start_node)+1);
+    first_point = make_tuple(get<0>(start_node), get<1>(start_node)+1);
+    last_point = make_tuple(sin(relative_heading)*30 + get<0>(start_node), cos(relative_heading)*30 + get<1>(start_node)+1);
     temp_xs.push_back(get<1>(last_point));
     temp_ys.push_back(get<0>(last_point));
     if(!line_intersect_object(make_tuple(first_point, last_point))){
-        xs = temp_xs;
-        ys = temp_ys;
+        for(int i = 0; i < temp_xs.size(); i++){
+            xs.push_back(temp_xs[i]*node_size + node_size);
+            ys.push_back(-temp_ys[i]*node_size + (path_height / 2));
+        }
         return true;
     }
     return false;
@@ -372,7 +376,7 @@ void generate_curve() {
         get_blocked_nodes(i);
     }
 
-    if(!check_if_heading_path_available){
+    if(!check_if_heading_path_available()){
         bfs();
     } else{
         augment_path();
@@ -1007,9 +1011,6 @@ int main(int argc, char **argv) {
   while(heading == -1){
       ros::spinOnce();
   }
-
-  // Sets initial desired heading
-  des_heading = heading;
 
   // Reserves the requisite space for the vectors in use
   lvx_points.reserve(15000);
