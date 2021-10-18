@@ -3,7 +3,10 @@ import googlemaps
 # import rospy
 # from autocycle_extras.msg import GPS
 
-gmaps = googlemaps.Client(key="")
+# Put API key here. Do not push to a public repo
+GOOGLE_API_KEY = ""
+
+gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
 position_destination = [0, 0]
 
 
