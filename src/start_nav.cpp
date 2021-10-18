@@ -122,6 +122,34 @@ tuple<int, int> get_node_from_point(tuple<float, float> point){
     ));
 }
 
+void augment_path(){
+    vector<float> new_xs, new_ys;
+    tuple<float, float> next_point, cur_point, change;
+    new_xs.push_back(xs[0]);
+    new_ys.push_back(ys[0]);
+    cur_point = make_tuple(ys[0], xs[0]);
+
+    for(int i=1;i<xs.size();i++){
+        next_point = make_tuple(ys[i], xs[i]);
+        change = get_change(cur_point, next_point);
+        new_xs.push_back(get<1>(cur_point)+(get<1>(change)*0.5));
+        new_ys.push_back(get<0>(cur_point)+(get<0>(change)*0.5));
+        new_xs.push_back(get<1>(next_point))
+        new_ys.push_back(get<0>(next_point))
+        cur_point = next_point;
+    }
+    xs = new_xs;
+    ys = new_ys;
+}
+
+// Converts graph node into corresponding cartesian point
+tuple<float, float> get_point_from_node(tuple<float, float> node){
+    float y = get<0>(node);
+    float x = get<1>(node);
+
+    return(make_tuple(x * node_size, -((y  * node_size) - (path_height / 2))));
+}
+
 // Returns the list of nodes that an object is blocking
 void get_blocked_nodes(tuple<float, float, float, float> obj){
     float x1, x2, y1, y2, tmp, m;
@@ -192,6 +220,62 @@ void get_blocked_nodes(tuple<float, float, float, float> obj){
             blocked_nodes.insert(cantor(ind));
         }
     }
+}
+
+bool line_intersect_object(tuple<tuple<int, int>, tuple<int, int>> end_points){
+    tuple<float, float> p1 = get_point_from_node(get<0>(end_points));
+    tuple<float, float> p2 = get_point_from_node(get<1>(end_points));
+    tuple<int, int> node;
+
+    if(get<0>(p2) < get<0>(p1)){
+        tuple<float, float> tmp = p1;
+        p1 = p2;
+        p2 = tmp;
+    }
+
+    float m = (get<1>(p2) - get<1>(p1))/(get<0>(p2) - get<0>(p1));
+    float delta_y = asin(m)*node_size;
+    float delta_x = acos(m)*node_size;
+    float cur_x = get<0>(p1);
+    float cur_y = get<1>(p1);
+
+    while(cur_x < get<0>(p2)){
+        node = get_node_from_point(make_tuple(cur_x, cur_y));
+        if(blocked_nodes.find(cantor(node)) != blocked_nodes.end()){
+            return true;
+        }
+        cur_x += delta_x;
+        cur_y += delta_y;
+    }
+
+    node = get_node_from_point(p2);
+    if(blocked_nodes.find(cantor(node)) != blocked_nodes.end()){
+        return true;
+    }
+    return false;
+}
+
+bool check_if_heading_path_available(){
+    vector<float> temp_xs, temp_ys;
+    tuple<float, float> first_point, last_point;
+    float relative_heading = heading - des_heading;
+    temp_xs.push_back(get<1>(start_node));
+    temp_xs.push_back(get<1>(start_node)+1);
+    temp_ys.push_back(get<0>(start_node));
+    temp_ys.push_back(get<0>(start_node));
+
+    first_point = make_tuple(get<0>(start_node), get<1>(start_node)+1);
+    last_point = make_tuple(sin(relative_heading)*30 + get<0>(start_node), cos(relative_heading)*30 + get<1>(start_node)+1);
+    temp_xs.push_back(get<1>(last_point));
+    temp_ys.push_back(get<0>(last_point));
+    if(!line_intersect_object(make_tuple(first_point, last_point))){
+        for(int i = 0; i < temp_xs.size(); i++){
+            xs.push_back(temp_xs[i]*node_size + node_size);
+            ys.push_back(-temp_ys[i]*node_size + (path_height / 2));
+        }
+        return true;
+    }
+    return false;
 }
 
 // Finds the shortest path from the starting node to the
@@ -291,7 +375,13 @@ void generate_curve() {
     for (auto & i : real_obj_lst) {
         get_blocked_nodes(i);
     }
-    bfs();
+
+    if(!check_if_heading_path_available()){
+        bfs();
+    } else{
+        augment_path();
+    }
+
     calc_deltas_pub.path_x = xs;
     calc_deltas_pub.path_y = ys;
 
@@ -921,9 +1011,6 @@ int main(int argc, char **argv) {
   while(heading == -1){
       ros::spinOnce();
   }
-
-  // Sets initial desired heading
-  des_heading = heading;
 
   // Reserves the requisite space for the vectors in use
   lvx_points.reserve(15000);
