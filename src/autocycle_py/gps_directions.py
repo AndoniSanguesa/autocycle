@@ -1,15 +1,16 @@
 import googlemaps
+
 # import rospy
 # from autocycle_extras.msg import GPS
 
 gmaps = googlemaps.Client(key="")
-cur_gps_coords = (0, 0)
+position_destination = [0, 0]
 
 
 def update_gps(data):
-    global cur_gps_coords
+    global position_destination
 
-    cur_gps_coords = (data.long, data.lat)
+    position_destination = [data.lat, data.long]
 
 
 def get_gps_data():
@@ -21,3 +22,18 @@ def get_gps_data():
 
     return
     # will likely only need a continuous stream of geo-coordinates
+
+
+def get_directions():
+    directions = gmaps.directions(position_destination[0], position_destination[1])
+    print(directions)
+
+
+def test():
+    position_destination[0] = (38.993176, -76.933367)  # Cypress
+    position_destination[1] = (38.991369, -76.947012)  # Ellicott Hall
+    get_directions()
+
+
+if __name__ == "__main__":
+    test()
