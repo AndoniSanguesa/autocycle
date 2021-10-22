@@ -9,6 +9,8 @@
 #include <math.h>
 #include <vector>
 #include <autocycle_extras/CalcDeltas.h>
+#include <autocycle_extras/GPS.h>
+#include <autocycle_extras/DesiredGPS.h>
 #include <cmath>
 #include <set>
 #include <vector>
@@ -17,8 +19,13 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <tuple>
+#include <serial/serial.h>
 
 using namespace std;
+
+// Creates serial object to write to
+
+serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
 // General use variable initialization
 
@@ -30,16 +37,22 @@ float height_of_lidar = 763;                           // Height of the LiDAR in
 vector<tuple<float, float, float, float>> obj_lst;     // Current list of objects
 vector<tuple<float, float, float, float>> new_obj_lst; // Temporary vector used in adjusting state
 vector<tuple<float, float, float, float>> cond_objs;   // Contains objects post-convex hull
+float sync_head_amt = 0;                               // Amount to increase our heading by to synchronize with GPS
+tuple<float, float> desired_gps_pos;                   // Position describing the next desired position to get to
+bool desired_gps_set = false;                          // Whether or not a desired GPS position has been set
 
 // ROS varibale initialization
 ros::Publisher calc_deltas;                   // ROS publisher that publishes new paths for delta calculation
 autocycle_extras::CalcDeltas calc_deltas_pub; // ROS message object that will be published by `calc_deltas`
+autocycle_extras::DesiredGPS desired_gps_obj; // ROS object that contains the data provided to and from the corresponding client
+ros::ServiceClient desired_gps_cli;           // ROS Service Client that will request next desired (long, lat)
 
 // Sensor data variables
 
-float roll = 0;     // Latest roll value
-float heading = 0;  // Latest heading value
-float velocity = 0; // Latest velocity value
+float roll = 0;               // Latest roll value
+float heading = 0;            // Latest heading value
+float velocity = 0;           // Latest velocity value
+tuple<float, float> cur_gps;  // Latest longitude and latitude
 
 // Object Detection Parameters
 
@@ -60,6 +73,7 @@ float box_dist = 1500;                          // distance in each dimension su
 
 // Path Planning Variables
 
+tuple<float, float> des_gps;                           // Next desired GPS location
 int path_width = 20;                                   // Width of graph in meters
 int path_height = 20;                                  // Height of graph in meters
 int node_size = 1;                                     // Size of node in graph in meters
@@ -83,6 +97,67 @@ float delta_angle, delta_angle_cos, delta_angle_sin, dist; // Change in heading,
 chrono::high_resolution_clock::time_point state_stop;      // Time just before a new state is to be computed
 chrono::high_resolution_clock::time_point state_start;     // Time just after a new state has been computed
 chrono::milliseconds duration;                             // Duration in milliseconds between state updates
+
+// Converts GPS coordinates expressed in DDMM.MMMM to plain decimal
+tuple<float, float> convert_gps(tuple<string, string> gps){
+    float lat_d = stoi(get<0>(gps).substr(0,2));
+    float lat_m = stof(get<0>(gps).substr(2, 7));
+    float lng_d = stoi(get<1>(gps).substr(0,2));
+    float lng_m = stof(get<1>(gps).substr(2, 7));
+    float lat = lat_d + (lat_m/60);
+    float lng = lng_d + (lng_m/60);
+    return make_tuple(lat, lng);
+}
+
+// Returns distance in meters between two gps positions
+float get_distance_between_gps(tuple<float, float> gps1, tuple<float, float> gps2){
+    float radius_of_earth = 6371000;
+    float lat1_rad = get<0>(gps1) * M_PI/180;
+    float lat2_rad = get<0>(gps2) * M_PI/180;
+    float lat_diff_rad = (get<0>(gps2) - get<0>(gps1)) * M_PI/180;
+    float lng_diff_rad = (get<1>(gps2) - get<1>(gps1)) * M_PI/180;
+    float a = sin(lat_diff_rad/2) * sin(lat_diff_rad/2) + cos(lat1_rad) * cos(lat2_rad) * sin(lng_diff_rad/2) * sin(lng_diff_rad/2);
+    float c = 2 * atan2(sqrt(a), sqrt(1-a));
+    return radius_of_earth * c;
+}
+
+// Calculates angle between two longitude/latitude pairs
+float get_angle_from_gps(tuple<float, float> gps1, tuple<float, float> gps2){
+    float dy = get<0>(gps2) - get<0>(gps1);
+    float dx = cosf(M_PI/180*get<0>(gps1))*(get<1>(gps2) - get<1>(gps1));
+    return atan2f(dy, dx);
+}
+
+// Synchronize current heading with GPS heading
+void synchronize_heading(){
+    // Collects latest GPS data
+    ros::spinOnce();
+
+    // Stores the current GPS position
+    tuple<float, float> prev_gps = cur_gps;
+
+    // Bike moves 1 meter per second for 4 seconds
+    my_serial.write("t1,4000");
+
+    // Waits until the bike is done moving
+    while(velocity > 0){
+        ros::spinOnce();
+    }
+
+    // Collects new GPS data
+    ros::spinOnce();
+
+    // Waits for new GPS data to come in if it has not
+    while(prev_gps == cur_gps){
+        ros::spinOnce();
+    }
+
+    // Calculate angle between both GPS data points
+    sync_head_amt = get_angle_from_gps(prev_gps, cur_gps);
+
+    // Updates heading value
+    heading += sync_head_amt;
+}
 
 // Callback function for the `frame_ready` topic that sets the ready variable
 void update_ready(const std_msgs::Empty msg){
@@ -356,11 +431,20 @@ void update_end_node() {
     }
 }
 
+// Updates `desired_gps_pos` if either it has not been set or if the distance to the current desired position is less than 4 meters.
+tuple<float, float> update_desired_gps_pos(){
+    if(!desired_gps_set || get_distance_between_gps(cur_gps, desired_gps_pos) < 4){
+        desired_gps_cli.call(desired_gps_obj);
+        desired_gps_pos = convert_gps(make_tuple(desired_gps_obj.response.latitude, desired_gps_obj.response.longitude));
+    }
+}
+
 // Creates the curve around objects
 void generate_curve() {
     ros::spinOnce();
+    tuple<float, float> next_pos = get_next_pos();
+    des_heading = get_angle_from_gps(cur_gps, desired_gps_pos);
     theta = des_heading - heading;
-
     reset_vars();
     update_end_node();
     vector<tuple<float, float, float, float>> real_obj_lst;
@@ -871,9 +955,14 @@ void get_roll(const std_msgs::Float32 data){
     roll = data.data;
 }
 
+// Gets the latest gps Data
+void get_gps(const autocycle_extras::GPS data){
+    cur_gps = convert_gps(make_tuple(data.longitude, data.latitude));
+}
+
 // Gets the latest Heading
 void get_heading(const std_msgs::Float32 data){
-    heading = data.data;
+    heading = data.data + sync_head_amt;
 }
 
 // Gets the latest velocity
@@ -994,18 +1083,27 @@ int main(int argc, char **argv) {
   // Creates subscriber that updates heading
   ros::Subscriber head_sub = nh.subscribe("sensors/heading", 1, &get_heading);
 
+  // Creates subscriber that updates GPS data
+  ros::Subscriber head_sub = nh.subscribe("sensors/gps", 1, &get_gps);
+
   // Creates subscriber that updates velocity
   ros::Subscriber vel_sub = nh.subscribe("sensors/vel", 1, &get_velocity);
 
   // Creates subscriber that updates velocity
   ros::Subscriber ready_sub = nh.subscribe("cycle/frame_ready", 1, &update_ready);
 
+  // Synchronizes heading values with GPS heading
+  synchronize_heading();
   
   ros::service::waitForService("due_ready");
   ros::service::waitForService("calc_deltas");
+  ros::service::waitForService("get_desired_gps");
 
-  // Creates server proxy for calculating new deltas
+  // Creates publisher for calculating new deltas
   calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/calc_deltas", 1);
+
+  // Creates server client for getting subsequent desired GPS positions
+  desired_gps_cli = nh.serviceClient<autocycle_extras::DesiredGPS>("get_desired_gps");
 
   // Sets desired heading (for now the initial heading)
   while(heading == -1){
