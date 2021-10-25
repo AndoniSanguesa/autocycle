@@ -41,11 +41,11 @@ def get_directions():
     print(directions)
 
 
+def test():
+    position_destination[0] = (38.993176, -76.933367)  # Cypress
+    position_destination[1] = (38.991369, -76.947012)  # Ellicott Hall
+    get_directions()
+
+
 if __name__ == "__main__":
-    ser = serial.Serial('/dev/ttyACM0', 115200, timeout=1)
-    ser.flush()
-    while True:
-        if ser.in_waiting > 0:
-            line = ser.readline().decode('utf-8').rstrip()
-            position_destination = line.rsplit(",")
-            get_directions()
+    test()
