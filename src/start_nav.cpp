@@ -334,6 +334,13 @@ bool check_if_heading_path_available(){
     vector<float> temp_xs, temp_ys;
     tuple<float, float> first_point, last_point;
     float relative_heading = heading - des_heading;
+
+    if(relative_heading > 0.785398){
+        relative_heading = 0.785398;
+    } else if(relative_heading < -0.785398){
+        relative_heading = -0.785398;
+    }
+
     temp_xs.push_back(get<1>(start_node));
     temp_xs.push_back(get<1>(start_node)+1);
     temp_ys.push_back(get<0>(start_node));
