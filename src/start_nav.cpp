@@ -133,8 +133,19 @@ void synchronize_heading(){
     // Collects latest GPS data
     ros::spinOnce();
 
-    // Stores the current GPS position
+    // Averages current GPS position from 20 sample points
     tuple<float, float> prev_gps = cur_gps;
+    float latitude_sum = 0;
+    float longitude_sum = 0;
+    for(int i = 0; i < 20; i++){
+        while(cur_gps == prev_gps){
+            ros::spinOnce();
+        }
+        latitude_sum += get<0>(cur_gps);
+        longitude_sum += get<1>(cur_gps);
+    }
+    tuple<float, float> mean_cur_gps = make_tuple(latitude_sum/20, longitude_sum/20);
+    prev_gps = cur_gps;
 
     // Bike moves 1 meter per second for 4 seconds
     my_serial.write("t1,4000");
@@ -152,8 +163,21 @@ void synchronize_heading(){
         ros::spinOnce();
     }
 
+    // Gets average GPS position after movement using 20 samples
+    prev_gps = cur_gps;
+    latitude_sum = 0;
+    longitude_sum = 0;
+    for(int i = 0; i < 20; i++){
+        while(cur_gps == prev_gps){
+            ros::spinOnce();
+        }
+        latitude_sum += get<0>(cur_gps);
+        longitude_sum += get<1>(cur_gps);
+    }
+    tuple<float, float> mean_after_gps = make_tuple(latitude_sum/20, longitude_sum/20);
+
     // Calculate angle between both GPS data points
-    sync_head_amt = get_angle_from_gps(prev_gps, cur_gps);
+    sync_head_amt = get_angle_from_gps(mean_cur_gps, mean_after_gps);
 
     // Updates heading value
     heading += sync_head_amt;
