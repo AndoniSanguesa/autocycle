@@ -452,7 +452,7 @@ void update_end_node() {
 }
 
 // Updates `desired_gps_pos` if either it has not been set or if the distance to the current desired position is less than 4 meters.
-tuple<float, float> update_desired_gps_pos(){
+void update_desired_gps_pos(){
     if(!desired_gps_set || get_distance_between_gps(cur_gps, desired_gps_pos) < 4){
         desired_gps_cli.call(desired_gps_obj);
         desired_gps_pos = make_tuple(desired_gps_obj.response.latitude, desired_gps_obj.response.longitude);
@@ -462,8 +462,9 @@ tuple<float, float> update_desired_gps_pos(){
 // Creates the curve around objects
 void generate_curve() {
     ros::spinOnce();
-    update_desired_gps_pos();
-    des_heading = get_angle_from_gps(cur_gps, desired_gps_pos);
+    //update_desired_gps_pos();
+    //des_heading = get_angle_from_gps(cur_gps, desired_gps_pos);
+    des_heading = 0;
     theta = des_heading - heading;
     reset_vars();
     update_end_node();
@@ -1104,7 +1105,7 @@ int main(int argc, char **argv) {
   ros::Subscriber head_sub = nh.subscribe("sensors/heading", 1, &get_heading);
 
   // Creates subscriber that updates GPS data
-  ros::Subscriber gps_sub = nh.subscribe("sensors/gps", 1, &get_gps);
+  // ros::Subscriber gps_sub = nh.subscribe("sensors/gps", 1, &get_gps);
 
   // Creates subscriber that updates velocity
   ros::Subscriber vel_sub = nh.subscribe("sensors/vel", 1, &get_velocity);
@@ -1117,13 +1118,13 @@ int main(int argc, char **argv) {
   
   ros::service::waitForService("due_ready");
   ros::service::waitForService("calc_deltas");
-  ros::service::waitForService("get_desired_gps");
+  // ros::service::waitForService("get_desired_gps");
 
   // Creates publisher for calculating new deltas
   calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/calc_deltas", 1);
 
   // Creates server client for getting subsequent desired GPS positions
-  desired_gps_cli = nh.serviceClient<autocycle_extras::DesiredGPS>("get_desired_gps");
+  // desired_gps_cli = nh.serviceClient<autocycle_extras::DesiredGPS>("get_desired_gps");
 
   // Sets desired heading (for now the initial heading)
   while(heading == -1){
