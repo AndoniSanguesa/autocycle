@@ -98,17 +98,6 @@ chrono::high_resolution_clock::time_point state_stop;      // Time just before a
 chrono::high_resolution_clock::time_point state_start;     // Time just after a new state has been computed
 chrono::milliseconds duration;                             // Duration in milliseconds between state updates
 
-// Converts GPS coordinates expressed in DDMM.MMMM to plain decimal
-tuple<float, float> convert_gps(tuple<string, string> gps){
-    float lat_d = stoi(get<0>(gps).substr(0,2));
-    float lat_m = stof(get<0>(gps).substr(2, 7));
-    float lng_d = stoi(get<1>(gps).substr(0,2));
-    float lng_m = stof(get<1>(gps).substr(2, 7));
-    float lat = lat_d + (lat_m/60);
-    float lng = lng_d + (lng_m/60);
-    return make_tuple(lat, lng);
-}
-
 // Returns distance in meters between two gps positions
 float get_distance_between_gps(tuple<float, float> gps1, tuple<float, float> gps2){
     float radius_of_earth = 6371000;
@@ -466,7 +455,7 @@ void update_end_node() {
 tuple<float, float> update_desired_gps_pos(){
     if(!desired_gps_set || get_distance_between_gps(cur_gps, desired_gps_pos) < 4){
         desired_gps_cli.call(desired_gps_obj);
-        desired_gps_pos = convert_gps(make_tuple(desired_gps_obj.response.latitude, desired_gps_obj.response.longitude));
+        desired_gps_pos = make_tuple(desired_gps_obj.response.latitude, desired_gps_obj.response.longitude);
     }
 }
 
@@ -988,7 +977,7 @@ void get_roll(const std_msgs::Float32 data){
 
 // Gets the latest gps Data
 void get_gps(const autocycle_extras::GPS data){
-    cur_gps = convert_gps(make_tuple(data.longitude, data.latitude));
+    cur_gps = make_tuple(data.longitude, data.latitude));
 }
 
 // Gets the latest Heading
