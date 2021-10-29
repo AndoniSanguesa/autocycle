@@ -233,8 +233,8 @@ void augment_path(){
         change = get_change(cur_point, next_point);
         new_xs.push_back(get<1>(cur_point)+(get<1>(change)*0.5));
         new_ys.push_back(get<0>(cur_point)+(get<0>(change)*0.5));
-        new_xs.push_back(get<1>(next_point))
-        new_ys.push_back(get<0>(next_point))
+        new_xs.push_back(get<1>(next_point));
+        new_ys.push_back(get<0>(next_point));
         cur_point = next_point;
     }
     xs = new_xs;

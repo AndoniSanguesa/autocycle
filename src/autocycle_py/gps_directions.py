@@ -2,7 +2,8 @@ import googlemaps
 import serial
 
 # import rospy
-# from autocycle_extras.msg import GPS, DesiredGPS
+# from autocycle_extras.msg import GPS
+# from autocycle_extras.srv import DesiredGPS
 
 # Put API key here. Do not push to a public repo
 GOOGLE_API_KEY = ""
