@@ -462,7 +462,7 @@ tuple<float, float> update_desired_gps_pos(){
 // Creates the curve around objects
 void generate_curve() {
     ros::spinOnce();
-    tuple<float, float> next_pos = get_next_pos();
+    update_desired_gps_pos();
     des_heading = get_angle_from_gps(cur_gps, desired_gps_pos);
     theta = des_heading - heading;
     reset_vars();
@@ -977,7 +977,7 @@ void get_roll(const std_msgs::Float32 data){
 
 // Gets the latest gps Data
 void get_gps(const autocycle_extras::GPS data){
-    cur_gps = make_tuple(data.longitude, data.latitude));
+    cur_gps = make_tuple(data.longitude, data.latitude);
 }
 
 // Gets the latest Heading
@@ -1104,7 +1104,7 @@ int main(int argc, char **argv) {
   ros::Subscriber head_sub = nh.subscribe("sensors/heading", 1, &get_heading);
 
   // Creates subscriber that updates GPS data
-  ros::Subscriber head_sub = nh.subscribe("sensors/gps", 1, &get_gps);
+  ros::Subscriber gps_sub = nh.subscribe("sensors/gps", 1, &get_gps);
 
   // Creates subscriber that updates velocity
   ros::Subscriber vel_sub = nh.subscribe("sensors/vel", 1, &get_velocity);
