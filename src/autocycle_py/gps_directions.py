@@ -1,5 +1,5 @@
 import googlemaps
-import serial
+import polyline
 
 # import rospy
 # from autocycle_extras.msg import GPS
@@ -31,7 +31,7 @@ def get_gps_data():
     # rospy.Subscriber("cycle/gps", GPS, update_gps)
 
     # Creates service that will provide the next desired GPS position
-    #des_gps = rospy.Service("get_desired_gps", DesiredGPS, get_desired_gps)
+    # des_gps = rospy.Service("get_desired_gps", DesiredGPS, get_desired_gps)
 
     return
     # will likely only need a continuous stream of geo-coordinates
@@ -39,13 +39,18 @@ def get_gps_data():
 
 def get_directions():
     directions = gmaps.directions(position_destination[0], position_destination[1])
-    print(directions)
+    return directions[0]
+
+
+def smooth_path():
+    overview_polyline = get_directions()['overview_polyline']['points']
+    return polyline.decode(overview_polyline)
 
 
 def test():
     position_destination[0] = (38.993176, -76.933367)  # Cypress
     position_destination[1] = (38.991369, -76.947012)  # Ellicott Hall
-    get_directions()
+    print(smooth_path())
 
 
 if __name__ == "__main__":
