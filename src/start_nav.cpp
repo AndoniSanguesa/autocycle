@@ -73,6 +73,8 @@ float box_dist = 1500;                          // distance in each dimension su
 
 // Path Planning Variables
 
+bool ready_for_path = true;                            // Whether or not `calculate_deltas` node is ready for a new path
+bool skip = false;                                     // Whether or not to skip current curve generation loop
 tuple<float, float> des_gps;                           // Next desired GPS location
 int path_width = 20;                                   // Width of graph in meters
 int path_height = 20;                                  // Height of graph in meters
@@ -175,6 +177,11 @@ void synchronize_heading(){
 // Callback function for the `frame_ready` topic that sets the ready variable
 void update_ready(const std_msgs::Empty msg){
     ready = true;
+}
+
+// Callback function for the `ready_for_path` topic waiting for message from `calculate_deltas` node
+void update_ready_for_path(const std_msgs::Empty msg){
+    ready_for_path = true;
 }
 
 // Maps a tuple to 2 integers to a unique integer (for hashing)
@@ -381,11 +388,17 @@ void bfs(){
     unordered_map<int, tuple<int, int>> parent;
     tuple<int, int> next_node, node;
     int x, y;
-    int tot_count = 0; // DELETE THIS
+    int tot_count = 0;
     q.push_back(start_node);
 
     while(!q.empty()){
+        if(tot_count > 2000){
+            skip = true;
+            return;
+        }
         next_node = q.front();
+
+        tot_count++;
         q.pop_front();
 
         y = get<0>(next_node);
@@ -464,6 +477,7 @@ void generate_curve() {
     ros::spinOnce();
     //update_desired_gps_pos();
     //des_heading = get_angle_from_gps(cur_gps, desired_gps_pos);
+    ready_for_path = false;
     des_heading = 0;
     theta = des_heading - heading;
     reset_vars();
@@ -483,6 +497,10 @@ void generate_curve() {
 
     if(!check_if_heading_path_available()){
         bfs();
+        if(skip){
+            skip = false;
+            return;
+        }
     } else{
         augment_path();
     }
@@ -1113,6 +1131,9 @@ int main(int argc, char **argv) {
   // Creates subscriber that updates velocity
   ros::Subscriber ready_sub = nh.subscribe("cycle/frame_ready", 1, &update_ready);
 
+  // Creates subscriber that updates velocity
+  ros::Subscriber ready_for_path_sub = nh.subscribe("cycle/ready_for_path", 1, &update_ready_for_path);
+
   // Synchronizes heading values with GPS heading
   synchronize_heading();
   
@@ -1202,7 +1223,9 @@ int main(int argc, char **argv) {
     update_object_positions(((float) duration.count())/1000.0);
 
     // Generates a new path
-    generate_curve();
+    if(ready_for_path){
+        generate_curve();
+    }
 
   }
 
