@@ -353,12 +353,12 @@ bool line_intersect_object(tuple<tuple<int, int>, tuple<int, int>> end_points){
 bool check_if_heading_path_available(){
     vector<float> temp_xs, temp_ys;
     tuple<float, float> first_point, last_point;
-    float relative_heading = heading - des_heading;
+    float relative_heading = des_heading - heading;
 
-    if(relative_heading > 0.785398){
-        relative_heading = 0.785398;
-    } else if(relative_heading < -0.785398){
-        relative_heading = -0.785398;
+    if(relative_heading > 1.22173){
+        relative_heading = 1.221738;
+    } else if(relative_heading < -1.22173){
+        relative_heading = -1.22173;
     }
 
     temp_xs.push_back(get<1>(start_node));
@@ -1002,6 +1002,9 @@ void get_gps(const autocycle_extras::GPS data){
 // Gets the latest Heading
 void get_heading(const std_msgs::Float32 data){
     heading = data.data + sync_head_amt;
+    if(check_if_heading_path_available()){
+        ROS_INFO_STREAM("HEADING: " << data.data << "RELATIVE_HEADING: " << des_heading - data.data);
+    }
 }
 
 // Gets the latest velocity
