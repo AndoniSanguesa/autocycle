@@ -531,10 +531,14 @@ void update_object_positions(float delta_time){
 
     for(auto & i : obj_lst){
         tie (x1, x2, z1, z2) = i;
-        rx1 = x1*delta_angle_cos - z1*delta_angle_sin;
-        rz1 = x1*delta_angle_sin + z1*delta_angle_cos - dist;
-        rx2 = x2*delta_angle_cos - z2*delta_angle_sin;
-        rz2 = x2*delta_angle_sin + z2*delta_angle_cos - dist;
+        // rx1 = rx1 + x1*delta_angle_cos - z1*delta_angle_sin;
+        rx1 = x1 + delta_angle * -z1;
+        rz1 = z1 + dist + delta_angle * x1;
+        // // rz1 = x1*delta_angle_sin + z1*delta_angle_cos - dist;
+        // rx2 = x2*delta_angle_cos - z2*delta_angle_sin;
+        // rz2 = x2*delta_angle_sin + z2*delta_angle_cos - dist;
+        rx2 = x2 + delta_angle * -z2;
+        rz2 = z2 + dist + delta_angle * x2;
         if(rz1 < 0 && rz2 < 0){
 	        continue;
         }
