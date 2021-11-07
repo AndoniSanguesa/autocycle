@@ -515,7 +515,6 @@ void generate_curve() {
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     // ROS_INFO_STREAM("PATH PLANNING IS TAKING: " << (float) duration.count() / 1000.0 << " SECONDS");
 }
- 
 // Updates the positions of previously found objects according to the
 // telemetry from the bike
 void update_object_positions(float delta_time){
@@ -538,7 +537,7 @@ void update_object_positions(float delta_time){
         // rx2 = x2*delta_angle_cos - z2*delta_angle_sin;
         // rz2 = x2*delta_angle_sin + z2*delta_angle_cos - dist;
         rx2 = x2 - delta_angle * -z2;
-        rz2 = z2 - dist -s delta_angle * x2;
+        rz2 = z2 - dist - delta_angle * x2;
         if(rz1 < 0 && rz2 < 0){
 	        continue;
         }
