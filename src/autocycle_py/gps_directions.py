@@ -50,7 +50,13 @@ def smooth_path():
 def test():
     position_destination[0] = (38.993176, -76.933367)  # Cypress
     position_destination[1] = (38.991369, -76.947012)  # Ellicott Hall
-    print(smooth_path())
+    steps_dict = get_directions()['legs'][0]['steps']
+    overview_path = smooth_path()
+    for x in steps_dict:
+        print((round(x['start_location']['lat'], 5), round(x['start_location']['lng'], 5)))
+        print(str((round(x['start_location']['lat'], 5), round(x['start_location']['lng'], 5)) in overview_path) + " start")
+        print(str((round(x['end_location']['lat'], 5), round(x['end_location']['lng'], 5)) in overview_path) + " end")
+    print(overview_path)
 
 
 if __name__ == "__main__":
