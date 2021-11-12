@@ -626,21 +626,16 @@ void update_object_positions(float delta_time){
     prev_heading = heading;
     new_obj_lst.clear();
 
-    //delta_angle_cos = cos(-delta_angle);
-    //delta_angle_sin = sin(-delta_angle);
     dist = velocity * delta_time;
 
     float x1, x2, z1, z2, rx1, rx2, rz1, rz2;
 
     for(auto & i : obj_lst){
         tie (x1, x2, z1, z2) = i;
-        // rx1 = rx1 + x1*delta_angle_cos - z1*delta_angle_sin;
-        rx1 = x1 - delta_angle * -z1;
+        rx1 = x1 - delta_angle * z1;
         rz1 = z1 - dist - delta_angle * x1;
-        // // rz1 = x1*delta_angle_sin + z1*delta_angle_cos - dist;
-        // rx2 = x2*delta_angle_cos - z2*delta_angle_sin;
-        // rz2 = x2*delta_angle_sin + z2*delta_angle_cos - dist;
-        rx2 = x2 - delta_angle * -z2;
+
+        rx2 = x2 - delta_angle * z2;
         rz2 = z2 - dist - delta_angle * x2;
         if(rz1 < 0 && rz2 < 0){
 	        continue;
