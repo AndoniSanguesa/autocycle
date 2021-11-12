@@ -66,7 +66,7 @@ int cell_row = ceil((1.0 * height) / cell_dim); // Number of cells in a row
 int cell_col = ceil((1.0 * width) / cell_dim);  // Number of cells in a column
 int col_diff = 50;                              // If the z value for 2 adjacent cells in a column differ by more than this variable, they are considered different objects
 int for_jump_diff = col_diff * 1.5;             // Minimum negative change in z value to indicate an object
-int counter_reps = 2;                           // Number of consecutive consistent column values needed to immediately determine that an object is present
+int counter_reps = 1;                           // Number of consecutive consistent column values needed to immediately determine that an object is present
 int same_obj_diff = 150;                        // Horizontally adjacent Z distances under this value are considered the same object
 int group_dist = 1500;                          // max dist between adjacent objects for convex hull
 float box_dist = 1500;                          // distance in each dimension surrounding line segment for convex hull
@@ -591,50 +591,6 @@ vector<vector<int>> Graph::connectedComps() {
 	return connected;
 }
 
-// Returns distance from a point to a line segment
-float pointToSeg(int x, int z, tuple<float, float, float, float> seg) {
-    float x1, x2, z1, z2;
-    tie (x1, x2, z1, z2) = seg;
-	float segx = x1 - x2;
-	float segz = z1 - z2;
-	float lpx = x1 - x;
-	float lpz = z1 - z;
-	float seg_len = sqrt(pow(x1 - x2, 2) + pow(z1 - z2, 2));
-	if (seg_len == 0) {
-		return sqrt(pow(x1 - lpx, 2) + pow(z1 - lpz, 2));
-	}
-	float t = segx / seg_len * lpx / seg_len + segz / seg_len * lpz / seg_len;
-	if (t < 0) {
-		t = 0;
-	} else if (t > 0) {
-		t = 1;
-	}
-	float nx = segx * t;
-	float nz = segz * t;
-	return sqrt(pow(nx - lpx, 2) + pow(nz - lpz, 2));
-}
-
-// Returns distance between two line segments
-float segDist(tuple<float, float, float, float> seg1, tuple<float, float, float, float> seg2) {
-    float seg1x1, seg1x2, seg1z1, seg1z2, seg2x1, seg2x2, seg2z1, seg2z2;
-    tie (seg1x1, seg1x2, seg1z1, seg1z2) = seg1;
-    tie (seg2x1, seg2x2, seg2z1, seg2z2) = seg2;
-	float dist = pointToSeg(seg1x1, seg1z1, seg2);
-	float t1 = pointToSeg(seg1x2, seg1z2, seg2);
-	if (dist > t1) {
-		dist = t1;
-	}
-	float t2 = pointToSeg(seg2x1, seg2z1, seg1);
-	if (dist > t2) {
-		dist = t2;
-	}
-	float t3 = pointToSeg(seg2x2, seg2z2, seg1);
-	if (dist > t3) {
-		dist = t3;
-	}
-	return dist;
-}
-
 // Finds the left-most point in a vector of points
 int leftMost(vector<vector<float>> points) {
 	int min_ind = 0;
@@ -667,19 +623,26 @@ int orientation(vector<float> p,vector<float> q,vector<float> r){
 // Generates line segments representing the convex hull of a group of objects
 // This is used to consolidate the smaller objects that were deemed part
 // of the same larger object
-vector<tuple<float, float, float, float>> convHull(vector<tuple<float, float, float, float>> objects) {
-	vector<vector<float>> points;
-	float x1, x2, z1, z2;
-	for (tuple<float, float, float, float> o : objects) {
-	    tie (x1, x2, z1, z2) = o;
-		points.push_back({x1, z1});
-		points.push_back({x2, z2});
+vector<tuple<float, float, float, float>> convHull(vector<tuple<float, float>> points) {
+	vector<vector<float>> new_points;
+    vector<tuple<float, float, float, float>> new_objects;
+	float x, z;
+	for (tuple<float, float> p : points) {
+	    tie (x, z) = p;
+		points.push_back({x, z});
 	}
 	int n = points.size();
-	if (n < 3) {
-		return objects;
-	}
-	int l = leftMost(points);
+
+    if (n == 1) {
+        new_objects.emplace_back(make_tuple(new_points[0][0], new_points[0][0], new_points[0][1], new_points[0][1]));
+        return new_objects;
+    }
+    if (n == 2) {
+        new_objects.emplace_back(make_tuple(new_points[0][0], new_points[1][0], new_points[0][1], new_points[1][1]));
+        return new_objects;
+    }
+
+	int l = leftMost(new_points);
 	vector<int> hull;
 	int p = l;
 	int q;
@@ -688,7 +651,7 @@ vector<tuple<float, float, float, float>> convHull(vector<tuple<float, float, fl
 		hull.push_back(p);
 		q = (p+1) % n;
 		for (int i = 0; i < n; i++) {
-			if (orientation(points[p], points[i], points[q]) == 2) {
+			if (orientation(new_points[p], new_points[i], new_points[q]) == 2) {
 				q = i;
 			}
 		}
@@ -697,12 +660,40 @@ vector<tuple<float, float, float, float>> convHull(vector<tuple<float, float, fl
 			break;
 		}
 	}
-	vector<tuple<float, float, float, float>> new_objects;
-	for (int i = 1; i < hull.size(); i++) {
-		new_objects.push_back(make_tuple(points[hull[i-1]][0], points[hull[i]][0], points[hull[i-1]][1], points[hull[i]][1]));
+    float dist = 0;
+    float angle = 0;
+	for (int i = 1; i < hull.size(); i++) { 
+        vector<float> curr_point = new_points[hull[i-1]];
+        dist = sqrt(pow(curr_point[0] - new_points[hull[i]][0], 2) +  pow(curr_point[1] - new_points[hull[i]][1], 2));
+        angle = atan2(curr_point[1] - new_points[hull[i]][1], curr_point[0] - new_points[hull[i]][0]);
+        float z_comp = sin(angle) * same_obj_diff;
+        float x_comp = cos(angle) * same_obj_diff;
+        while (dist > same_obj_diff) {
+            float temp_x = curr_point[0] + x_comp;
+            float temp_z = curr_point[1] + z_comp;
+            new_objects.emplace_back(make_tuple(curr_point[0], temp_x, curr_point[1], temp_z);
+            curr_point[0] = temp_x;
+            curr_point[1] = temp_z;
+            dist = sqrt(pow(curr_point[0] - new_points[hull[i]][0], 2) +  pow(curr_point[1]- new_points[hull[i]][1], 2));
+        }
+        new_objects.emplace_back(make_tuple(curr_point[0], new_points[hull[i]][0], curr_point[1], new_points[hull[i]][1]));
+
 	}
-	new_objects.push_back(make_tuple(points[hull[hull.size()-1]][0], points[hull[0]][0], points[hull[hull.size()-1]][1], points[hull[0]][1]));
-	return new_objects;
+	vector<float> curr_point = new_points[hull[hull.size()-1]];
+    dist = sqrt(pow(curr_point[0] - new_points[hull[0]][0], 2) +  pow(curr_point[1] - new_points[hull[0]][1], 2));
+    angle = atan2(curr_point[1] - new_points[hull[0]][1], curr_point[0] - new_points[hull[0]][0]);
+    float z_comp = sin(angle) * same_obj_diff;
+    float x_comp = cos(angle) * same_obj_diff;
+    while (dist > same_obj_diff) {
+        float temp_x = curr_point[0] + x_comp;
+        float temp_z = curr_point[1] + z_comp;
+        new_objects.emplace_back(make_tuple(curr_point[0], temp_x, curr_point[1], temp_z);
+        curr_point[0] = temp_x;
+        curr_point[1] = temp_z;
+        dist = sqrt(pow(curr_point[0] - new_points[hull[0]][0], 2) +  pow(curr_point[1]- new_points[hull[0]][1], 2));
+    }
+    new_objects.emplace_back(make_tuple(curr_point[0], new_points[hull[0]][0], curr_point[1], new_points[hull[0]][1]));
+    return new_objects;
 }
 
 
@@ -715,165 +706,36 @@ vector<float> diff (vector<float> p1, vector<float> p2) {
     return vals;
 }
 
-// Rotates a point by theta
-vector<float> rotatePoint(vector<float> point, float theta) {
-    vector<float> new_point = {0, 0};
-    new_point[0] = point[0] * cos(theta) - point[1] * sin(theta);
-    new_point[1] = point[0] * sin(theta) + point[1] * cos(theta);
-    return new_point;
-}
-
-// Translates a point according to some translation matrix
-vector<float> transPoint(vector<float> point, vector<float> trans) {
-    point[0] += trans[0];
-    point[1] += trans[1];
-    return point;
-}
-
-// Gets the bounding box for a line segment (the line segments for the
-// bounding box are `box-dist` away from the actual line segment)
-vector<vector<float>> getBoundingBox(float x1, float x2, float z1, float z2) {
-    vector<float> mov = {x2, z2};
-    vector<float> o1 = {x1 - mov[0], z1 - mov[1]};
-    // Rotates o1 about o2/origin so that o1 is directly above o2
-    float theta;
-    if (o1[1] == 0) {
-        if (o1[0] > 0) {
-            theta = M_PI_2;
-        } else {
-            theta = -M_PI_2;
-        }
-    } else {
-        theta = atan(o1[0]/ o1[1]);
-        if (o1[0] < 0) {
-            theta += M_PI;
-        }
-    }
-    o1 = rotatePoint(o1, theta);
-    vector<float> p1 = {-box_dist, o1[1] + box_dist};
-    vector<float> p2 = {box_dist, o1[1] + box_dist};
-    vector<float> p3 = {box_dist, -box_dist};
-    vector<float> p4 = {-box_dist, -box_dist};
-    //Rotates p1, p2, and p3 by negative theta (original orientation)
-
-    p1 = rotatePoint(p1, -theta);
-    p2 = rotatePoint(p2, -theta);
-    p3 = rotatePoint(p3, -theta);
-    p4 = rotatePoint(p4, -theta);
-
-    // Translates points back to relative positions
-    p1 = transPoint(p1, mov);
-    p2 = transPoint(p2, mov);
-    p3 = transPoint(p3, mov);
-    p4 = transPoint(p4, mov);
-
-    vector<vector<float>> box;
-    box.push_back(p1);
-    box.push_back(p2);
-    box.push_back(p3);
-    box.push_back(p4);
-    return box;
-}
-
-// Determines whether a new object intersects any existing objects
-bool intersection(float x1, float x2, float z1, float z2) {
-    vector<vector<float>> points;
-    float x3, x4, z3, z4;
-    if (x1 < x2) {
-        points = getBoundingBox(x1, x2, z1, z2);
-    } else if (x1 > x2){
-        points = getBoundingBox(x2, x1, z2, z1);
-    } else if (z1 < z2) {
-        points = {{x1 - box_dist, z1 - box_dist},
-                  {x1 + box_dist, z1 - box_dist},
-                  {x2 + box_dist, z2 + box_dist},
-                  {x2 - box_dist, z2 + box_dist}};
-    } else {
-        points = {{x2 - box_dist, z2 - box_dist},
-                  {x2 + box_dist, z2 - box_dist},
-                  {x1 + box_dist, z1 + box_dist},
-                  {x1 - box_dist, z1 + box_dist}};
-    }
-    vector<float> p2p3 = {points[2][0] - points[1][0], points[2][1] - points[1][1]};
-    vector<float> p2p1 = {points[0][0] - points[1][0], points[0][1] - points[1][1]};
-    float p2p3Dot = p2p3[0] * p2p3[0] + p2p3[1] * p2p3[1];
-    float p2p1Dot = p2p1[0] * p2p1[0] + p2p1[1] * p2p1[1];
-    vector<vector<float>> point_diffs = {diff(points[1], points[0]), diff(points[2], points[1]),
-                                         diff(points[3], points[2]), diff(points[0], points[3])};
-    vector<vector<float>> box_constraints = {{min(points[0][0], points[1][0]), max(points[0][0], points[1][0]),
-                                                     min(points[0][1], points[1][1]), max(points[0][1], points[1][1])},
-                                             {min(points[1][0], points[2][0]), max(points[1][0], points[2][0]),
-                                                     min(points[1][1], points[2][1]), max(points[1][1], points[2][1])},
-                                             {min(points[2][0], points[3][0]), max(points[2][0], points[3][0]),
-                                                     min(points[2][1], points[3][1]), max(points[2][1], points[3][1])},
-                                             {min(points[3][0], points[0][0]), max(points[3][0], points[0][0]),
-                                                     min(points[3][1], points[0][1]), max(points[3][1], points[0][1])}};
-    for (tuple<float, float, float, float> o : obj_lst) {
-        tie (x3, x4, z3, z4) = o;
-        vector<float> p2m = {x3 - points[1][0], z3 - points[1][1]};
-        vector<float> p2m2 = {x4 - points[1][0], z4 - points[1][1]};
-        float p2m_p2p3 = (p2m[0] * p2p3[0] +  p2m[1] * p2p3[1]);
-        float p2m_p2p1 = (p2m[0] * p2p1[0] +  p2m[1] * p2p1[1]);
-        float p2m2_p2p3 = (p2m2[0] * p2p3[0] +  p2m2[1] * p2p3[1]);
-        float p2m2_p2p1 = (p2m2[0] * p2p1[0] +  p2m2[1] * p2p1[1]);
-
-        if ((0 <= p2m_p2p3 && p2m_p2p3 < p2p3Dot && 0 <= p2m_p2p1 && p2m_p2p1 < p2p1Dot) ||
-            (0 <= p2m2_p2p3 && p2m2_p2p3 < p2p3Dot && 0 <= p2m2_p2p1 && p2m2_p2p1 < p2p1Dot)) {
-            return true;
-        }
-        if (x3 > x2) {
-            float temp = x3;
-            x3 = x4;
-            x4 = temp;
-            temp = z3;
-            z3 = z4;
-            z4 = temp;
-        }
-        vector<float> diffs_obj = {z3 - z4, x4 - x3, -1 * (x3 * z4 - x4 * z3)};
-        if (z3 > z4) {
-            float temp = z3;
-            z3 = z4;
-            z4 = temp;
-        }
-        for (int i = 0; i < 4; i++) {
-            float D = point_diffs[i][0] * diffs_obj[1] - point_diffs[i][1] * diffs_obj[0];
-            if (D != 0) {
-                float x = (point_diffs[i][2] * diffs_obj[1] - point_diffs[i][1] * diffs_obj[2]) / D;
-                float z = (point_diffs[i][0] * diffs_obj[2] - point_diffs[i][2] * diffs_obj[0]) / D;
-                if (x3 <= x && x <= x4 && z3 <= z && z <= z4 && box_constraints[i][0] <= x &&
-                    x <= box_constraints[i][1] && box_constraints[i][2] <= z && z <= box_constraints[i][3]) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
 
 // Condenses a group of newly detected objects. This means that any objects
 // That intersected are destroyed and any new objects are coalesed with
-// nearby objects
-vector<tuple<float, float, float, float>> condenseObjects(vector<tuple<float, float, float, float>> objects) {
-	Graph gr = Graph(objects.size());
-	for (int x = 0; x < objects.size(); x++) {
-		for (int y = x+1; y < objects.size(); y++) {
-			if (segDist(objects[x], objects[y]) < group_dist) {
+// nearby objects.
+vector<tuple<float, float, float, float>> condenseObjects(vector<tuple<float,float>> points) {
+	Graph gr = Graph(points.size());
+    float dist = 0;
+	for (int x = 0; x < points.size(); x++) {
+		for (int y = x+1; y < points.size(); y++) {
+            dist = sqrt(pow(get<0>(points[x]) - get<0>(points[y]), 2) + pow(get<1>(points[x]) - get<1>(points[y]), 2));
+            if (dist < group_dist) {
 				gr.addEdge(x,y);
 			}
 		}
 	}
+    // Find the connected points through depth first search where edges exist between points
+    // if the distance is less than group_dist
 	vector<vector<int>> groups = gr.connectedComps();
-	vector<vector<tuple<float, float, float, float>>> grouped_objs;
+	vector<vector<tuple<float, float>>> grouped_points;
 	for (int i = 0; i < groups.size(); i++) {
-		vector<tuple<float, float, float, float>> temp;
+		vector<tuple<float, float>> temp;
 		for (int y = 0; y < groups[i].size(); y++) {
-			temp.push_back(objects[groups[i][y]]);
+			temp.push_back(points[groups[i][y]]);
 		}
-		grouped_objs.push_back(temp);
+		grouped_points.push_back(temp);
 	}
+    // Find the convex hull of each grouping of points
 	vector<tuple<float, float, float, float>> new_objects;
-	for (int i = 0; i < grouped_objs.size(); i++) {
-		vector<tuple<float, float, float, float>> temp = convHull(grouped_objs[i]);
+	for (int i = 0; i < grouped_points.size(); i++) {
+		vector<tuple<float, float, float, float>> temp = convHull(grouped_points[i]);
 		new_objects.insert(new_objects.end(), temp.begin(), temp.end());
 	}
 	return new_objects;
@@ -882,7 +744,6 @@ vector<tuple<float, float, float, float>> condenseObjects(vector<tuple<float, fl
 // Detects new objects from the latest LiDAR data
 void object_detection() {
     //auto start = chrono::high_resolution_clock::now();
-	obj_lst.clear();
 	vector<vector<float>> cells(cell_row, vector<float>(cell_col, 0));
 	for (int i = 0; i < lvx_points.size(); i++) {
 		float z = get<2>(lvx_points[i]);
@@ -897,88 +758,80 @@ void object_detection() {
 			cells[y][x] = z;
 		}
 	}
-	vector<float> close_vec(cell_col);
+	vector<tuple<float, float>> keypoints;
 	for (int col = 0; col < cell_col; col++) {
-		float prev = 0;
-		float closest = max_dist;
-		int counter = 0;
-		float min_obj = 0;
+        float prev = 0;
+        int start = 0;
+        int end = 0;
+        bool forward_jump = false;
+        float x_val = col * cell_dim - width / 2;
 
-		for (int row = 0; row < cell_row; row++) {
-			if (cells[row][col] == 0) {
-				counter = 0;
-				min_obj = 0;
-				continue;
-			}
-			if (counter == 0){
-				min_obj = cells[row][col];
-			} else{
-				min_obj = min(min_obj, cells[row][col]);
-			}
-			if (abs(cells[row][col] - prev) > col_diff) {
-				counter = 0;
-				min_obj = 0;
-			} else {
-				counter += 1;
-			}
-			if (prev != 0 && prev > cells[row][col] + for_jump_diff) {
-				closest = min(closest, cells[row][col]);
-			}
-			if (counter > counter_reps) {
-				closest = min(closest, min_obj);
+        for (int row = 0; row < cell_row; row++) {
+            // Checks if cells[row][col] == 0 aka if the cell did not get any points inside it.
+            // If no points then check if there are keypoints, when end - start > counter_reps
+            // or forward_jump is true. Points are added to keypoints and start, end, forward_jump
+            // are reset.
+            if (cells[row][col] == 0) {
+                if (end - start > counter_reps || forward_jump) {
+                    for (int x = start; x <= end; x++) {
+                        keypoints.emplace_back((x_val, cells[x][col]));
+                    }
+                }
+                start = row;
+                end = row;
+                forward_jump = false;
+                continue;
+            }
+            // If distance between prev and current exceed col_diff, check if their are keypoints
+            // to add if so add them. Then reset start, end, and forward jump. If it does not exceed,
+            // then increment end.
+            if (abs(cells[row][col] - prev) > col_diff) {
+                if (end - start > counter_reps || forward_jump) {
+                    for (int x = start; x <= end; x++) {
+                        keypoints.emplace_back((x_val, cells[x][col]));
+                    }
+                }
+                start = row;
+                end = row;
+                forward_jump = false;
+            } else {
+                end += 1;
+            }
+            // If distance between curr + for_jump_diff is closer than prev and prev != 0 then check
+            // if end - start > counter reps or forward_jump then add keypoints and reset start, end
+            // also set forward_jump to true.
+            if (prev != 0 && prev > cells[row][col] + for_jump_diff) {
+                if (end - start > counter_reps || forward_jump) {
+                    for (int x = start; x <= end; x++) {
+                        keypoints.emplace_back((x_val, cells[x][col]));
+                    }
+                }
+                start = row;
+                end = row;
+                forward_jump = true;
 			}
             if (cells[row][col] != 0) {
                 prev = cells[row][col];
             }
-		}
-		close_vec[col] = closest;
-	}
-	int left_bound = 0;
-	int right_bound = 0;
-	float x1, x2, z1, z2;
-	float prev = max_dist;
-	vector<tuple<float, float, float, float>> z_boys;
-
-	for (int col = 0; col < cell_col; col++) {
-	    x1 = left_bound * cell_dim - width / 2;
-	    x2 = (right_bound + 1) * cell_dim - width / 2;
-	    z1 = close_vec[left_bound];
-	    z2 = close_vec[right_bound];
-
-		if (close_vec[col] < max_dist) {
-			if (prev == max_dist) {
-				left_bound = col;
-				right_bound = col;
-				prev = close_vec[col];
-			} else if (same_obj_diff > abs(prev - close_vec[col])) {
-				right_bound++;
-				prev = close_vec[col];
-			} else {
-                if (not intersection(x1, x2, z1, z2)) {
-                    z_boys.push_back(make_tuple(x1, x2, z1, z2));
-                }
-				prev = max_dist;
-			}
-		} else if (prev < max_dist) {
-           if (not intersection(x1, x2, z1, z2)) {
-                z_boys.push_back(make_tuple(x1, x2, z1, z2));
+        }
+        // Check if the are more keypoints to add for the column if so add them.
+        if (end - start > counter_reps || forward_jump) {
+            for (int x = start; x <= end; x++) {
+                keypoints.emplace_back((x_val, cells[x][col]));
             }
-			prev = max_dist;
-		}
-	}
-
-    x1 = left_bound * cell_dim - width / 2;
-    x2 = (right_bound + 1) * cell_dim - width / 2;
-    z1 = close_vec[left_bound];
-    z2 = close_vec[right_bound];
-
-    if (prev < max_dist && not intersection(x1, x2, z1, z2)) {
-        z_boys.push_back(make_tuple(x1, x2, z1, z2));
+        }
+    }
+    
+    for(auto & i : obj_lst){
+        tie (x1, x2, z1, z2) = i;
+        keypoints.emplace_back((x1, z1));
+        keypoints.emplace_back((x2, z2));
     }
 
-	cond_objs = condenseObjects(z_boys);
-	obj_lst.insert(obj_lst.end(), cond_objs.begin(), cond_objs.end());
-        for(auto & i : obj_lst){
+    // Call condenseObjects with an input of keypoints to condense the keypoints found to objects
+	cond_objs = condenseObjects(keypoints);
+    obj_lst = cond_objs;
+    for(auto & i : obj_lst){
 	    ROS_INFO_STREAM("OBJECT: (" << get<0>(i) << ", " << get<1>(i) << ", " << get<2>(i) << ", " << get<3>(i) << ")");
 	}
 
