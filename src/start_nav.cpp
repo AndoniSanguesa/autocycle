@@ -20,6 +20,8 @@
 #include <unordered_set>
 #include <tuple>
 #include <serial/serial.h>
+#include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -29,6 +31,7 @@ serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleT
 
 // General use variable initialization
 
+ofstream output_file;                                  // File to output data to
 bool ready = false;                                    // True if new LiDAR frame is ready for analysis
 vector<tuple<float, float, float>> lvx_points;         // Contains points parsed from LiDAR data
 ofstream f_done;                                       // Output file that will contain LiDAR info
@@ -49,10 +52,12 @@ ros::ServiceClient desired_gps_cli;           // ROS Service Client that will re
 
 // Sensor data variables
 
-float roll = 0;               // Latest roll value
-float heading = 0;            // Latest heading value
-float velocity = 0;           // Latest velocity value
-tuple<float, float> cur_gps;  // Latest longitude and latitude
+float roll = 0;                               // Latest roll value
+float heading = 0;                            // Latest heading value
+float dheading = 0;                           // Derivative of heading
+float velocity = 0;                           // Latest velocity value
+tuple<float, float> cur_gps;                  // Latest longitude and latitude
+tuple<float, float> r_hat = {0, 0};           // vector from back wheel ground patch to the lidar
 
 // Object Detection Parameters
 
@@ -986,7 +991,6 @@ vector<tuple<float, float, float, float>> condenseObjects(vector<tuple<float, fl
 // Detects new objects from the latest LiDAR data
 void object_detection() {
     //auto start = chrono::high_resolution_clock::now();
-	obj_lst.clear();
 	vector<vector<float>> cells(cell_row, vector<float>(cell_col, 0));
 	for (int i = 0; i < lvx_points.size(); i++) {
 		float z = get<2>(lvx_points[i]);
@@ -1109,8 +1113,29 @@ void get_heading(const std_msgs::Float32 data){
     }
 }
 
+// Gets derivative of heading (omega)
+void get_dheading(const std_msgs::Float32 data){
+    dheading = data.data;
+}
+
+// Converts angle to a unit direction vector
+tuple<float, float> conv_ang_to_dir_vec(float ang){
+    return make_tuple(cos(ang), sin(ang))
+}
+
 // Gets the latest velocity
 void get_velocity(const std_msgs::Float32 data){
+    // tuple<float, float> vel_vec = conv_ang_to_dir_vec(heading) * data.data;
+    // gloat omega_mag;
+    // if(dheading > 0){
+    //     omega_mag = -dheading;
+    // }
+    // else{
+    //     omega_mag =  dheading;
+    // }
+
+    // tuple<float, float> omega_cross_r = make_tuple(omega_mag*get<1>(r_hat), omega_mag*get<0>(r_hat))
+    // velocity = sqrt(pow(get<0>(vel_vec) + get<0>(omega_cross_r), 2) + pow(get<1>(vel_vec) + get<1>(omega_cross_r), 2));
     velocity = data.data;
 }
 
@@ -1169,7 +1194,7 @@ void parse_lvx(){
 
                         // y val. We can record it if we determine we need it
                         file.read(buff, 4);
-                        x = *((uint32_t *) buff);
+                        x = -*((uint32_t *) buff);
                         // z val
                         file.read(buff, 4);
                         y = *((uint32_t *) buff);
@@ -1210,10 +1235,35 @@ void fix_roll(){
   // Updates each point for the given roll
   for(int i=0;i<lvx_points.size();i++){
     tie (x, y, z) = lvx_points[i];
-    lvx_points[i] = make_tuple(x*cos(roll) - y*sin(roll), x*sin(roll) + y*cos(roll), z);
+    lvx_points[i] = make_tuple(x*cos(-roll) - y*sin(-roll), x*sin(-roll) + y*cos(-roll), z);
   }
 }
 
+// Converts an object to its string representation
+string object_to_string(tuple<float, float, float, float> obj){
+    x1 = to_string(get<0>(obj));
+    x2 = to_string(get<1>(obj));
+    z1 = to_string(get<2>(obj));
+    x2 = to_string(get<3>(obj));
+
+    return("(" + x1 + ", " + x2 + ", " + z1 + ", " + z2 + ")");
+}
+
+void record_output(){
+  string time_string = chrono::duration_cast<chrono::seconds>(chrono::system_clock::now().time_since_epoch()).count();
+  output_file << time_string;
+  output_file << "\n";
+  for(auto &i : obj_lst){
+      output_file << object_to_string(i) + " "
+  }
+  output_file << "\n";
+  for(int i = 0; i < xs.size(); i++){
+      output_file << "(" + xs[i] + ", " + ys[i] + ") "; 
+  }
+  output_file << "\n";
+  output_file << to_string(heading) << " " << to_string(des_heading) + " " << to_string(des_heading - heading);
+  output_file << "\n";
+}
 
 // The main navigation loop
 int main(int argc, char **argv) {
@@ -1221,11 +1271,18 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "navigation_communicator");
   ros::NodeHandle nh;
 
+  // Initailizes the output file
+  string time_string = chrono::duration_cast<chrono::seconds>(chrono::system_clock::now().time_since_epoch()).count();
+  output_file.open("/home/ubuntu/" + time_string + ".txt");
+
   // Creates subscriber for updating roll
   ros::Subscriber update_roll = nh.subscribe("sensors/roll", 1, &get_roll);
 
   // Creates subscriber that updates heading
   ros::Subscriber head_sub = nh.subscribe("sensors/heading", 1, &get_heading);
+
+  // Creates suscriber that updates heading derivative
+  ros::Subscriber dhead_sub = nh.subscribe("sensors/dheading", 1, &get_dheading);
 
   // Creates subscriber that updates GPS data
   // ros::Subscriber gps_sub = nh.subscribe("sensors/gps", 1, &get_gps);
@@ -1276,6 +1333,9 @@ int main(int argc, char **argv) {
     // Clears all points in preparation for new Livox data
     lvx_points.clear();
 
+    // Updates object positions
+    update_object_positions(((float) duration.count())/1000.0);
+
     // Only runs parse_lvx, fix_roll, and object detection if there is a new frame ready
     if(ready){
       // Ends the clock
@@ -1324,13 +1384,13 @@ int main(int argc, char **argv) {
     // Resets the clock for updating object positions
     state_start = std::chrono::high_resolution_clock::now();
 
-    // Updates object positions
-    update_object_positions(((float) duration.count())/1000.0);
-
     // Generates a new path
     if(ready_for_path){
         generate_curve();
     }
+
+    // Records data to output file
+    record_output();
 
   }
 
@@ -1339,5 +1399,6 @@ int main(int argc, char **argv) {
   f_done.write("done", 4);
   f_done.close();
   //o_file.close();
+  output_file.close();
   return 0;
 }
