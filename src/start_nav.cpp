@@ -1236,11 +1236,11 @@ void fix_roll(){
 
 // Converts an object to its string representation
 string object_to_string(tuple<float, float, float, float> obj){
-    return("(" + get<0>(obj) + ", " + get<1>(obj) + ", " + get<2>(obj) + ", " + get<3>(obj) + ")");
+    return("(" + to_string(get<0>(obj)) + ", " + to_string(get<1>(obj)) + ", " + to_string(get<2>(obj)) + ", " + to_string(get<3>(obj)) + ")");
 }
 
 void record_output(){
-  string time_string = chrono::duration_cast<chrono::seconds>(chrono::system_clock::now().time_since_epoch()).count();
+  string time_string = to_string(chrono::duration_cast<chrono::seconds>(chrono::system_clock::now().time_since_epoch()).count());
   output_file << time_string;
   output_file << "\n";
   for(auto &i : obj_lst){
@@ -1280,7 +1280,7 @@ int main(int argc, char **argv) {
   // Creates subscriber that updates velocity
   ros::Subscriber vel_sub = nh.subscribe("sensors/vel", 1, &get_velocity);
 
-  / Creates subscriber that waits for new lidar frame to be ready
+  // Creates subscriber that waits for new lidar frame to be ready
   ros::Subscriber ready_sub = nh.subscribe("cycle/frame_ready", 1, &update_ready);
 
   // Creates subscriber that updates velocity
