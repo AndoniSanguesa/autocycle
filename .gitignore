@@ -6,3 +6,4 @@ __pycache__
 /cmake-build-debug/
 /src/.DS_Store
 tash
+/.vscode/
