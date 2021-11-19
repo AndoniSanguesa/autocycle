@@ -6,11 +6,18 @@
 #include <sstream>
 #include <string>
 
+using namespace std;
+
 ofstream output_file;                                  // File to output data to
 bool ready = false;                                    // True if new LiDAR frame is ready for analysis
 ofstream f_done;                                       // Output file that will contain LiDAR info
 string path_to_lvx = "f_done.lvx";                     // Path to the data file
 float height_of_lidar = 763;                           // Height of the LiDAR in millimeters
+
+int height = 2400;                              // vertical height of detection window in millimeters
+int width = 10000;                              // horizontal width of detection window in millimeters
+int half_height = height/2;                     // Half of the above variable
+int half_width = width/2;                       // Half of the above variable
 
 // Parses the lvx file and sets the current points vector
 void parse_lvx(){
@@ -94,7 +101,6 @@ void parse_lvx(){
     else {
         ROS_ERROR_STREAM("File could not be opened");
     }
-    lvx_points.shrink_to_fit();
     //o_file << endl;
 }
 
