@@ -1248,7 +1248,7 @@ void record_output(){
   }
   output_file << "\n";
   for(int i = 0; i < xs.size(); i++){
-      output_file << "(" + xs[i] + ", " + ys[i] + ") "; 
+      output_file << "(" + to_string(xs[i]) + ", " + to_string(ys[i]) + ") "; 
   }
   output_file << "\n";
   output_file << to_string(heading) << " " << to_string(des_heading) + " " << to_string(des_heading - heading);
