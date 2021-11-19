@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
 
 
   // Initailizes the output file
-  string time_string = chrono::duration_cast<chrono::seconds>(chrono::system_clock::now().time_since_epoch()).count();
+  string time_string = to_string(chrono::duration_cast<chrono::seconds>(chrono::system_clock::now().time_since_epoch()).count());
   output_file.open("/home/ubuntu/" + time_string + ".txt");
 
   // Creates subscriber that waits for new lidar frame to be ready

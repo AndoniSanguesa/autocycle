@@ -444,7 +444,7 @@ bool check_if_heading_path_available(){
     // The first point is eqivalent ot the second node added to the path above
     first_point = make_tuple(get<0>(start_node), get<1>(start_node)+1);
     // This last point is a point 30 meters away at the angle described by `relative_heading`
-    last_point = make_tuple(sin(relative_heading)*30 + get<0>(start_node), cos(relative_heading)*30 + get<1>(start_node);
+    last_point = make_tuple(sin(relative_heading)*30 + get<0>(start_node), cos(relative_heading)*30 + get<1>(start_node));
 
     // We add the values of this final point to the path
     temp_xs.push_back(get<1>(last_point));
@@ -1115,7 +1115,7 @@ void get_dheading(const std_msgs::Float32 data){
 
 // Converts angle to a unit direction vector
 tuple<float, float> conv_ang_to_dir_vec(float ang){
-    return make_tuple(cos(ang), sin(ang))
+    return make_tuple(cos(ang), sin(ang));
 }
 
 // Gets the latest velocity
@@ -1236,12 +1236,7 @@ void fix_roll(){
 
 // Converts an object to its string representation
 string object_to_string(tuple<float, float, float, float> obj){
-    x1 = to_string(get<0>(obj));
-    x2 = to_string(get<1>(obj));
-    z1 = to_string(get<2>(obj));
-    x2 = to_string(get<3>(obj));
-
-    return("(" + x1 + ", " + x2 + ", " + z1 + ", " + z2 + ")");
+    return("(" + get<0>(obj) + ", " + get<1>(obj) + ", " + get<2>(obj) + ", " + get<3>(obj) + ")");
 }
 
 void record_output(){
@@ -1249,7 +1244,7 @@ void record_output(){
   output_file << time_string;
   output_file << "\n";
   for(auto &i : obj_lst){
-      output_file << object_to_string(i) + " "
+      output_file << object_to_string(i) + " ";
   }
   output_file << "\n";
   for(int i = 0; i < xs.size(); i++){
@@ -1267,7 +1262,7 @@ int main(int argc, char **argv) {
   ros::NodeHandle nh;
 
   // Initailizes the output file
-  string time_string = chrono::duration_cast<chrono::seconds>(chrono::system_clock::now().time_since_epoch()).count();
+  string time_string = to_string(chrono::duration_cast<chrono::seconds>(chrono::system_clock::now().time_since_epoch()).count());
   output_file.open("/home/ubuntu/" + time_string + ".txt");
 
   // Creates subscriber for updating roll
