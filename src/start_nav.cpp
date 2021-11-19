@@ -1285,7 +1285,7 @@ int main(int argc, char **argv) {
   // Creates subscriber that updates velocity
   ros::Subscriber vel_sub = nh.subscribe("sensors/vel", 1, &get_velocity);
 
-  // Creates subscriber that updates velocity
+  / Creates subscriber that waits for new lidar frame to be ready
   ros::Subscriber ready_sub = nh.subscribe("cycle/frame_ready", 1, &update_ready);
 
   // Creates subscriber that updates velocity
