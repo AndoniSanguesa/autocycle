@@ -1093,8 +1093,8 @@ void get_gps(const autocycle_extras::GPS data){
 }
 
 void get_data(const autocycle_extras::Data new_data){
-    data = new_data.data
-    data[7] = data[7] + sync_head_amt
+    data = new_data.data;
+    data[7] = data[7] + sync_head_amt;
     // tuple<float, float> vel_vec = conv_ang_to_dir_vec(data[7]) * data[5];
     // float omega_mag;
     // if(data[8] > 0){
@@ -1233,9 +1233,9 @@ void record_output(){
   output_file << to_string(des_heading);
   output_file << "\n[";
   for(int i = 0; i < data.size(); i++){
-    output_file << to_string(data[i]) << " "
+    output_file << to_string(data[i]) << " ";
   }
-  output_file << "]\n"
+  output_file << "]\n";
 }
 
 // The main navigation loop
@@ -1271,7 +1271,7 @@ int main(int argc, char **argv) {
   // desired_gps_cli = nh.serviceClient<autocycle_extras::DesiredGPS>("get_desired_gps");
 
   // Sets desired heading (for now the initial heading)
-  while(heading == -1){
+  while(data[7] == -1){
       ros::spinOnce();
   }
 

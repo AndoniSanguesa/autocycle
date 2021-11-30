@@ -25,10 +25,9 @@ int main(int argc, char **argv){
   // Initializing vars
   string temp = "";
   char back_char;
-  autocycle_extras::Data to_pub.data;
+  autocycle_extras::Data to_pub;
   int cur_ind = 0;
-  string names [10] = {"state", "roll", "steer", "droll", "dsteer", "vel", "torque", "heading", "dheading", "met"};
-  ros::Publisher publishers [10] = {state_pub, roll_pub, steer_pub, droll_pub, dsteer_pub, vel_pub, torque_pub, head_pub, dhead_pub, met_pub};
+  // string names [10] = {"state", "roll", "steer", "droll", "dsteer", "vel", "torque", "heading", "dheading", "met"};
 
   // Creates serial object to read from
   // TODO: Figure out what to do with the timeout
