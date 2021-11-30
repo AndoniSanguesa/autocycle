@@ -58,11 +58,11 @@ int main(int argc, char **argv){
       temp.pop_back();
       to_pub.push_back(stof(temp));
       temp.clear();
-      if (cur_ind%16 < 10){
+      if (cur_ind%16 == 15){
         data_pub.publish(to_pub);
         to_pub.clear();
       }
-      cur_publisher++;
+      cur_ind++;
     }
   }
 }
