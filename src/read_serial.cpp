@@ -55,11 +55,11 @@ int main(int argc, char **argv){
     back_char = (char) temp.back();
     if(back_char == '\t' || back_char == '\n'){
       temp.pop_back();
-      to_pub.push_back(stof(temp));
+      to_pub.data.push_back(stof(temp));
       temp.clear();
       if (cur_ind%16 == 15){
         data_pub.publish(to_pub);
-        to_pub.clear();
+        to_pub.data.clear();
       }
       cur_ind++;
     }
