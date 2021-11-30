@@ -11,6 +11,7 @@
 #include <autocycle_extras/CalcDeltas.h>
 #include <autocycle_extras/GPS.h>
 #include <autocycle_extras/DesiredGPS.h>
+#include <autocycle_extras/Data.h>
 #include <cmath>
 #include <set>
 #include <vector>
@@ -51,11 +52,7 @@ autocycle_extras::DesiredGPS desired_gps_obj; // ROS object that contains the da
 ros::ServiceClient desired_gps_cli;           // ROS Service Client that will request next desired (long, lat)
 
 // Sensor data variables
-
-float roll = 0;                               // Latest roll value
-float heading = 0;                            // Latest heading value
-float dheading = 0;                           // Derivative of heading
-float velocity = 0;                           // Latest velocity value
+vector<float> data;                           // Contains latest data
 tuple<float, float> cur_gps;                  // Latest longitude and latitude
 tuple<float, float> r_hat = {0, 0};           // vector from back wheel ground patch to the lidar
 
@@ -161,7 +158,7 @@ void synchronize_heading(){
     my_serial.write("t1,4000");
 
     // Waits until the bike is done moving
-    while(velocity > 0){
+    while(data[5] > 0){
         ros::spinOnce();
     }
 
@@ -188,7 +185,7 @@ void synchronize_heading(){
     sync_head_amt = get_angle_from_gps(mean_cur_gps, mean_after_gps);
 
     // Updates heading value
-    heading += sync_head_amt;
+    data[7] = data[7] + sync_head_amt;
 }
 
 // Callback function for the `frame_ready` topic that sets the ready variable
@@ -425,7 +422,7 @@ bool check_if_heading_path_available(){
 
     // The path generated will be at a angle equal to `relative_heading`. This will idealy result in the bike going at
     // the desired heading.
-    float relative_heading = des_heading - heading;
+    float relative_heading = des_heading - data[7];
 
     // The realtive heading is capped at +/- 70 degrees or about +/- 1.22 radians
     if(relative_heading > 1.22173){
@@ -583,7 +580,7 @@ void generate_curve() {
     //des_heading = get_angle_from_gps(cur_gps, desired_gps_pos);
     ready_for_path = false;
     des_heading = 0;
-    theta = des_heading - heading;
+    theta = des_heading - data[7];
     reset_vars();
     update_end_node();
     vector<tuple<float, float, float, float>> real_obj_lst;
@@ -622,11 +619,11 @@ void generate_curve() {
 // Updates the positions of previously found objects according to the
 // telemetry from the bike
 void update_object_positions(float delta_time){
-    delta_angle = heading - prev_heading;
-    prev_heading = heading;
+    delta_angle = data[7] - prev_heading;
+    prev_heading = data[7];
     new_obj_lst.clear();
 
-    dist = velocity * delta_time;
+    dist = data[5] * delta_time;
 
     float x1, x2, z1, z2, rx1, rx2, rz1, rz2;
 
@@ -1090,48 +1087,30 @@ void object_detection() {
 	//ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << (float) duration.count()/1000.0 << " SECONDS");
 }
 
-// Gets the latest roll
-void get_roll(const std_msgs::Float32 data){
-    roll = data.data;
-}
-
 // Gets the latest gps Data
 void get_gps(const autocycle_extras::GPS data){
     cur_gps = make_tuple(data.longitude, data.latitude);
 }
 
-// Gets the latest Heading
-void get_heading(const std_msgs::Float32 data){
-    heading = data.data + sync_head_amt;
-    if(check_if_heading_path_available()){
-        ROS_INFO_STREAM("HEADING: " << data.data << "RELATIVE_HEADING: " << des_heading - data.data);
-    }
-}
+void get_data(const autocycle_extras::Data new_data){
+    data = new_data.data
+    data[7] = data[7] + sync_head_amt
+    // tuple<float, float> vel_vec = conv_ang_to_dir_vec(data[7]) * data[5];
+    // float omega_mag;
+    // if(data[8] > 0){
+    //     omega_mag = -data[8];
+    // }
+    // else{
+    //     omega_mag =  data[8];
+    // }
 
-// Gets derivative of heading (omega)
-void get_dheading(const std_msgs::Float32 data){
-    dheading = data.data;
+    // tuple<float, float> omega_cross_r = make_tuple(omega_mag*get<1>(r_hat), omega_mag*get<0>(r_hat))
+    // data[5] = sqrt(pow(get<0>(vel_vec) + get<0>(omega_cross_r), 2) + pow(get<1>(vel_vec) + get<1>(omega_cross_r), 2));
 }
 
 // Converts angle to a unit direction vector
 tuple<float, float> conv_ang_to_dir_vec(float ang){
     return make_tuple(cos(ang), sin(ang));
-}
-
-// Gets the latest velocity
-void get_velocity(const std_msgs::Float32 data){
-    // tuple<float, float> vel_vec = conv_ang_to_dir_vec(heading) * data.data;
-    // gloat omega_mag;
-    // if(dheading > 0){
-    //     omega_mag = -dheading;
-    // }
-    // else{
-    //     omega_mag =  dheading;
-    // }
-
-    // tuple<float, float> omega_cross_r = make_tuple(omega_mag*get<1>(r_hat), omega_mag*get<0>(r_hat))
-    // velocity = sqrt(pow(get<0>(vel_vec) + get<0>(omega_cross_r), 2) + pow(get<1>(vel_vec) + get<1>(omega_cross_r), 2));
-    velocity = data.data;
 }
 
 //ofstream o_file ("/home/ubuntu/Autocycle/BezierAutocycle/ros/bruh.txt", ios::out);
@@ -1230,7 +1209,7 @@ void fix_roll(){
   // Updates each point for the given roll
   for(int i=0;i<lvx_points.size();i++){
     tie (x, y, z) = lvx_points[i];
-    lvx_points[i] = make_tuple(x*cos(-roll) - y*sin(-roll), x*sin(-roll) + y*cos(-roll), z);
+    lvx_points[i] = make_tuple(x*cos(-data[1]) - y*sin(-data[1]), x*sin(-data[1]) + y*cos(-data[1]), z);
   }
 }
 
@@ -1240,19 +1219,23 @@ string object_to_string(tuple<float, float, float, float> obj){
 }
 
 void record_output(){
-  string time_string = to_string(chrono::duration_cast<chrono::seconds>(chrono::system_clock::now().time_since_epoch()).count());
+  string time_string = to_string(chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count());
   output_file << time_string;
-  output_file << "\n";
+  output_file << "\n[";
   for(auto &i : obj_lst){
       output_file << object_to_string(i) + " ";
   }
-  output_file << "\n";
+  output_file << "]\n[";
   for(int i = 0; i < xs.size(); i++){
-      output_file << "(" + to_string(xs[i]) + ", " + to_string(ys[i]) + ") "; 
+      output_file << "(" + to_string(ys[i]) + ", " + to_string(xs[i]) + ") ";
   }
-  output_file << "\n";
-  output_file << to_string(heading) << " " << to_string(des_heading) + " " << to_string(des_heading - heading);
-  output_file << "\n";
+  output_file << "]\n";
+  output_file << to_string(des_heading);
+  output_file << "\n[";
+  for(int i = 0; i < data.size(); i++){
+    output_file << to_string(data[i]) << " "
+  }
+  output_file << "]\n"
 }
 
 // The main navigation loop
@@ -1262,23 +1245,11 @@ int main(int argc, char **argv) {
   ros::NodeHandle nh;
 
   // Initailizes the output file
-  string time_string = to_string(chrono::duration_cast<chrono::seconds>(chrono::system_clock::now().time_since_epoch()).count());
+  string time_string = to_string(chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count());
   output_file.open("/home/ubuntu/" + time_string + ".txt");
 
   // Creates subscriber for updating roll
-  ros::Subscriber update_roll = nh.subscribe("sensors/roll", 1, &get_roll);
-
-  // Creates subscriber that updates heading
-  ros::Subscriber head_sub = nh.subscribe("sensors/heading", 1, &get_heading);
-
-  // Creates suscriber that updates heading derivative
-  ros::Subscriber dhead_sub = nh.subscribe("sensors/dheading", 1, &get_dheading);
-
-  // Creates subscriber that updates GPS data
-  // ros::Subscriber gps_sub = nh.subscribe("sensors/gps", 1, &get_gps);
-
-  // Creates subscriber that updates velocity
-  ros::Subscriber vel_sub = nh.subscribe("sensors/vel", 1, &get_velocity);
+  ros::Subscriber update_data = nh.subscribe("sensors/data", 1, &get_data);
 
   // Creates subscriber that waits for new lidar frame to be ready
   ros::Subscriber ready_sub = nh.subscribe("cycle/frame_ready", 1, &update_ready);
@@ -1375,9 +1346,7 @@ int main(int argc, char **argv) {
     state_start = std::chrono::high_resolution_clock::now();
 
     // Generates a new path
-    if(ready_for_path){
-        generate_curve();
-    }
+    generate_curve();
 
     // Records data to output file
     record_output();

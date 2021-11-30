@@ -2,6 +2,7 @@
 #include <serial/serial.h>
 #include <autocycle_extras/GetDelta.h>
 #include <autocycle_extras/CalcDeltas.h>
+#include <autocycle_extras/Data.h>
 #include <std_msgs/Float32.h>
 #include <chrono>
 #include <std_srvs/Empty.h>
@@ -21,8 +22,8 @@ void reset_distance(const autocycle_extras::CalcDeltas data){
     dist_trav = 0;
 }
 
-void update_velocity(const std_msgs::Float32 data){
-    velocity = data.data;
+void update_velocity(const autocycle_extras::Data data){
+    velocity = data.data[5];
 }
 
 void update_state(const std_msgs::Float32 data){
@@ -51,7 +52,7 @@ int main(int argc, char **argv) {
     ros::Subscriber get_path = nh.subscribe("cycle/calc_deltas", 1, &reset_distance);
 
     // Creates subscriber for updating velocity
-    ros::Subscriber get_vel = nh.subscribe("sensors/vel", 1, &update_velocity);
+    ros::Subscriber get_vel = nh.subscribe("sensors/data", 1, &update_velocity);
 
     // Creates subscriber for updating state
     ros::Subscriber get_state = nh.subscribe("sensors/state", 1, &update_state);
