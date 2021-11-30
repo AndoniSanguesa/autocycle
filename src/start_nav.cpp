@@ -695,127 +695,110 @@ vector<vector<int>> Graph::connectedComps() {
 	return connected;
 }
 
-// Finds the left-most point in a vector of points
-int leftMost(vector<vector<float>> points) {
-	int min_ind = 0;
-	for (int i = 0; i < points.size(); i++) {
-		if (points[i][0] < points[min_ind][0]) {
-			min_ind = i;
-		} else if (points[i][0] == points[min_ind][0]) {
-			if (points[i][1] > points[min_ind][1]) {
-				min_ind = i;
-			}
-		}
-	}
-	return min_ind;
-}
-
-// Sets the
-int orientation(vector<float> p,vector<float> q,vector<float> r){
-	float val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1]);
-	if (val) {
-		if (val > 0) {
-			return 1;
-		} else {
-			return 2;
-		}
-	} else {
-		return 0;
-	}
+// To find orientation of ordered triplet (p, q, r).
+// The function returns following values
+// 0 --> p, q and r are collinear
+// 1 --> Clockwise
+// 2 --> Counterclockwise
+int orientation(tuple<float, float> p, tuple<float, float> q, tuple<float, float> r){
+    float val = (get<1>(q) - get<1>(p)) * (get<0>(r) - get<0>(q)) - (get<0>(q) - get<0>(p)) * (get<1>(r) - get<1>(q));
+    if (val == 0) return 0;  // collinear
+    return (val > 0)? 1: 2; // clock or counter clockwise
 }
 
 // Generates line segments representing the convex hull of a group of objects
 // This is used to consolidate the smaller objects that were deemed part
 // of the same larger object
 vector<tuple<float, float, float, float>> convHull(vector<tuple<float, float>> points) {
-	vector<vector<float>> new_points;
     vector<tuple<float, float, float, float>> new_objects;
-	float x, z;
-	for (tuple<float, float> p : points) {
-	    tie (x, z) = p;
-		points.push_back({x, z});
-	}
-	int n = points.size();
-
+    int n = points.size();
+    float x1, x2, z1, z2;
+    // Create an object if only one point in grouping
     if (n == 1) {
-        new_objects.emplace_back(make_tuple(new_points[0][0], new_points[0][0], new_points[0][1], new_points[0][1]));
+        tie (x1, z1) = points[0];
+        new_objects.emplace_back(make_tuple(x1, x1, z1, z1));
         return new_objects;
     }
+    // Create an object if only two points in grouping
     if (n == 2) {
-        new_objects.emplace_back(make_tuple(new_points[0][0], new_points[1][0], new_points[0][1], new_points[1][1]));
+        tie (x1, z1) = points[0];
+        tie (x2, z2) = points[1];
+        new_objects.emplace_back(make_tuple(x1, x2, z1, z2));
         return new_objects;
     }
 
-	int l = leftMost(new_points);
-	vector<int> hull;
-	int p = l;
-	int q;
-
-	while(true) {
-		hull.push_back(p);
-		q = (p+1) % n;
-		for (int i = 0; i < n; i++) {
-			if (orientation(new_points[p], new_points[i], new_points[q]) == 2) {
-				q = i;
-			}
-		}
-		p = q;
-		if (p == l) {
-			break;
-		}
-	}
-    float dist = 0;
-    float angle = 0;
-	for (int i = 1; i < hull.size(); i++) { 
-        vector<float> curr_point = new_points[hull[i-1]];
-        dist = sqrt(pow(curr_point[0] - new_points[hull[i]][0], 2) +  pow(curr_point[1] - new_points[hull[i]][1], 2));
-        angle = atan2(curr_point[1] - new_points[hull[i]][1], curr_point[0] - new_points[hull[i]][0]);
-        float z_comp = sin(angle) * same_obj_diff;
-        float x_comp = cos(angle) * same_obj_diff;
-        while (dist > same_obj_diff) {
-            float temp_x = curr_point[0] + x_comp;
-            float temp_z = curr_point[1] + z_comp;
-            new_objects.emplace_back(make_tuple(curr_point[0], temp_x, curr_point[1], temp_z);
-            curr_point[0] = temp_x;
-            curr_point[1] = temp_z;
-            dist = sqrt(pow(curr_point[0] - new_points[hull[i]][0], 2) +  pow(curr_point[1]- new_points[hull[i]][1], 2));
+    int l = 0;
+    // Find the left most point
+    for (int i = 1; i < n; i++) {
+        if (get<0>(points[i]) < get<0>(points[l])) {
+            l = i;
         }
-        new_objects.emplace_back(make_tuple(curr_point[0], new_points[hull[i]][0], curr_point[1], new_points[hull[i]][1]));
-
-	}
-	vector<float> curr_point = new_points[hull[hull.size()-1]];
-    dist = sqrt(pow(curr_point[0] - new_points[hull[0]][0], 2) +  pow(curr_point[1] - new_points[hull[0]][1], 2));
-    angle = atan2(curr_point[1] - new_points[hull[0]][1], curr_point[0] - new_points[hull[0]][0]);
-    float z_comp = sin(angle) * same_obj_diff;
-    float x_comp = cos(angle) * same_obj_diff;
-    while (dist > same_obj_diff) {
-        float temp_x = curr_point[0] + x_comp;
-        float temp_z = curr_point[1] + z_comp;
-        new_objects.emplace_back(make_tuple(curr_point[0], temp_x, curr_point[1], temp_z);
-        curr_point[0] = temp_x;
-        curr_point[1] = temp_z;
-        dist = sqrt(pow(curr_point[0] - new_points[hull[0]][0], 2) +  pow(curr_point[1]- new_points[hull[0]][1], 2));
     }
-    new_objects.emplace_back(make_tuple(curr_point[0], new_points[hull[0]][0], curr_point[1], new_points[hull[0]][1]));
+
+    vector<tuple<float, float>> hull;
+    int p = l, q;
+    // Find the points that make up the convex hull
+    do {
+        hull.emplace_back(points[p]);
+        q = (p+1) % n;
+        for (int i = 0; i < n; i++) {
+            if (orientation(points[p], points[i], points[q]) == 2) {
+                q = i;
+            }
+        }
+        p = q;
+    } while(p != l);
+
+
+    float dist, angle, z_comp, x_comp;
+    // Create objects from adjacent points within the convex hull
+    // if points are to far apart, points are added in between at
+    // every same object diff / 2 distance along the line segment
+    // between them
+    for (int i = 1; i < hull.size(); i++) {
+        tie(x1, z1) = hull[i-1];
+        tie(x2, z2) = hull[i];
+        dist = sqrt(pow(x1-x2, 2) + pow(z1-z2, 2));
+        angle = atan2(z2-z1, x2-x1);
+        z_comp = sin(angle) * same_obj_diff * .5;
+        x_comp = cos(angle) * same_obj_diff * .5;
+        while (dist > same_obj_diff * .5) {
+            float temp_x = x1 + x_comp;
+            float temp_z = z1 + z_comp;
+            new_objects.emplace_back(make_tuple(x1, temp_x, z1, temp_z));
+            x1 = temp_x;
+            z1 = temp_z;
+            dist = sqrt(pow(x1-x2, 2)+pow(z1-z2, 2));
+        }
+        new_objects.emplace_back(make_tuple(x1, x2, z1, z2));
+    }
+
+    tie(x1, z1) = hull[hull.size()-1];
+    tie(x2, z2) = hull[0];
+    dist = sqrt(pow(x1-x2, 2)+pow(z1-z2, 2));
+    angle = atan2(z2-z1, x2-x1);
+    z_comp = sin(angle) * same_obj_diff * .5;
+    x_comp = cos(angle) * same_obj_diff *.5;
+    while (dist > same_obj_diff * .5) {
+        float temp_x = x1 + x_comp;
+        float temp_z = z1 + z_comp;
+        new_objects.emplace_back(make_tuple(x1, temp_x, z1, temp_z));
+        x1 = temp_x;
+        z1 = temp_z;
+        dist = sqrt(pow(x1-x2, 2)+pow(z1-z2, 2));
+    }
+    new_objects.emplace_back(make_tuple(x1, x2, z1, z2));
     return new_objects;
 }
-
-
-// Difference between points used to calculate intersections
-vector<float> diff (vector<float> p1, vector<float> p2) {
-    vector<float> vals;
-    vals.push_back(p1[1] - p2[1]);
-    vals.push_back(p2[0] - p1[0]);
-    vals.push_back(-1 * (p1[0] * p2[1] - p2[0] * p1[1]));
-    return vals;
-}
-
 
 // Condenses a group of newly detected objects. This means that any objects
 // That intersected are destroyed and any new objects are coalesed with
 // nearby objects.
 vector<tuple<float, float, float, float>> condenseObjects(vector<tuple<float,float>> points) {
-	Graph gr = Graph(points.size());
+    set<tuple<float, float>> sieve(points.begin(), points.end());
+    points.assign(sieve.begin(), sieve.end());
+
+    Graph gr = Graph(points.size());
     float dist = 0;
 	for (int x = 0; x < points.size(); x++) {
 		for (int y = x+1; y < points.size(); y++) {
