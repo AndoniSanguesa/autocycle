@@ -623,10 +623,10 @@ void update_object_positions(float delta_time){
     delta_angle = data[7] - prev_heading;
     float delta_angle_cos = cos(delta_angle);
     float delta_angle_sin = sin(delta_angle);
-    float z_velocity = math.cos(data[7]) * data[5] * 1000;
-    float x_velocity = math.sin(data[7]) * data[5] * 1000;
-    float z_displacement = - (z_velocity * math.cos(-data[7]) - x_velocity * math.sin(-data[7])) * delta_time;
-    float x_displacement = - (z_velocity * math.sin(-data[7]) + x_velocity * math.cos(-data[7])) * delta_time;
+    float z_velocity = cos(data[7]) * data[5] * 1000;
+    float x_velocity = sin(data[7]) * data[5] * 1000;
+    float z_displacement = - (z_velocity * cos(-data[7]) - x_velocity * sin(-data[7])) * delta_time;
+    float x_displacement = - (z_velocity * sin(-data[7]) + x_velocity * cos(-data[7])) * delta_time;
     prev_heading = data[7];
     new_obj_lst.clear();
 
@@ -1251,7 +1251,6 @@ int main(int argc, char **argv) {
   ros::NodeHandle nh;
 
   // Initailizes the output file
-  mkdir("/home/ubuntu/test_data/");
   string time_string = to_string(chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count());
   output_file.open("/home/ubuntu/test_data/" + time_string + ".txt");
 
@@ -1303,7 +1302,7 @@ int main(int argc, char **argv) {
 
     // Updates object positions
 
-    if is_new_data{
+    if(is_new_data){
         is_new_data = false;
         // Ends clock for updating object positions
         state_stop = std::chrono::high_resolution_clock::now();
