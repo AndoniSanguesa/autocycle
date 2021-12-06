@@ -623,8 +623,8 @@ void update_object_positions(float delta_time){
     delta_angle = data[7] - prev_heading;
     float delta_angle_cos = cos(delta_angle);
     float delta_angle_sin = sin(delta_angle);
-    float z_velocity = math.cos(data[7]) * data[5];
-    float x_velocity = math.sin(data[7]) * data[5];
+    float z_velocity = math.cos(data[7]) * data[5] * 1000;
+    float x_velocity = math.sin(data[7]) * data[5] * 1000;
     float z_displacement = - (z_velocity * math.cos(-data[7]) - x_velocity * math.sin(-data[7])) * delta_time;
     float x_displacement = - (z_velocity * math.sin(-data[7]) + x_velocity * math.cos(-data[7])) * delta_time;
     prev_heading = data[7];
