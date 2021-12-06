@@ -1081,7 +1081,7 @@ void object_detection() {
         z_boys.push_back(make_tuple(x1, x2, z1, z2));
     }
 
-	cond_objs = condenseObjects(z_boys);
+	vector<tuple<float, float, float, float>> cond_objs = condenseObjects(z_boys);
 	obj_lst.insert(obj_lst.end(), cond_objs.begin(), cond_objs.end());
         for(auto & i : obj_lst){
 	    ROS_INFO_STREAM("OBJECT: (" << get<0>(i) << ", " << get<1>(i) << ", " << get<2>(i) << ", " << get<3>(i) << ")");
