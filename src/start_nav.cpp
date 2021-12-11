@@ -423,7 +423,7 @@ bool check_if_heading_path_available(){
 
     // The path generated will be at a angle equal to `relative_heading`. This will idealy result in the bike going at
     // the desired heading.
-    float relative_heading = des_heading - data[7];
+    float relative_heading =  data[7] - des_heading;
 
     // The realtive heading is capped at +/- 70 degrees or about +/- 1.22 radians
     if(relative_heading > 1.22173){
