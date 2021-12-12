@@ -1185,6 +1185,10 @@ void parse_lvx(){
                         // Ignores tag and reflexivity
                         file.ignore(2);
 
+                        // Adjusts for roll
+                        x = x*cos(-data[1]) - y*sin(-data[1]);
+                        y = x*sin(-data[1]) + y*cos(-data[1]);
+
                         if(z !=0 && x > -half_width && x < half_width && y > -height_of_lidar && y < half_height){
                             lvx_points.push_back(make_tuple(x, y, z));
                         }
@@ -1205,18 +1209,6 @@ void parse_lvx(){
     }
     lvx_points.shrink_to_fit();
     //o_file << endl;
-}
-
-// Adjusts detected points for roll from the bike
-void fix_roll(){
-  tuple<float, float, float> np; // new point tuple
-  float x, y, z;                 // Point position variables
-
-  // Updates each point for the given roll
-  for(int i=0;i<lvx_points.size();i++){
-    tie (x, y, z) = lvx_points[i];
-    lvx_points[i] = make_tuple(x*cos(-data[1]) - y*sin(-data[1]), x*sin(-data[1]) + y*cos(-data[1]), z);
-  }
 }
 
 // Converts an object to its string representation
@@ -1341,11 +1333,6 @@ int main(int argc, char **argv) {
 
       // ROS checks for call backs (To get the latest possible roll)
       ros::spinOnce();
-
-      // Adjusts for roll
-      fix_roll();
-
-      //ROS_INFO_STREAM("Points have been adjusted for roll.");
 
       // Runs object detection on the new data
       object_detection();
