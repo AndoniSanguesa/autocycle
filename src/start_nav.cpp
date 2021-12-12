@@ -1268,6 +1268,10 @@ int main(int argc, char **argv) {
   // Creates server client for getting subsequent desired GPS positions
   // desired_gps_cli = nh.serviceClient<autocycle_extras::DesiredGPS>("get_desired_gps");
 
+  for(int i = 0; i < 16; i++){
+      data.push_back(-1);
+  }
+
   // Sets desired heading (for now the initial heading)
   while(data[7] == -1){
       ros::spinOnce();
