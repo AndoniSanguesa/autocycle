@@ -23,6 +23,8 @@
 #include <serial/serial.h>
 #include <sstream>
 #include <string>
+#include<bits/stdc++.h>
+#include <queue>
 
 using namespace std;
 
@@ -31,7 +33,7 @@ using namespace std;
 serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleTimeout(0));
 
 // General use variable initialization
-
+tuple<float, float> bike_pos = {0, 0};
 bool is_new_data = false;                              // True if there is new data to update object positions with
 ofstream output_file;                                  // File to output data to
 bool ready = false;                                    // True if new LiDAR frame is ready for analysis
@@ -76,24 +78,21 @@ float box_dist = 1500;                          // distance in each dimension su
 
 // Path Planning Variables
 
+float max_distance = 3;                                // Maximum distance allowed from path or endpoint
+tuple<int, int> current_end_node;                      // Current end node
+float max_angle = M_PI/4;                              // Maximum angle desired heading can take
 bool ready_for_path = true;                            // Whether or not `calculate_deltas` node is ready for a new path
 bool skip = false;                                     // Whether or not to skip current curve generation loop
 tuple<float, float> des_gps;                           // Next desired GPS location
-int path_width = 20;                                   // Width of graph in meters
-int path_height = 20;                                  // Height of graph in meters
 int node_size = 1;                                     // Size of node in graph in meters
-int x_dim = path_width / node_size;                    // Width of graph in nodes
-int y_dim = path_height / node_size;                   // Height of graph in nodes
 unordered_set<int> blocked_nodes;                      // Nodes that should be avoided for path generation
 unordered_set<int> center_blocked_nodes;               // The `anchor` blocked nodes, used only in generated the full `blocked_nodes` set
 float padding = 1.5;                                   // Amount of padding to place around objects in meters
-int padding_num = (int) (padding / (float) node_size); // Number of nodes around object to block out                    // The path generated
-tuple<int, int> start_node = {y_dim/2, 0};             // Starting node for path
-tuple<int, int> end_node;                              // End node for path
-vector<float> ys;                                      // Path y values
-vector<float> xs;                                      // Path x values
+int padding_num = max((int) floor(padding / node_size),1); // Number of nodes around object to block out
 float des_heading = 0;                                 // The desired heading relative to global heading
-float theta = 0;                                       // The desired heading relative to the current heading
+vector<float> start_xs, start_ys;
+tuple<vector<float>, vector<float>> prev_path = {start_xs, start_ys};
+int loaded_graph_size = 50;
 
 // State Tracking Variables
 
@@ -130,6 +129,13 @@ float get_angle_from_gps(tuple<float, float> gps1, tuple<float, float> gps2){
     // Gets difference in longitude
     float lng_delta = cosf(M_PI/180*get<0>(gps1))*(get<1>(gps2) - get<1>(gps1));
     return atan2f(lat_delta, lng_delta);
+}
+
+void update_bike_pos(tuple<float, float> prev_gps, tuple<float, float> new_gps){
+    // Calculates change in position
+    delta_angle = get_angle_from_gps(prev_gps, new_gps);
+    dist = get_distance_between_gps(prev_gps, new_gps);
+    bike_pos = make_tuple(get<0>(bike_pos) + dist * cosf(delta_angle), get<1>(bike_pos) + dist * sinf(delta_angle));
 }
 
 // Synchronize current heading with GPS heading
@@ -201,9 +207,13 @@ void update_ready_for_path(const std_msgs::Empty msg){
 
 // Uses the Cantor mapping function that maps a point in R2 to a unique value in R1 (for hashing)
 int cantor(tuple<int, int> node){
-    int p1 = get<0>(node);
-    int p2 = get<1>(node);
-    return (((p1 + p2) * (p1 + p2 +1))/2) + p2;
+    int a = get<0>(node);
+    int b = get<1>(node);
+
+    int A = a >= 0 ? 2 * a : -2 * a - 1;
+    int B = b >= 0 ? 2 * b : -2 * b - 1;
+    int C = (A >= B ? A * A + A + B : A + B * B) / 2;
+    return a < 0 && b < 0 || a >= 0 && b >= 0 ? C : -C - 1;
 }
 
 // Calculates difference between two vectors in R2
@@ -216,73 +226,22 @@ void reset_vars(){
     // The nodes that have been deemed blocked by an object
     blocked_nodes.clear();
     center_blocked_nodes.clear();
-
-    // The path being taken
-    xs.clear();
-    ys.clear();
 }
 
 //Takes cartesian point and returns the corresponding path planning node
 tuple<int, int> get_node_from_point(tuple<float, float> point){
-    float x = get<0>(point);
-    float y = get<1>(point);
-    return (make_tuple(
-            (int) (((-y) + ((float) path_height / 2)) / (float) node_size),
-            (int) (x / (float) node_size)
-    ));
+    float x, y;
+    tie(x, y) = point;
+    return make_tuple((int) floor(x/node_size), (int) floor(y/node_size));
 }
 
-// Converts graph node into corresponding cartesian point
-tuple<float, float> get_point_from_node(tuple<float, float> node){
-    float y = get<0>(node);
-    float x = get<1>(node);
-
-    return(make_tuple(x * node_size, -((y  * node_size) - (path_height / 2))));
-}
-
-// Performs basic linear interpolation. This preprocessing can greatly improve the effectiveness of the cubic
-// spline interpolation used to generate deltas
-void augment_path(){
-    // Initializes temporary vectors that will hold interpolated path
-    vector<float> new_xs, new_ys;
-    tuple<float, float> next_point, cur_point, change;
-
-    // We start the path at the same point and set cur_point to that point
-    new_xs.push_back(xs[0]);
-    new_ys.push_back(ys[0]);
-    cur_point = make_tuple(ys[0], xs[0]);
-
-    for(int i=1;i<xs.size();i++){
-        // We set next_point to the following point in our calculated path
-        next_point = make_tuple(ys[i], xs[i]);
-        // We calculate the difference between the points to get the midpoint
-        change = get_change(cur_point, next_point);
-        // We calculate the midpoint between `cur_point` and `next_point` and add this to our new path
-        new_xs.push_back(get<1>(cur_point)+(get<1>(change)*0.5));
-        new_ys.push_back(get<0>(cur_point)+(get<0>(change)*0.5));
-        // We add the next point to the path and set that as our current point for the next iteration
-        new_xs.push_back(get<1>(next_point));
-        new_ys.push_back(get<0>(next_point));
-        cur_point = next_point;
-    }
-    // We set the global `xs` and `ys` to this new interpolated path
-    xs = new_xs;
-    ys = new_ys;
-}
-
-// Returns the list of nodes that an object is blocking
 void get_blocked_nodes(tuple<float, float, float, float> obj){
-    float x1, x2, y1, y2, tmp, m;
-    double delta_x;
+    float x1, x2, y1, y2, delta_x, m;
     int x, y;
-    tuple<int, int> node, new_node;
-    // Sets x1, x2, y1, y2 to values corresponding to end points of the object
-    tie (x1, x2, y1, y2) = obj;
+    tie(x1, x2, y1, y2) = obj;
 
-    // For this to work we need the point (x1, y1) to have a lower x value than (x2, y2). If this is not already the
-    // case, we swap the values of the points:
     if(x2 < x1){
-        tmp = x1;
+        float tmp = x1;
         x1 = x2;
         x2 = tmp;
 
@@ -291,279 +250,221 @@ void get_blocked_nodes(tuple<float, float, float, float> obj){
         y2 = tmp;
     }
 
-    // We set a starting point at (x1, y1)
-    double cur_point [2] = {x1, y1};
+    bool vert = (x2 == x1);
 
-    // vert is true if the object is perfectly vertical. This is relevant to avoid divide by 0 errors
-    bool vert = x2 - x1 == 0;
-
-    // If object is not vertical, we calculate the slope of the object and set delta_x to the change in x value if we
-    // were to move up the object a length equal to the size of our graph nodes.
     if(!vert){
         m = (y2 - y1) / (x2 - x1);
-        delta_x = node_size/sqrt(1+pow(m, 2));
+        delta_x = (float) (node_size/(pow((1+pow(m, 2)),0.5)));
+    } else{
+        float tmp_max = max(y1, y2);
+        float tmp_min = min(y1, y2);
+        y1 = tmp_min;
+        y2 = tmp_max;
     }
 
-    // The basic idea is that we are setting our current point to points on the object and adding the nodes around that
-    // point to the blocked nodes set. If the object is vertical we continue until our cur point's y value exceeds the
-    // second point's y value. If the object is not vertical we continue until our cur point's x value exceeds the second
-    // point's x value.
-    while((!vert && (cur_point[0] < x2)) || (vert && (cur_point[1] < y2))){
-        // We get the node corresponding to the current node
-        node = get_node_from_point(make_tuple(cur_point[0], cur_point[1]));
-        // We check whether we've already used this node to generate blocked nodes
+    tuple<float, float> cur_point = {x1, y1};
+
+    while(((get<0>(cur_point) < x2) and !vert) or ((get<1>(cur_point) < y2) and vert)){
+        tuple<int, int> node = get_node_from_point(make_tuple(get<0>(cur_point), get<1>(cur_point)));
+        tie(x, y) = node;
+
         if(center_blocked_nodes.find(cantor(node)) == center_blocked_nodes.end()){
-            // We add this node to the list of nodes used to generate more blocked nodes
-            center_blocked_nodes.insert(cantor(node));
-            // We initialize a vector that will hold the nodes surrounding this center blocked node
-            vector<tuple<int, int>> cur_blocked;
-            x = get<1>(node);
-            y = get<0>(node);
-
             // We blocked nodes around the point according to the value of `padding_num`
-            for(int y_ind = -(padding_num); y_ind < (padding_num+1); y_ind++){
-                for(int x_ind = -(padding_num); x_ind < (padding_num+1); x_ind++){
-                    if(0 <= y+y_ind < y_dim && 0 <= x+x_ind < x_dim){
-                        cur_blocked.emplace_back(y+y_ind, x+x_ind);
-                    }
+            for(int y_ind = -(padding_num); y_ind < (padding_num+1); y_ind++) {
+                for (int x_ind = -(padding_num); x_ind < (padding_num + 1); x_ind++) {
+                    blocked_nodes.emplace(cantor(make_tuple(x + x_ind, y + y_ind)));
+                    //cout << "(" << to_string(x + x_ind) << ", " << to_string(y + y_ind) << ")" << endl;
                 }
             }
-            // We calculate the cantor mapping of the blocked nodes and add them to our global list of blocked nodes
-            for(auto & ind : cur_blocked){
-                blocked_nodes.insert(cantor(ind));
-            }
+            center_blocked_nodes.emplace(cantor(node));
         }
-        // We update the cur_point for the next iteration
+
         if(!vert){
-            cur_point[0] = cur_point[0] + delta_x;
-            cur_point[1] = cur_point[1] + (m * delta_x);
-        } else {
-            cur_point[1] = cur_point[1] + node_size;
+            cur_point = make_tuple(get<0>(cur_point) + delta_x, get<1>(cur_point) + (m * delta_x));
+        } else{
+            cur_point = make_tuple(get<0>(cur_point), get<1>(cur_point) + node_size);
         }
     }
-    // The previous for loop works for the most part, but it is likely to skip over the other end point for our
-    // object. We obviously need the nodes around the end point blocked off, so we run the same process here but just
-    // for the end point.
-    node = get_node_from_point(make_tuple(x2, y2));
-    if(center_blocked_nodes.find(cantor(node)) == center_blocked_nodes.end()){
-        vector<tuple<int, int>> cur_blocked;
-        center_blocked_nodes.insert(cantor(node));
-        x = get<1>(node);
-        y = get<0>(node);
 
-        for(int y_ind = -1; y_ind < 2; y_ind++){
-            for(int x_ind = -1; x_ind < 2; x_ind++){
-                if(0 <= y+y_ind < y_dim && 0 <= x+x_ind < x_dim){
-                    cur_blocked.emplace_back(y+y_ind, x+x_ind);
+    tuple<int ,int> node = get_node_from_point(make_tuple(x2, y2));
+    if(center_blocked_nodes.find(cantor(node)) == center_blocked_nodes.end()){
+        tie(x, y) = node;
+
+        if(center_blocked_nodes.find(cantor(node)) == center_blocked_nodes.end()) {
+            // We blocked nodes around the point according to the value of `padding_num`
+            for (int y_ind = -(padding_num); y_ind < (padding_num + 1); y_ind++) {
+                for (int x_ind = -(padding_num); x_ind < (padding_num + 1); x_ind++) {
+                    blocked_nodes.emplace(cantor(make_tuple(x + x_ind, y + y_ind)));
+                    //cout << "(" << to_string(x + x_ind) << ", " << to_string(y + y_ind) << ")" << endl;
                 }
             }
-        }
-        for(auto & ind : cur_blocked){
-            blocked_nodes.insert(cantor(ind));
+            center_blocked_nodes.emplace(cantor(node));
         }
     }
 }
 
-// Checks whether a provided line intersects with the currently blocked off nodes. This is used to determine whether
-// we can simply go towards the desired heading rather than worry about obstacles in our way.
-bool line_intersect_object(tuple<tuple<int, int>, tuple<int, int>> end_points){
-    // We extract points p1 and p2 from our input
-    tuple<float, float> p1 = get_point_from_node(get<0>(end_points));
-    tuple<float, float> p2 = get_point_from_node(get<1>(end_points));
-    tuple<int, int> node;
-
-    // We want the x value in p1 to come before the x value in p2. If this is not true, we swap the values
-    if(get<0>(p2) < get<0>(p1)){
-        tuple<float, float> tmp = p1;
-        p1 = p2;
-        p2 = tmp;
-    }
-
-    // We calculate the slope of our line. We should never have a divide by zero error since that would indicate we want
-    // our bike to instantly turn 90 degrees. There are limits set up so that this never occurs.
-    float m = (get<1>(p2) - get<1>(p1))/(get<0>(p2) - get<0>(p1));
-
-    // We calculate the change in x and y if we move up the line by a length equal to our path planning node
-    float delta_y = asin(m)*node_size;
-    float delta_x = acos(m)*node_size;
-
-    // We set our current point to p1
-    float cur_x = get<0>(p1);
-    float cur_y = get<1>(p1);
-
-    // We move the current point up the line defined by the input, checking whether the current point lies on a blocked
-    // node.
-    while(cur_x < get<0>(p2)){
-        // We convert the Cartesian current point to the path planning node it lies on
-        node = get_node_from_point(make_tuple(cur_x, cur_y));
-        // We check whether this node is blocked. If it is we immediately return true, indicated this path is blocked
-        if(blocked_nodes.find(cantor(node)) != blocked_nodes.end()){
-            return true;
-        }
-        // We update the current point
-        cur_x += delta_x;
-        cur_y += delta_y;
-    }
-    // The while loop above will likely skip over the final point. We check whether the associated node is blocked. If it
-    // is we return true, indicating the path is blocked/
-    node = get_node_from_point(p2);
-    if(blocked_nodes.find(cantor(node)) != blocked_nodes.end()){
-        return true;
-    }
-    // false is returned indicating the path is viable and not blocked!
-    return false;
+tuple<int, int> get_end_node(tuple<float ,float> bike_pos, float desired_heading) {
+    return get_node_from_point(make_tuple(
+            get<0>(bike_pos) + (cos(desired_heading) * (float) loaded_graph_size),
+            get<1>(bike_pos) + (sin(desired_heading) * (float) loaded_graph_size)
+    ));
 }
 
-// Checks whether provided a desired heading, we can immediately attempt to actualize that heading
-bool check_if_heading_path_available(){
-    // These vectors will hold the path. The global vectors will only be updated with these values if the path is
-    // deemed valid
-    vector<float> temp_xs, temp_ys;
-    tuple<float, float> first_point, last_point;
+tuple<int, int> get_start_node(tuple<float, float> bike_pos, float cur_heading){
+    float new_point_dist = 2 * node_size;
 
-    // The path generated will be at a angle equal to `relative_heading`. This will idealy result in the bike going at
-    // the desired heading.
-    float relative_heading =  data[7] - des_heading;
+    float x = cos(cur_heading)*new_point_dist + get<0>(bike_pos);
+    float y = sin(cur_heading)*new_point_dist + get<1>(bike_pos);
 
-    // The realtive heading is capped at +/- 70 degrees or about +/- 1.22 radians
-    if(relative_heading > 1.22173){
-        relative_heading = 1.221738;
-    } else if(relative_heading < -1.22173){
-        relative_heading = -1.22173;
-    }
-
-    // The path is initialized with nodes (0, 0) and (0, 1). If just (0, 0) is added the resulting interpolation
-    // requires turns that are too sharp, adding this extra point smooths out the curve.
-    temp_xs.push_back(get<1>(start_node));
-    temp_xs.push_back(get<1>(start_node)+1);
-    temp_ys.push_back(get<0>(start_node));
-    temp_ys.push_back(get<0>(start_node));
-
-    // The first point is eqivalent ot the second node added to the path above
-    first_point = make_tuple(get<0>(start_node), get<1>(start_node)+1);
-    // This last point is a point 30 meters away at the angle described by `relative_heading`
-    last_point = make_tuple(sin(relative_heading)*30 + get<0>(start_node), cos(relative_heading)*30 + get<1>(start_node));
-
-    // We add the values of this final point to the path
-    temp_xs.push_back(get<1>(last_point));
-    temp_ys.push_back(get<0>(last_point));
-
-    // If the generated line does not intersect with objects, the points are converted into a format that can be easily
-    // interpolated and added to the global xs and ys vector, then returns true
-    if(!line_intersect_object(make_tuple(first_point, last_point))){
-        for(int i = 0; i < temp_xs.size(); i++){
-            xs.push_back(temp_xs[i]*node_size + node_size);
-            ys.push_back(-temp_ys[i]*node_size + (path_height / 2));
-        }
-        return true;
-    }
-    // Returns false if the line generated intersected with a blocked node
-    return false;
+    return get_node_from_point(make_tuple(x, y));
 }
 
-// Finds the shortest path from the starting node to the
-// end node via a Breadth First Search(BFS)
-void bfs(){
-    // Instantiates a queue that will hold nodes to be processed by BFS
-    deque<tuple<int, int>> q;
-    // Keeps track of visited nodes so that we don't reprocess them
+float euc_dist(tuple<float, float> a, tuple<float, float> b){
+    return (float) sqrt(pow((get<0>(a) - get<0>(b)),2) + pow((get<1>(a) - get<1>(b)),2));
+}
+
+struct greater_bfs_item : binary_function <const tuple<float, tuple<int, int>, tuple<vector<float>, vector<float>>>, const tuple<float, tuple<int, int>, tuple<vector<float>, vector<float>>>, bool> {
+    bool operator()(const tuple<float, tuple<int, int>, tuple<vector<float>, vector<float>>>& item1, const tuple<float, tuple<int, int>, tuple<vector<float>, vector<float>>>& item2) const {
+        return get<0>(item1) >= get<0>(item2);
+    }
+};
+
+tuple<vector<float>, vector<float>> bfs_path(unordered_set<int> blocked_nodes, tuple<int, int> start_node, tuple<int, int> end_node, tuple<float, float> bike_pos){
+    tuple<int, int> cur_node;
+    vector<float> xs, ys, new_xs, new_ys;
+    vector<tuple<int, int>> neighbors;
+    float cur_dist, extra_dist, new_value;
+    int diff_x, diff_y;
+
+    unordered_set<int> node_set;
+    node_set.emplace(cantor(start_node));
+
+    vector<float> init_xs = {get<0>(bike_pos)/node_size, (float) get<0>(start_node)};
+    vector<float> init_ys = {get<1>(bike_pos)/node_size, (float) get<1>(start_node)};
+
+    tuple<float, tuple<int, int>, tuple<vector<float>, vector<float>>> start_item = {0, start_node, make_tuple(init_xs, init_ys)};
+
+    priority_queue<tuple<float, tuple<int, int>, tuple<vector<float>, vector<float>>>, vector<tuple<float, tuple<int, int>, tuple<vector<float>, vector<float>>>>, greater_bfs_item> pr_q;
+
+    pr_q.emplace(start_item);
+
+    tuple<vector<float>, vector<float>> best_path = get<2>(start_item);
+    float best_dist = euc_dist(start_node, end_node);
     unordered_set<int> visited;
-    // Keeps track of parents of nodes so that we can generate the path by backtracking
-    unordered_map<int, tuple<int, int>> parent;
-    tuple<int, int> next_node, node;
-    int x, y;
-    // Keeps track of the total number of iterations. There seems to be something thats hanging that I've been unable
-    // to fully diagnose so I've set a maximum iteration limit to deal with that if this is the source method
-    int tot_count = 0;
-    // We add the starting node to initiate BFS
-    q.push_back(start_node);
 
-    // We loop until either we've found the destination node or until the queue is empty
-    while(!q.empty()){
-        // If we exceed 2000 iterations we return immediately and skip this path planning session
-        if(tot_count > 2000){
-            skip = true;
-            return;
+    while(!pr_q.empty()){
+        cur_dist = get<0>(pr_q.top());
+        cur_node = get<1>(pr_q.top());
+
+        //cout << "DEQUEUED: (" << to_string(get<0>(cur_node)) << ", " << to_string(get<1>(cur_node)) << ")" << endl;
+
+        xs = get<0>(get<2>(pr_q.top()));
+        ys = get<1>(get<2>(pr_q.top()));
+        pr_q.pop();
+        //cout << "PRIORITY QUEUE SIZE: " << to_string(pr_q.size()) << endl;
+        node_set.erase(cantor(cur_node));
+
+        if(cur_node == end_node){
+            return make_tuple(xs, ys);
         }
-        // We access the next node from the queue
-        next_node = q.front();
 
-        // We increment the iteration counter and remove the first element from the queue we accessed above
-        tot_count++;
-        q.pop_front();
+        if(visited.find(cantor(cur_node)) != visited.end()){
+            continue;
+        }
 
-        // We unpack the x and y values from the node we popped
-        y = get<0>(next_node);
-        x = get<1>(next_node);
+        visited.emplace(cantor(cur_node));
 
-        // We create a tuple of tuples describing the 5 nodes adjacent and not behind the current node
-        tuple<int, int> adj_nodes [5] = {make_tuple(y, x+1), make_tuple(y-1, x+1), make_tuple(y+1, x+1), make_tuple(y+1, x), make_tuple(y-1, x)};
-        // We add the current node to the list of visited ndoes
-        visited.insert(cantor(next_node));
+        if((float) get<0>(cur_node) > xs[xs.size()-2]){
+            diff_x = 1;
+        } else if((float) get<0>(cur_node) < xs[xs.size()-2]){
+            diff_x = -1;
+        } else{
+            diff_x = 0;
+        }
 
-        // We iterate over all adjacent nodes
-        for(auto & node : adj_nodes){
-            // If the node we are considering is out of bounds or if the node is blocked we ignore the node
-            if(!(0 <= get<0>(node) && get<0>(node) <= y_dim) || !(0 <= get<1>(node) && get<1>(node) <= x_dim) || blocked_nodes.find(cantor(node)) != blocked_nodes.end()){
+        if((float) get<1>(cur_node) > ys[ys.size()-2]){
+            diff_y = 1;
+        } else if((float) get<1>(cur_node) < ys[ys.size()-2]){
+            diff_y = -1;
+        } else{
+            diff_y = 0;
+        }
+
+        neighbors = {};
+
+        if(diff_x != 0 && diff_y != 0){
+            neighbors = {
+                    make_tuple(get<0>(cur_node) + diff_x, get<1>(cur_node)),
+                    make_tuple(get<0>(cur_node), get<1>(cur_node) + diff_y),
+                    make_tuple(get<0>(cur_node) + diff_x, get<1>(cur_node) + diff_y)
+            };
+        } else if(diff_x != 0){
+            for(int i = -1; i < 2; i++){
+                neighbors.emplace_back(make_tuple(get<0>(cur_node) + diff_x, get<1>(cur_node) + i));
+            }
+        } else{
+            for(int i = -1; i < 2; i++){
+                neighbors.emplace_back(make_tuple(get<0>(cur_node) + i, get<1>(cur_node) + diff_y));
+            }
+        }
+
+        //cout << "NEIGH SIZE: " << to_string(neighbors.size()) << endl;
+        for(int j = 0; j < 3; j++){
+            tuple<int, int> neigh = neighbors[j];
+            if(blocked_nodes.find(cantor(neigh)) != blocked_nodes.end()){
+                //cout << "   NEIGH: (" << to_string(get<0>(neigh)) << ", " << to_string(get<1>(neigh)) << ")" << endl;
+                //cout << "        FOUND IN BLOCKED" << endl;
                 continue;
             }
 
-            // If the node has already been processed we ignore the node
-            if(visited.find(cantor(node)) != visited.end()){
+            if(visited.find(cantor(neigh)) != visited.end()){
+                //cout << "   NEIGH: (" << to_string(get<0>(neigh)) << ", " << to_string(get<1>(neigh)) << ")" << endl;
+                //cout << "        FOUND IN VISITED" << endl;
                 continue;
             }
 
-            // If the node has not already been invalidated we add it the queue to be processed later
-            q.push_back(node);
-
-            // We add this node to the visited list so that it is not processed as an adjacent node again
-            visited.insert(cantor(node));
-
-            // We set the parent of this node as the node that we popped from the queue
-            parent[cantor(node)] = next_node;
-
-            // If we found the end_node we clear the queue and break out of the loops
-            if(node == end_node){
-                q.clear();
-                break;
+            if(node_set.find(cantor(neigh)) != node_set.end()){
+                //cout << "   NEIGH: (" << to_string(get<0>(neigh)) << ", " << to_string(get<1>(neigh)) << ")" << endl;
+                //cout << "        FOUND IN NODE SET" << endl;
+                continue;
             }
+
+            if(abs(get<0>(neigh) - get<0>(start_node)) > loaded_graph_size or abs(get<1>(neigh) - get<1>(start_node)) > loaded_graph_size){
+                continue;
+            }
+
+            new_xs = xs;
+            new_xs.emplace_back(get<0>(neigh));
+
+            new_ys = ys;
+            new_ys.emplace_back(get<1>(neigh));
+
+            if(euc_dist(neigh, end_node) < best_dist){
+                best_dist = euc_dist(neigh, end_node);
+                best_path = make_tuple(new_xs, new_ys);
+            }
+
+            if(get<0>(neigh) != get<0>(cur_node) && get<1>(neigh) != get<1>(cur_node)){
+                extra_dist = (float) sqrt(2);
+            }else {
+                extra_dist = 1;
+            }
+
+            new_value = cur_dist + 1.0*extra_dist + 1.2*euc_dist(neigh, end_node);
+
+            //cout << "   NEIGH: (" << to_string(get<0>(neigh)) << ", " << to_string(get<1>(neigh)) << ") -- VALUE: " << to_string(new_value) << endl;
+
+            node_set.emplace(cantor(neigh));
+            tuple<float, tuple<int, int>, tuple<vector<float>, vector<float>>> new_item = {new_value, neigh, make_tuple(new_xs, new_ys)};
+            pr_q.emplace(new_item);
+            //cout << "NOW_TOP: " << to_string(pr_q.top()->value) << endl;
         }
     }
-
-    // We perform
-    node = end_node;
-    while(node != start_node) {
-        xs.push_back(get<1>(node)*node_size + node_size);
-        ys.push_back(-get<0>(node)*node_size + (path_height / 2));
-        try {
-            node = parent.at(cantor(node));
-        } catch (out_of_range const &) {
-            ROS_INFO_STREAM("THE BIKE SHOULD BE STOPPED"); // TODO: stop the bike
-            ros::shutdown();
-            break;
-        }
+    if(euc_dist(make_tuple(get<0>(best_path).back(), get<1>(best_path).back()), bike_pos) < max_distance){
+        cout << "BIKE MUST BE STOPPED" << endl;
+        exit(1);
     }
-    xs.push_back(get<1>(start_node)*node_size + node_size);
-    ys.push_back(-get<0>(node)*node_size + (path_height / 2));
-    reverse(xs.begin(), xs.end());
-    reverse(ys.begin(), ys.end());
-}
-
-// Updates end_node to approximate the desired heading
-void update_end_node() {
-    double m = tan(theta);
-    int half_path_height = path_height / 2;
-    tuple<int, int> top = get_node_from_point(make_tuple(half_path_height / m, half_path_height));
-    tuple<int, int> bot = get_node_from_point(make_tuple((-half_path_height) / m, -half_path_height));
-    tuple<int, int> right = get_node_from_point(make_tuple(path_width, m * (path_width)));
-
-    if (0 <= get<1>(top) && get<1>(top) < x_dim) {
-        end_node = top;
-    } else if (0 <= get<1>(bot) && get<1>(bot) < x_dim) {
-        end_node = bot;
-    } else {
-        end_node = right;
-    }
+    return best_path;
 }
 
 // Updates `desired_gps_pos` if either it has not been set or if the distance to the current desired position is less than 4 meters.
@@ -574,45 +475,159 @@ void update_desired_gps_pos(){
     }
 }
 
-// Creates the curve around objects
-void generate_curve() {
-    ros::spinOnce();
-    //update_desired_gps_pos();
-    //des_heading = get_angle_from_gps(cur_gps, desired_gps_pos);
-    ready_for_path = false;
-    des_heading = 0;
-    theta = des_heading - data[7];
-    reset_vars();
-    update_end_node();
-    vector<tuple<float, float, float, float>> real_obj_lst;
-    real_obj_lst.reserve(obj_lst.size());
-    float x1, x2, z1, z2;
+tuple<vector<float>, vector<float>> adjust_path_for_interp(tuple<vector<float>, vector<float>> cur_path, float cur_heading){
+    vector<float> new_xs, new_ys;
 
-    for(auto & i : obj_lst){
-        tie (x1, x2, z1, z2) = i;
-        real_obj_lst.emplace_back(make_tuple(z1/1000, z2/1000, x1/1000, x2/1000));
+    for(int i = 0; i < get<0>(cur_path).size(); i++){
+        new_xs.emplace_back(get<0>(cur_path)[i] - get<0>(cur_path)[0]);
+        new_ys.emplace_back(get<1>(cur_path)[i] - get<1>(cur_path)[0]);
     }
 
-    for (auto & i : real_obj_lst) {
-        get_blocked_nodes(i);
+    for(int i = 0; i < get<0>(cur_path).size(); i++){
+        new_xs[i] = new_xs[i] * cos(-cur_heading) - new_ys[i] * sin(-cur_heading);
+        new_ys[i] = new_xs[i] * sin(-cur_heading) + new_ys[i] * cos(-cur_heading);
     }
 
-    if(!check_if_heading_path_available()){
-        bfs();
-        if(skip){
-            skip = false;
-            return;
+    return make_tuple(new_xs, new_ys);
+}
+
+int binary_search(const vector<float>& values, float target){
+    int low = 0;
+    int high = (int) values.size() - 1;
+    int mid;
+
+    while(low <= high){
+        mid = (low + high) / 2;
+        if(values[mid] == target){
+            return mid;
+        } else if(values[mid] < target){
+            low = mid + 1;
+        } else{
+            high = mid - 1;
         }
-    } else{
-        augment_path();
+    }
+    return low;
+}
+
+
+float calculate_distance_from_path(tuple<float, float> bike_pos){
+    vector<float> xs, ys;
+    tie(xs, ys) = prev_path;
+    int ind = binary_search(xs, get<0>(bike_pos));
+    return euc_dist(make_tuple(xs[ind], ys[ind]), bike_pos);
+}
+
+float calculate_distance_from_end_node(tuple<float, float> bike_pos){
+    return euc_dist(bike_pos, make_tuple(((float) get<0>(current_end_node)) * node_size, ((float) get<1>(current_end_node)) * node_size));
+}
+
+bool check_for_objects_in_path(tuple<vector<float>, vector<float>> path){
+    vector<float> xs, ys;
+    tie(xs, ys) = path;
+    tuple<int, int> node;
+
+    for(int i = 0; i < xs.size(); i++){
+        node = get_node_from_point(make_tuple(xs[i] / node_size, ys[i] / node_size));
+        if(blocked_nodes.find(cantor(node)) != blocked_nodes.end()){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool should_new_path_be_generated(tuple<float, float> bike_pos){
+    if(get<0>(prev_path).empty()){
+        return true;
     }
 
-    calc_deltas_pub.path_x = xs;
-    calc_deltas_pub.path_y = ys;
+    if(check_for_objects_in_path(prev_path)){
+        return true;
+    }
 
-    calc_deltas.publish(calc_deltas_pub);
+    if(calculate_distance_from_path(bike_pos) > max_distance){
+        return true;
+    }
 
+    if(calculate_distance_from_end_node(bike_pos) < max_distance){
+        return true;
+    }
 
+    return false;
+}
+
+tuple<vector<float>, vector<float>> get_direct_heading_path(tuple<float, float> bike_pos, float cur_heading, float desired_heading){
+    float new_point_dist = 2 * node_size;
+
+    tuple<float, float> point = {cos(cur_heading) * new_point_dist + get<0>(bike_pos), sin(cur_heading) * new_point_dist + get<1>(bike_pos)};
+    tuple<float, float> end_point = {cos(desired_heading) * 30 + get<0>(bike_pos), sin(desired_heading) * 30 + get<1>(bike_pos)};
+
+    float new_angle = atan2(get<1>(end_point) - get<1>(point), get<0>(end_point) - get<0>(point));
+
+    vector<float> s_xs = {get<0>(bike_pos), get<0>(point)};
+    vector<float> s_ys = {get<1>(bike_pos), get<1>(point)};
+    tuple<vector<float>, vector<float>> path = {s_xs, s_ys};
+
+    while(get<0>(point) < get<0>(end_point)){
+        point = make_tuple(get<0>(point) + cos(new_angle) * node_size, get<1>(point) + sin(new_angle) * node_size);
+        get<0>(path).emplace_back(get<0>(point));
+        get<1>(path).emplace_back(get<1>(point));
+    }
+
+    get<0>(path).emplace_back(get<0>(end_point));
+    get<1>(path).emplace_back(get<1>(end_point));
+
+    return path;
+}
+
+// Creates the curve around objects
+void create_path(){
+
+    for(tuple<float, float, float, float> obj : obj_lst){
+        obj = make_tuple(get<0>(obj) / 1000, get<1>(obj) / 1000, get<2>(obj) / 1000, get<3>(obj) / 1000);
+        get_blocked_nodes(obj);
+    }
+
+    float used_desired_heading = des_heading;
+    if(abs(des_heading) > max_angle){
+        used_desired_heading = (des_heading / des_heading) * max_angle;
+    }
+
+    tuple<vector<float>, vector<float>> path = get_direct_heading_path(bike_pos, (float) data[7], used_desired_heading);
+    bool use_direct_path = !check_for_objects_in_path(path);
+
+    if(should_new_path_be_generated(bike_pos) || use_direct_path) {
+        cout << "Generating New Path" << endl;
+        vector<float> xs, ys;
+        tuple<int,int> start_node;
+        if(use_direct_path){
+            tie(xs, ys) = path;
+            current_end_node = get_node_from_point(make_tuple(xs.back(), ys.back()));
+        } else {
+            start_node = get_start_node(bike_pos, data[7]);
+            current_end_node = get_end_node(bike_pos, used_desired_heading);
+
+            cout << "END_NODE: (" << to_string(get<0>(current_end_node)) << ", " << to_string(get<1>(current_end_node)) << ")" << endl;
+
+            path = bfs_path(blocked_nodes, start_node, current_end_node, bike_pos);
+
+            xs.emplace_back(get<0>(bike_pos));
+            ys.emplace_back(get<1>(bike_pos));
+
+            for (int i = 0; i < get<0>(path).size(); i++) {
+                xs.emplace_back(get<0>(path)[i] * node_size);
+                ys.emplace_back(get<1>(path)[i] * node_size);
+            }
+        }
+        prev_path = make_tuple(xs, ys);
+
+        tuple<vector<float>, vector<float>> interp_path = adjust_path_for_interp(
+                make_tuple(xs, ys), data[7]);
+        
+        calc_deltas_pub.path_x = get<0>(interp_path);
+        calc_deltas_pub.path_y = get<1>(interp_path);
+
+        calc_deltas.publish(calc_deltas_pub);
+    }
     // auto end = chrono::high_resolution_clock::now();
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     // ROS_INFO_STREAM("PATH PLANNING IS TAKING: " << (float) duration.count() / 1000.0 << " SECONDS");
@@ -1224,8 +1239,8 @@ void record_output(){
       output_file << object_to_string(i) + " ";
   }
   output_file << "]\n[";
-  for(int i = 0; i < xs.size(); i++){
-      output_file << "(" + to_string(ys[i]) + ", " + to_string(xs[i]) + ") ";
+  for(int i = 0; i < get<0>(prev_path).size(); i++){
+      output_file << "(" + to_string(get<1>(prev_path)[i]) + ", " + to_string(get<0>(prev_path)[i]) + ") ";
   }
   output_file << "]\n";
   output_file << to_string(des_heading);
@@ -1279,8 +1294,6 @@ int main(int argc, char **argv) {
 
   // Reserves the requisite space for the vectors in use
   lvx_points.reserve(15000);
-  xs.reserve(400);
-  ys.reserve(400);
 
   // Starts the clock
   auto start = chrono::high_resolution_clock::now();
@@ -1347,7 +1360,7 @@ int main(int argc, char **argv) {
     ros::spinOnce();
 
     // Generates a new path
-    generate_curve();
+    create_path();
 
     // Records data to output file
     record_output();
