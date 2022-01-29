@@ -36,6 +36,7 @@ serial::Serial my_serial("/dev/ttyACM0", (long) 115200, serial::Timeout::simpleT
 tuple<float, float> bike_pos = {0, 0};
 bool is_new_data = false;                              // True if there is new data to update object positions with
 ofstream output_file;                                  // File to output data to
+ofstream tab_file;                                     // File to output data to. but only telemetry and tab separated to satiate Misha's ungodly desire for tab separated data
 bool ready = false;                                    // True if new LiDAR frame is ready for analysis
 vector<tuple<float, float, float>> lvx_points;         // Contains points parsed from LiDAR data
 ofstream f_done;                                       // Output file that will contain LiDAR info
@@ -632,35 +633,35 @@ void create_path(){
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     // ROS_INFO_STREAM("PATH PLANNING IS TAKING: " << (float) duration.count() / 1000.0 << " SECONDS");
 }
-// Updates the positions of previously found objects according to the
-// telemetry from the bike
-void update_object_positions(float delta_time){
-    delta_angle = data[7] - prev_heading;
-    float delta_angle_cos = cos(delta_angle);
-    float delta_angle_sin = sin(delta_angle);
-    float z_velocity = cos(data[7]) * data[5] * 1000;
-    float x_velocity = sin(data[7]) * data[5] * 1000;
-    float z_displacement = - (z_velocity * cos(-data[7]) - x_velocity * sin(-data[7])) * delta_time;
-    float x_displacement = - (z_velocity * sin(-data[7]) + x_velocity * cos(-data[7])) * delta_time;
-    prev_heading = data[7];
-    new_obj_lst.clear();
 
-    float x1, x2, z1, z2, new_x1, new_x2, new_z1, new_z2;
+tuple<float, float> find_obj_center(tuple<float, float, float, float> obj){
+    return make_tuple(get<0>(obj) + get<1>(obj) / 2, get<2>(obj) + get<3>(obj) / 2);
+}
 
-    for(auto & i : obj_lst){
-        tie (x1, x2, z1, z2) = i;
-        new_x1 = delta_angle_sin * z1 + delta_angle_cos * x1 + x_displacement;
-        new_z1 = delta_angle_cos * z1 - delta_angle_sin * x1 + z_displacement;
+float get_new_obj_ang(tuple<float, float, float, float> obj){
+    float x1, x2, y1, y2;
+    tie(x1, x2, y1, y2) = obj;
+    return atan2(y2 - y1, x2 - x1) + (float) data[7];
+}
 
-        new_x2 = delta_angle_sin * z2 + delta_angle_cos * x2 + x_displacement;
-        new_z2 = delta_angle_cos * z2 - delta_angle_sin * x2 + z_displacement;
-        if(new_z1 < 0 && new_z2 < 0){
-	        continue;
-        }
-        new_obj_lst.emplace_back(make_tuple(new_x1, new_x2, new_z1, new_z2));
-    }
-    obj_lst.clear();
-    obj_lst = new_obj_lst;
+float get_obj_len(tuple<float, float, float, float> obj){
+    float x1, x2, y1, y2;
+    tie(x1, x2, y1, y2) = obj;
+    return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+}
+
+tuple<float, float, float, float> get_obj_pos(tuple<float, float, float, float> obj){
+    float x1, x2, y1, y2;
+    tuple<float, falot> center = find_obj_center(obj);
+    float obj_ang = get_new_obj_ang(obj);
+    float obj_len = get_obj_len(obj);
+    float new_center_x = (get<0>(center) * cos(cur_heading) - get<1>(center) * sin(cur_heading)) + get<0>(bike_pos);
+    float new_center_y = (get<0>(center) * sin(cur_heading) + get<1>(center) * cos(cur_heading)) + get<1>(bike_pos);
+    x1 = new_center_x - obj_len / 2 * cos(obj_ang);
+    x2 = new_center_x + obj_len / 2 * cos(obj_ang);
+    y1 = new_center_y - obj_len / 2 * sin(obj_ang);
+    y2 = new_center_y + obj_len / 2 * sin(obj_ang);
+    return make_tuple(x1, x2, y1, y2);
 }
 
 // Defines a Graph that will be used for determining what smaller objects
@@ -1092,12 +1093,14 @@ void object_detection() {
     z1 = close_vec[left_bound];
     z2 = close_vec[right_bound];
 
+    tie(x1, x2, z1, z2) = get_obj_pos(make_tuple(x1, x2, z1, z2));
+
     if (prev < max_dist && not intersection(x1, x2, z1, z2)) {
         z_boys.push_back(make_tuple(x1, x2, z1, z2));
     }
 
 	vector<tuple<float, float, float, float>> cond_objs = condenseObjects(z_boys);
-	obj_lst.insert(obj_lst.end(), cond_objs.begin(), cond_objs.end());
+    obj_lst.insert(obj_lst.end(), cond_objs.begin(), cond_objs.end());
         for(auto & i : obj_lst){
 	    ROS_INFO_STREAM("OBJECT: (" << get<0>(i) << ", " << get<1>(i) << ", " << get<2>(i) << ", " << get<3>(i) << ")");
 	}
@@ -1107,15 +1110,19 @@ void object_detection() {
 	//ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << (float) duration.count()/1000.0 << " SECONDS");
 }
 
-// Gets the latest gps Data
-void get_gps(const autocycle_extras::GPS data){
-    cur_gps = make_tuple(data.longitude, data.latitude);
-}
-
 void get_data(const autocycle_extras::Data new_data){
     is_new_data = true;
     data = new_data.data;
     data[7] = data[7] + sync_head_amt;
+    if(get<0>(cur_gps) != 0){
+        update_bike_pos(cur_gps, make_tuple(data[9], data[10]));
+    }
+    cur_gps = make_tuple(data[9], data[10]);
+    // Writes tab separated float data to `tab_file` and new line
+    for(int i = 0; i < data.size(); i++){
+        tab_file << data[i] << "\t";
+    }
+    tab_file << endl;
     // tuple<float, float> vel_vec = conv_ang_to_dir_vec(data[7]) * data[5];
     // float omega_mag;
     // if(data[8] > 0){
@@ -1235,18 +1242,29 @@ void record_output(){
   string time_string = to_string(chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count());
   output_file << time_string;
   output_file << "\n[";
-  for(auto &i : obj_lst){
-      output_file << object_to_string(i) + " ";
+  for(int i = i; i < obj_lst.size(); i++){
+      tuple<float, float, float, float> obj = obj_lst[i];
+      output_file << object_to_string(obj);
+      if(i != obj_lst.size() - 1){
+          output_file << ", ";
+      }
   }
   output_file << "]\n[";
   for(int i = 0; i < get<0>(prev_path).size(); i++){
-      output_file << "(" + to_string(get<1>(prev_path)[i]) + ", " + to_string(get<0>(prev_path)[i]) + ") ";
+      output_file << "(" + to_string(get<1>(prev_path)[i]) + ", " + to_string(get<0>(prev_path)[i]) + ")";
+        if(i != get<0>(prev_path).size() - 1){
+            output_file << ", ";
+        }
   }
   output_file << "]\n";
   output_file << to_string(des_heading);
+  output_file << "\n" << "(" << to_string(get<0>(bike_pos)) << ", " << to_string(get<1>(bike_pos)) << ")";
   output_file << "\n[";
   for(int i = 0; i < data.size(); i++){
-    output_file << to_string(data[i]) << " ";
+    output_file << to_string(data[i]);
+    if(i != data.size() - 1){
+      output_file << ", ";
+    }
   }
   output_file << "]\n";
 }
@@ -1260,6 +1278,7 @@ int main(int argc, char **argv) {
   // Initailizes the output file
   string time_string = to_string(chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count());
   output_file.open("/home/ubuntu/test_data/" + time_string + ".txt");
+  tab_file.open("/home/ubuntu/text_data/tab/" + time_string + ".txt");
 
   // Creates subscriber for updating roll
   ros::Subscriber update_data = nh.subscribe("sensors/data", 1, &get_data);

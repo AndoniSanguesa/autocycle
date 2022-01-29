@@ -3,6 +3,7 @@
         "chrono": "cpp",
         "string": "cpp",
         "tuple": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "cmath": "cpp"
     }
 }
