@@ -1390,6 +1390,7 @@ int main(int argc, char **argv) {
   f_done.open(path_to_lvx, ios::trunc);
   f_done.write("done", 4);
   f_done.close();
+  tab_file.close();
   //o_file.close();
   output_file.close();
   return 0;
