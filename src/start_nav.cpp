@@ -652,7 +652,7 @@ float get_obj_len(tuple<float, float, float, float> obj){
 
 tuple<float, float, float, float> get_obj_pos(tuple<float, float, float, float> obj){
     float x1, x2, y1, y2;
-    tuple<float, falot> center = find_obj_center(obj);
+    tuple<float, float> center = find_obj_center(obj);
     float obj_ang = get_new_obj_ang(obj);
     float obj_len = get_obj_len(obj);
     float new_center_x = (get<0>(center) * cos(cur_heading) - get<1>(center) * sin(cur_heading)) + get<0>(bike_pos);
@@ -1340,8 +1340,6 @@ int main(int argc, char **argv) {
 
         // Resets the clock for updating object positions
         state_start = std::chrono::high_resolution_clock::now();
-
-        update_object_positions(((float) duration.count())/1000.0);
     }
 
     // Only runs parse_lvx, fix_roll, and object detection if there is a new frame ready
