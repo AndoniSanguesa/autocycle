@@ -655,8 +655,8 @@ tuple<float, float, float, float> get_obj_pos(tuple<float, float, float, float> 
     tuple<float, float> center = find_obj_center(obj);
     float obj_ang = get_new_obj_ang(obj);
     float obj_len = get_obj_len(obj);
-    float new_center_x = (get<0>(center) * cos(cur_heading) - get<1>(center) * sin(cur_heading)) + get<0>(bike_pos);
-    float new_center_y = (get<0>(center) * sin(cur_heading) + get<1>(center) * cos(cur_heading)) + get<1>(bike_pos);
+    float new_center_x = (get<0>(center) * cos(data[7]) - get<1>(center) * sin(data[7])) + get<0>(bike_pos);
+    float new_center_y = (get<0>(center) * sin(data[7]) + get<1>(center) * cos(data[7])) + get<1>(bike_pos);
     x1 = new_center_x - obj_len / 2 * cos(obj_ang);
     x2 = new_center_x + obj_len / 2 * cos(obj_ang);
     y1 = new_center_y - obj_len / 2 * sin(obj_ang);
