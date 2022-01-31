@@ -136,7 +136,9 @@ void update_bike_pos(tuple<float, float> prev_gps, tuple<float, float> new_gps){
     // Calculates change in position
     delta_angle = get_angle_from_gps(prev_gps, new_gps);
     dist = get_distance_between_gps(prev_gps, new_gps);
-    bike_pos = make_tuple(get<0>(bike_pos) + dist * cosf(delta_angle), get<1>(bike_pos) + dist * sinf(delta_angle));
+    if(get<0>(prev_gps) == 0){
+    	bike_pos = make_tuple(get<0>(bike_pos) + dist * cosf(delta_angle), get<1>(bike_pos) + dist * sinf(delta_angle));
+    }
 }
 
 // Synchronize current heading with GPS heading
@@ -163,7 +165,7 @@ void synchronize_heading(){
     prev_gps = cur_gps;
 
     // Bike moves 1 meter per second for 4 seconds
-    my_serial.write("t1,4000");
+    //my_serial.write("t1,4000");
 
     // Waits until the bike is done moving
     while(data[5] > 0){
@@ -462,8 +464,8 @@ tuple<vector<float>, vector<float>> bfs_path(unordered_set<int> blocked_nodes, t
         }
     }
     if(euc_dist(make_tuple(get<0>(best_path).back(), get<1>(best_path).back()), bike_pos) < max_distance){
-        cout << "BIKE MUST BE STOPPED" << endl;
-        exit(1);
+        //cout << "BIKE MUST BE STOPPED" << endl;
+        //exit(1);
     }
     return best_path;
 }
@@ -597,7 +599,7 @@ void create_path(){
     bool use_direct_path = !check_for_objects_in_path(path);
 
     if(should_new_path_be_generated(bike_pos) || use_direct_path) {
-        cout << "Generating New Path" << endl;
+        //cout << "Generating New Path" << endl;
         vector<float> xs, ys;
         tuple<int,int> start_node;
         if(use_direct_path){
@@ -1308,7 +1310,8 @@ int main(int argc, char **argv) {
 
   // Sets desired heading (for now the initial heading)
   while(data[7] == -1){
-      ros::spinOnce();
+    cout << "FUCK" << endl;  
+    ros::spinOnce();
   }
 
   // Reserves the requisite space for the vectors in use

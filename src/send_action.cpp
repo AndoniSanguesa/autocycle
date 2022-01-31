@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
     // Rates the delta querying speed
     // ros::Rate loop_rate(10);
 
-    my_serial.write("t1,10000;");
+    //my_serial.write("t1,10000;");
 
     while(ros::ok()){
 	// loop_rate.sleep();
@@ -90,8 +90,8 @@ int main(int argc, char **argv) {
         usleep(250000);
 
         if(resp.delta < 0.25 && resp.delta > -0.25){
-            my_serial.write("d" + to_string(resp.delta) + ";");
+            //my_serial.write("d" + to_string(resp.delta) + ";");
         }
     }
-    my_serial.write("s 0;");
+    //my_serial.write("s 0;");
 }
