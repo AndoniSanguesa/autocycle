@@ -15,9 +15,6 @@ def calculate_deltas(data):
     global tck, full_len
     xs = list(data.path_x)
     ys = list(data.path_y)
-    xs.insert(0, 0)
-    ys.insert(0, 0)
-    print(xs, ys)
     tck = interp.splprep([xs, ys], s=0.5)[0]
     full_len = (sum(interp.splint(0, 1, tck, full_output=0))) * 2
     t = tck[0].tolist()

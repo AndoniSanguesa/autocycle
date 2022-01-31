@@ -58,6 +58,7 @@ ros::ServiceClient desired_gps_cli;           // ROS Service Client that will re
 // Sensor data variables
 vector<float> data;                           // Contains latest data
 tuple<float, float> cur_gps;                  // Latest longitude and latitude
+tuple<float, float> prev_gps;                 // Previous longitude and latitude
 tuple<float, float> r_hat = {0, 0};           // vector from back wheel ground patch to the lidar
 
 // Object Detection Parameters
@@ -134,10 +135,9 @@ float get_angle_from_gps(tuple<float, float> gps1, tuple<float, float> gps2){
 
 void update_bike_pos(tuple<float, float> prev_gps, tuple<float, float> new_gps){
     // Calculates change in position
-    delta_angle = get_angle_from_gps(prev_gps, new_gps);
     dist = get_distance_between_gps(prev_gps, new_gps);
     if(get<0>(prev_gps) == 0){
-    	bike_pos = make_tuple(get<0>(bike_pos) + dist * cosf(delta_angle), get<1>(bike_pos) + dist * sinf(delta_angle));
+    	bike_pos = make_tuple(get<0>(bike_pos) + dist * cosf(data[7]), get<1>(bike_pos) + dist * sinf(data[7]));
     }
 }
 
@@ -1119,12 +1119,14 @@ void get_data(const autocycle_extras::Data new_data){
     if(get<0>(cur_gps) != 0){
         update_bike_pos(cur_gps, make_tuple(data[9], data[10]));
     }
+    prev_gps = cur_gps;
     cur_gps = make_tuple(data[9], data[10]);
     // Writes tab separated float data to `tab_file` and new line
     for(int i = 0; i < data.size(); i++){
         tab_file << data[i] << "\t";
     }
     tab_file << endl;
+    record_ouptut();
     // tuple<float, float> vel_vec = conv_ang_to_dir_vec(data[7]) * data[5];
     // float omega_mag;
     // if(data[8] > 0){
@@ -1381,9 +1383,6 @@ int main(int argc, char **argv) {
 
     // Generates a new path
     create_path();
-
-    // Records data to output file
-    record_output();
 
   }
 
