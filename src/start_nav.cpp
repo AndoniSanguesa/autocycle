@@ -104,37 +104,6 @@ chrono::high_resolution_clock::time_point state_stop;      // Time just before a
 chrono::high_resolution_clock::time_point state_start;     // Time just after a new state has been computed
 chrono::milliseconds duration;                             // Duration in milliseconds between state updates
 
-void record_output(){
-  string time_string = to_string(chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count());
-  output_file << time_string;
-  output_file << "\n[";
-  for(int i = i; i < obj_lst.size(); i++){
-      tuple<float, float, float, float> obj = obj_lst[i];
-      output_file << object_to_string(obj);
-      if(i != obj_lst.size() - 1){
-          output_file << ", ";
-      }
-  }
-  output_file << "]\n[";
-  for(int i = 0; i < get<0>(prev_path).size(); i++){
-      output_file << "(" + to_string(get<1>(prev_path)[i]) + ", " + to_string(get<0>(prev_path)[i]) + ")";
-        if(i != get<0>(prev_path).size() - 1){
-            output_file << ", ";
-        }
-  }
-  output_file << "]\n";
-  output_file << to_string(des_heading);
-  output_file << "\n" << "(" << to_string(get<0>(bike_pos)) << ", " << to_string(get<1>(bike_pos)) << ")";
-  output_file << "\n[";
-  for(int i = 0; i < data.size(); i++){
-    output_file << to_string(data[i]);
-    if(i != data.size() - 1){
-      output_file << ", ";
-    }
-  }
-  output_file << "]\n";
-}
-
 // Returns distance in meters between two gps positions
 float get_distance_between_gps(tuple<float, float> gps1, tuple<float, float> gps2){
     // Radius of the Earth in meters
@@ -1143,33 +1112,7 @@ void object_detection() {
 	//ROS_INFO_STREAM("OBJECT DETECTION TOOK: " << (float) duration.count()/1000.0 << " SECONDS");
 }
 
-void get_data(const autocycle_extras::Data new_data){
-    is_new_data = true;
-    data = new_data.data;
-    data[7] = data[7] + sync_head_amt;
-    if(get<0>(cur_gps) != 0){
-        update_bike_pos(cur_gps, make_tuple(data[9], data[10]));
-    }
-    prev_gps = cur_gps;
-    cur_gps = make_tuple(data[9], data[10]);
-    // Writes tab separated float data to `tab_file` and new line
-    for(int i = 0; i < data.size(); i++){
-        tab_file << data[i] << "\t";
-    }
-    tab_file << endl;
-    record_ouptut();
-    // tuple<float, float> vel_vec = conv_ang_to_dir_vec(data[7]) * data[5];
-    // float omega_mag;
-    // if(data[8] > 0){
-    //     omega_mag = -data[8];
-    // }
-    // else{
-    //     omega_mag =  data[8];
-    // }
 
-    // tuple<float, float> omega_cross_r = make_tuple(omega_mag*get<1>(r_hat), omega_mag*get<0>(r_hat))
-    // data[5] = sqrt(pow(get<0>(vel_vec) + get<0>(omega_cross_r), 2) + pow(get<1>(vel_vec) + get<1>(omega_cross_r), 2));
-}
 
 // Converts angle to a unit direction vector
 tuple<float, float> conv_ang_to_dir_vec(float ang){
@@ -1271,6 +1214,65 @@ void parse_lvx(){
 // Converts an object to its string representation
 string object_to_string(tuple<float, float, float, float> obj){
     return("(" + to_string(get<0>(obj)) + ", " + to_string(get<1>(obj)) + ", " + to_string(get<2>(obj)) + ", " + to_string(get<3>(obj)) + ")");
+}
+
+void record_output(){
+  string time_string = to_string(chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count());
+  output_file << time_string;
+  output_file << "\n[";
+  for(int i = i; i < obj_lst.size(); i++){
+      tuple<float, float, float, float> obj = obj_lst[i];
+      output_file << object_to_string(obj);
+      if(i != obj_lst.size() - 1){
+          output_file << ", ";
+      }
+  }
+  output_file << "]\n[";
+  for(int i = 0; i < get<0>(prev_path).size(); i++){
+      output_file << "(" + to_string(get<1>(prev_path)[i]) + ", " + to_string(get<0>(prev_path)[i]) + ")";
+        if(i != get<0>(prev_path).size() - 1){
+            output_file << ", ";
+        }
+  }
+  output_file << "]\n";
+  output_file << to_string(des_heading);
+  output_file << "\n" << "(" << to_string(get<0>(bike_pos)) << ", " << to_string(get<1>(bike_pos)) << ")";
+  output_file << "\n[";
+  for(int i = 0; i < data.size(); i++){
+    output_file << to_string(data[i]);
+    if(i != data.size() - 1){
+      output_file << ", ";
+    }
+  }
+  output_file << "]\n";
+}
+
+void get_data(const autocycle_extras::Data new_data){
+    is_new_data = true;
+    data = new_data.data;
+    data[7] = data[7] + sync_head_amt;
+    if(get<0>(cur_gps) != 0){
+        update_bike_pos(cur_gps, make_tuple(data[9], data[10]));
+    }
+    prev_gps = cur_gps;
+    cur_gps = make_tuple(data[9], data[10]);
+    // Writes tab separated float data to `tab_file` and new line
+    for(int i = 0; i < data.size(); i++){
+        tab_file << data[i] << "\t";
+    }
+    tab_file << endl;
+    record_ouptut();
+    // tuple<float, float> vel_vec = conv_ang_to_dir_vec(data[7]) * data[5];
+    // float omega_mag;
+    // if(data[8] > 0){
+    //     omega_mag = -data[8];
+    // }
+    // else{
+    //     omega_mag =  data[8];
+    // }
+
+    // tuple<float, float> omega_cross_r = make_tuple(omega_mag*get<1>(r_hat), omega_mag*get<0>(r_hat))
+    // data[5] = sqrt(pow(get<0>(vel_vec) + get<0>(omega_cross_r), 2) + pow(get<1>(vel_vec) + get<1>(omega_cross_r), 2));
 }
 
 // The main navigation loop
