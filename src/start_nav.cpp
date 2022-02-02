@@ -104,6 +104,37 @@ chrono::high_resolution_clock::time_point state_stop;      // Time just before a
 chrono::high_resolution_clock::time_point state_start;     // Time just after a new state has been computed
 chrono::milliseconds duration;                             // Duration in milliseconds between state updates
 
+void record_output(){
+  string time_string = to_string(chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count());
+  output_file << time_string;
+  output_file << "\n[";
+  for(int i = i; i < obj_lst.size(); i++){
+      tuple<float, float, float, float> obj = obj_lst[i];
+      output_file << object_to_string(obj);
+      if(i != obj_lst.size() - 1){
+          output_file << ", ";
+      }
+  }
+  output_file << "]\n[";
+  for(int i = 0; i < get<0>(prev_path).size(); i++){
+      output_file << "(" + to_string(get<1>(prev_path)[i]) + ", " + to_string(get<0>(prev_path)[i]) + ")";
+        if(i != get<0>(prev_path).size() - 1){
+            output_file << ", ";
+        }
+  }
+  output_file << "]\n";
+  output_file << to_string(des_heading);
+  output_file << "\n" << "(" << to_string(get<0>(bike_pos)) << ", " << to_string(get<1>(bike_pos)) << ")";
+  output_file << "\n[";
+  for(int i = 0; i < data.size(); i++){
+    output_file << to_string(data[i]);
+    if(i != data.size() - 1){
+      output_file << ", ";
+    }
+  }
+  output_file << "]\n";
+}
+
 // Returns distance in meters between two gps positions
 float get_distance_between_gps(tuple<float, float> gps1, tuple<float, float> gps2){
     // Radius of the Earth in meters
@@ -1240,37 +1271,6 @@ void parse_lvx(){
 // Converts an object to its string representation
 string object_to_string(tuple<float, float, float, float> obj){
     return("(" + to_string(get<0>(obj)) + ", " + to_string(get<1>(obj)) + ", " + to_string(get<2>(obj)) + ", " + to_string(get<3>(obj)) + ")");
-}
-
-void record_output(){
-  string time_string = to_string(chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count());
-  output_file << time_string;
-  output_file << "\n[";
-  for(int i = i; i < obj_lst.size(); i++){
-      tuple<float, float, float, float> obj = obj_lst[i];
-      output_file << object_to_string(obj);
-      if(i != obj_lst.size() - 1){
-          output_file << ", ";
-      }
-  }
-  output_file << "]\n[";
-  for(int i = 0; i < get<0>(prev_path).size(); i++){
-      output_file << "(" + to_string(get<1>(prev_path)[i]) + ", " + to_string(get<0>(prev_path)[i]) + ")";
-        if(i != get<0>(prev_path).size() - 1){
-            output_file << ", ";
-        }
-  }
-  output_file << "]\n";
-  output_file << to_string(des_heading);
-  output_file << "\n" << "(" << to_string(get<0>(bike_pos)) << ", " << to_string(get<1>(bike_pos)) << ")";
-  output_file << "\n[";
-  for(int i = 0; i < data.size(); i++){
-    output_file << to_string(data[i]);
-    if(i != data.size() - 1){
-      output_file << ", ";
-    }
-  }
-  output_file << "]\n";
 }
 
 // The main navigation loop
