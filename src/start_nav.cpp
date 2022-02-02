@@ -1261,7 +1261,7 @@ void get_data(const autocycle_extras::Data new_data){
         tab_file << data[i] << "\t";
     }
     tab_file << endl;
-    record_ouptut();
+    record_output();
     // tuple<float, float> vel_vec = conv_ang_to_dir_vec(data[7]) * data[5];
     // float omega_mag;
     // if(data[8] > 0){
