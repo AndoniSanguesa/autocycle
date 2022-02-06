@@ -82,7 +82,7 @@ float box_dist = 1500;                          // distance in each dimension su
 
 float max_distance = 3;                                // Maximum distance allowed from path or endpoint
 tuple<int, int> current_end_node;                      // Current end node
-float max_angle = M_PI/4;                              // Maximum angle desired heading can take
+float max_angle = M_PI/4.0;                              // Maximum angle desired heading can take
 bool ready_for_path = true;                            // Whether or not `calculate_deltas` node is ready for a new path
 bool skip = false;                                     // Whether or not to skip current curve generation loop
 tuple<float, float> des_gps;                           // Next desired GPS location
@@ -91,7 +91,7 @@ unordered_set<int> blocked_nodes;                      // Nodes that should be a
 unordered_set<int> center_blocked_nodes;               // The `anchor` blocked nodes, used only in generated the full `blocked_nodes` set
 float padding = 1.5;                                   // Amount of padding to place around objects in meters
 int padding_num = max((int) floor(padding / node_size),1); // Number of nodes around object to block out
-float des_heading = 0;                                 // The desired heading relative to global heading
+float des_heading = M_PI/2.0;                                 // The desired heading relative to global heading
 vector<float> start_xs, start_ys;
 tuple<vector<float>, vector<float>> prev_path = {start_xs, start_ys};
 int loaded_graph_size = 50;
@@ -136,7 +136,7 @@ float get_angle_from_gps(tuple<float, float> gps1, tuple<float, float> gps2){
 void update_bike_pos(tuple<float, float> prev_gps, tuple<float, float> new_gps){
     // Calculates change in position
     dist = get_distance_between_gps(prev_gps, new_gps);
-    if(get<0>(prev_gps) == 0){
+    if(get<0>(prev_gps) != 0){
     	bike_pos = make_tuple(get<0>(bike_pos) + dist * cosf(data[7]), get<1>(bike_pos) + dist * sinf(data[7]));
     }
 }
@@ -464,8 +464,8 @@ tuple<vector<float>, vector<float>> bfs_path(unordered_set<int> blocked_nodes, t
         }
     }
     if(euc_dist(make_tuple(get<0>(best_path).back(), get<1>(best_path).back()), bike_pos) < max_distance){
-        //cout << "BIKE MUST BE STOPPED" << endl;
-        //exit(1);
+        cout << "BIKE MUST BE STOPPED" << endl;
+        exit(1);
     }
     return best_path;
 }
@@ -591,7 +591,7 @@ void create_path(){
     }
 
     float used_desired_heading = des_heading;
-    if(abs(des_heading) > max_angle){
+    if(abs(des_heading-data[7]) > max_angle){
         used_desired_heading = (des_heading / des_heading) * max_angle;
     }
 
@@ -613,8 +613,10 @@ void create_path(){
 
             path = bfs_path(blocked_nodes, start_node, current_end_node, bike_pos);
 
-            xs.emplace_back(get<0>(bike_pos));
-            ys.emplace_back(get<1>(bike_pos));
+	    if(get<0>(bike_pos) != get<0>(path)[0] && get<1>(bike_pos) != get<1>(path)[0]){
+            	xs.emplace_back(get<0>(bike_pos));
+            	ys.emplace_back(get<1>(bike_pos));
+	    }
 
             for (int i = 0; i < get<0>(path).size(); i++) {
                 xs.emplace_back(get<0>(path)[i] * node_size);
@@ -653,17 +655,13 @@ float get_obj_len(tuple<float, float, float, float> obj){
 }
 
 tuple<float, float, float, float> get_obj_pos(tuple<float, float, float, float> obj){
-    float x1, x2, y1, y2;
-    tuple<float, float> center = find_obj_center(obj);
-    float obj_ang = get_new_obj_ang(obj);
-    float obj_len = get_obj_len(obj);
-    float new_center_x = (get<0>(center) * cos(data[7]) - get<1>(center) * sin(data[7])) + get<0>(bike_pos);
-    float new_center_y = (get<0>(center) * sin(data[7]) + get<1>(center) * cos(data[7])) + get<1>(bike_pos);
-    x1 = new_center_x - obj_len / 2 * cos(obj_ang);
-    x2 = new_center_x + obj_len / 2 * cos(obj_ang);
-    y1 = new_center_y - obj_len / 2 * sin(obj_ang);
-    y2 = new_center_y + obj_len / 2 * sin(obj_ang);
-    return make_tuple(x1, x2, y1, y2);
+    float x1, x2, y1, y2, tx1, tx2, ty1, ty2;
+    tie(x1, x2, y1, y2) = obj;
+    tx1 = cos(data[7]) * x1 - sin(data[7]) * y1 + get<0>(bike_pos);
+    tx2 = cos(data[7]) * x2 - sin(data[7]) * y2 + get<0>(bike_pos);
+    ty1 = sin(data[7]) * x1 + cos(data[7]) * y1 + get<1>(bike_pos);
+    ty2 = sin(data[7]) * x2 + cos(data[7]) * y2 + get<1>(bike_pos);
+    return make_tuple(tx1, tx2, ty1, ty2);
 }
 
 // Defines a Graph that will be used for determining what smaller objects
@@ -1063,11 +1061,11 @@ void object_detection() {
 	vector<tuple<float, float, float, float>> z_boys;
 
 	for (int col = 0; col < cell_col; col++) {
-	    x1 = left_bound * cell_dim - width / 2;
-	    x2 = (right_bound + 1) * cell_dim - width / 2;
-	    z1 = close_vec[left_bound];
-	    z2 = close_vec[right_bound];
-
+	    z1 = left_bound * cell_dim - width / 2;
+	    z2 = (right_bound + 1) * cell_dim - width / 2;
+	    x1 = close_vec[left_bound];
+	    x2 = close_vec[right_bound];
+	    tie(x1, x2, z1, z2) = get_obj_pos(make_tuple(x1, x2, z1, z2));
 		if (close_vec[col] < max_dist) {
 			if (prev == max_dist) {
 				left_bound = col;
@@ -1090,10 +1088,10 @@ void object_detection() {
 		}
 	}
 
-    x1 = left_bound * cell_dim - width / 2;
-    x2 = (right_bound + 1) * cell_dim - width / 2;
-    z1 = close_vec[left_bound];
-    z2 = close_vec[right_bound];
+    z1 = left_bound * cell_dim - width / 2;
+    z2 = (right_bound + 1) * cell_dim - width / 2;
+    x1 = close_vec[left_bound];
+    x2 = close_vec[right_bound];
 
     tie(x1, x2, z1, z2) = get_obj_pos(make_tuple(x1, x2, z1, z2));
 
@@ -1220,7 +1218,7 @@ void record_output(){
   string time_string = to_string(chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count());
   output_file << time_string;
   output_file << "\n[";
-  for(int i = i; i < obj_lst.size(); i++){
+  for(int i = 0; i < obj_lst.size(); i++){
       tuple<float, float, float, float> obj = obj_lst[i];
       output_file << object_to_string(obj);
       if(i != obj_lst.size() - 1){
@@ -1296,12 +1294,13 @@ int main(int argc, char **argv) {
   ros::Subscriber ready_for_path_sub = nh.subscribe("cycle/ready_for_path", 1, &update_ready_for_path);
 
   // Synchronizes heading values with GPS heading
-  synchronize_heading();
+  //synchronize_heading();
   
   ros::service::waitForService("due_ready");
+  ROS_INFO_STREAM("I AM THE DUE MAN");
   ros::service::waitForService("calc_deltas");
+  ROS_INFO_STREAM("I am the calculate deltas");
   // ros::service::waitForService("get_desired_gps");
-
   // Creates publisher for calculating new deltas
   calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/calc_deltas", 1);
 

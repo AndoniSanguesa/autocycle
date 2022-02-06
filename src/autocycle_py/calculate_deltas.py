@@ -3,7 +3,7 @@ from autocycle_extras.msg import CalcDeltas
 from autocycle_extras.srv import TCK
 from std_msgs.msg import Empty
 from scipy import interpolate as interp
-
+import time
 
 
 tck = []
@@ -13,8 +13,17 @@ ready_pub = None
 
 def calculate_deltas(data):
     global tck, full_len
-    xs = list(data.path_x[1:])
-    ys = list(data.path_y[1:])
+    xs = list(data.path_x)
+    ys = list(data.path_y)
+    new_xs = []
+    new_ys = []
+    for i in range(len(xs)-1):
+        if not xs[i] == xs[i+1] and not ys[i] == ys[i+1]:
+            new_xs.append(xs[i])
+            new_ys.append(ys[i])
+
+    xs = new_xs
+    ys = new_ys
     tck = interp.splprep([xs, ys], s=0.5)[0]
     full_len = (sum(interp.splint(0, 1, tck, full_output=0))) * 2
     t = tck[0].tolist()
@@ -47,9 +56,10 @@ def start():
     # Creates Dummy Service to confirm subscriber is ready to go
     dummy = rospy.Service("calc_deltas", TCK, dummy_fun)
 
+    time.sleep(5)
     # Creates service proxy for delta updating
     update_delta_proxy = rospy.ServiceProxy("update_deltas", TCK)
-
+    
     # ROS waits for callbacks
     rospy.spin()
 

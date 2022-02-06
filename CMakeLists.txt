@@ -27,7 +27,7 @@ target_link_libraries(frame_ready ${catkin_LIBRARIES})
 target_link_libraries(read_serial ${catkin_LIBRARIES})
 target_link_libraries(send_action ${catkin_LIBRARIES})
 
-catkin_install_python(PROGRAMS bin/read_rosbag bin/get_deltas bin/calculate_deltas
+catkin_install_python(PROGRAMS bin/retract_actuators bin/deploy_actuators bin/read_rosbag bin/get_deltas bin/calculate_deltas
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 # TESTING FILES
