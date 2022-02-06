@@ -1297,9 +1297,8 @@ int main(int argc, char **argv) {
   //synchronize_heading();
   
   ros::service::waitForService("due_ready");
-  ROS_INFO_STREAM("I AM THE DUE MAN");
   ros::service::waitForService("calc_deltas");
-  ROS_INFO_STREAM("I am the calculate deltas");
+  ros::service::waitForService("ready_to_start");
   // ros::service::waitForService("get_desired_gps");
   // Creates publisher for calculating new deltas
   calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/calc_deltas", 1);
