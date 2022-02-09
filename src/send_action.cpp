@@ -37,6 +37,7 @@ int main(int argc, char **argv) {
 
     ros::service::waitForService("due_ready");
     ros::service::waitForService("get_delta");
+    ros::service::waitForService("start_movement");
 
     // Creates service proxy that will grab new deltas
     ros::ServiceClient get_delta = nh.serviceClient<autocycle_extras::GetDelta>("get_delta");

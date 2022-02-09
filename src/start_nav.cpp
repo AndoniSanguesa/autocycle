@@ -1298,7 +1298,7 @@ int main(int argc, char **argv) {
   
   ros::service::waitForService("due_ready");
   ros::service::waitForService("calc_deltas");
-  ros::service::waitForService("ready_to_start");
+  ros::service::waitForService("start_data");
   // ros::service::waitForService("get_desired_gps");
   // Creates publisher for calculating new deltas
   calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/calc_deltas", 1);
@@ -1312,7 +1312,6 @@ int main(int argc, char **argv) {
 
   // Sets desired heading (for now the initial heading)
   while(data[7] == -1){
-    cout << "FUCK" << endl;  
     ros::spinOnce();
   }
 
