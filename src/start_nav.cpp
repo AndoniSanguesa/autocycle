@@ -490,8 +490,8 @@ tuple<vector<float>, vector<float>> adjust_path_for_interp(tuple<vector<float>, 
     for(int i = 0; i < get<0>(cur_path).size(); i++){
         newx = new_xs[i]*cos(-cur_heading) - new_ys[i]*sin(-cur_heading);
         newy = new_xs[i]*sin(-cur_heading) + new_ys[i]*cos(-cur_heading);
-        new_xs[i] = new_x;
-        new_ys[i] = new_x;
+        new_xs[i] = newx;
+        new_ys[i] = newx;
     }
 
     return make_tuple(new_xs, new_ys);
