@@ -91,7 +91,7 @@ unordered_set<int> blocked_nodes;                      // Nodes that should be a
 unordered_set<int> center_blocked_nodes;               // The `anchor` blocked nodes, used only in generated the full `blocked_nodes` set
 float padding = 1.5;                                   // Amount of padding to place around objects in meters
 int padding_num = max((int) floor(padding / node_size),1); // Number of nodes around object to block out
-float des_heading = M_PI/2.0;                                 // The desired heading relative to global heading
+float des_heading = -M_PI/2.0 + (M_PI / 2);                                 // The desired heading relative to global heading
 vector<float> start_xs, start_ys;
 tuple<vector<float>, vector<float>> prev_path = {start_xs, start_ys};
 int loaded_graph_size = 50;
@@ -480,6 +480,7 @@ void update_desired_gps_pos(){
 
 tuple<vector<float>, vector<float>> adjust_path_for_interp(tuple<vector<float>, vector<float>> cur_path, float cur_heading){
     vector<float> new_xs, new_ys;
+    float new_x, new_y;
 
     for(int i = 0; i < get<0>(cur_path).size(); i++){
         new_xs.emplace_back(get<0>(cur_path)[i] - get<0>(cur_path)[0]);
@@ -487,8 +488,10 @@ tuple<vector<float>, vector<float>> adjust_path_for_interp(tuple<vector<float>, 
     }
 
     for(int i = 0; i < get<0>(cur_path).size(); i++){
-        new_xs[i] = new_xs[i] * cos(-cur_heading) - new_ys[i] * sin(-cur_heading);
-        new_ys[i] = new_xs[i] * sin(-cur_heading) + new_ys[i] * cos(-cur_heading);
+        new_x = new_xs[i] * cos(-cur_heading) - new_ys[i] * sin(-cur_heading);
+        new_y = new_xs[i] * sin(-cur_heading) + new_ys[i] * cos(-cur_heading);
+        new_xs[i] = new_x;
+        new_ys[i] = new_y;
     }
 
     return make_tuple(new_xs, new_ys);
@@ -657,10 +660,11 @@ float get_obj_len(tuple<float, float, float, float> obj){
 tuple<float, float, float, float> get_obj_pos(tuple<float, float, float, float> obj){
     float x1, x2, y1, y2, tx1, tx2, ty1, ty2;
     tie(x1, x2, y1, y2) = obj;
-    tx1 = cos(data[7]) * x1 - sin(data[7]) * y1 + get<0>(bike_pos);
-    tx2 = cos(data[7]) * x2 - sin(data[7]) * y2 + get<0>(bike_pos);
-    ty1 = sin(data[7]) * x1 + cos(data[7]) * y1 + get<1>(bike_pos);
-    ty2 = sin(data[7]) * x2 + cos(data[7]) * y2 + get<1>(bike_pos);
+    float rot_ang = 0.5 * M_PI - data[7];
+    tx1 = cos(rot_ang) * x1 - sin(rot_ang) * y1 + get<0>(bike_pos);
+    tx2 = cos(rot_ang) * x2 - sin(rot_ang) * y2 + get<0>(bike_pos);
+    ty1 = sin(rot_ang) * x1 + cos(rot_ang) * y1 + get<1>(bike_pos);
+    ty2 = sin(rot_ang) * x2 + cos(rot_ang) * y2 + get<1>(bike_pos);
     return make_tuple(tx1, tx2, ty1, ty2);
 }
 
@@ -1061,10 +1065,10 @@ void object_detection() {
 	vector<tuple<float, float, float, float>> z_boys;
 
 	for (int col = 0; col < cell_col; col++) {
-	    z1 = left_bound * cell_dim - width / 2;
-	    z2 = (right_bound + 1) * cell_dim - width / 2;
-	    x1 = close_vec[left_bound];
-	    x2 = close_vec[right_bound];
+	    x1 = left_bound * cell_dim - width / 2;
+	    x2 = (right_bound + 1) * cell_dim - width / 2;
+	    z1 = close_vec[left_bound];
+	    z2 = close_vec[right_bound];
 	    tie(x1, x2, z1, z2) = get_obj_pos(make_tuple(x1, x2, z1, z2));
 		if (close_vec[col] < max_dist) {
 			if (prev == max_dist) {
@@ -1088,10 +1092,10 @@ void object_detection() {
 		}
 	}
 
-    z1 = left_bound * cell_dim - width / 2;
-    z2 = (right_bound + 1) * cell_dim - width / 2;
-    x1 = close_vec[left_bound];
-    x2 = close_vec[right_bound];
+    x1 = left_bound * cell_dim - width / 2;
+    x2 = (right_bound + 1) * cell_dim - width / 2;
+    z1 = close_vec[left_bound];
+    z2 = close_vec[right_bound];
 
     tie(x1, x2, z1, z2) = get_obj_pos(make_tuple(x1, x2, z1, z2));
 
@@ -1248,7 +1252,7 @@ void record_output(){
 void get_data(const autocycle_extras::Data new_data){
     is_new_data = true;
     data = new_data.data;
-    data[7] = data[7] + sync_head_amt;
+    data[7] = -data[7] + 0.5*M_PI;
     if(get<0>(cur_gps) != 0){
         update_bike_pos(cur_gps, make_tuple(data[9], data[10]));
     }
@@ -1289,9 +1293,6 @@ int main(int argc, char **argv) {
 
   // Creates subscriber that waits for new lidar frame to be ready
   ros::Subscriber ready_sub = nh.subscribe("cycle/frame_ready", 1, &update_ready);
-
-  // Creates subscriber that updates velocity
-  ros::Subscriber ready_for_path_sub = nh.subscribe("cycle/ready_for_path", 1, &update_ready_for_path);
 
   // Synchronizes heading values with GPS heading
   //synchronize_heading();

@@ -88,11 +88,11 @@ int main(int argc, char **argv) {
         req.vel = velocity;
         get_delta.call(req, resp);
 
-        usleep(250000);
+        usleep(100000);
 
         if(resp.delta < 0.25 && resp.delta > -0.25){
             my_serial.write("d" + to_string(resp.delta) + ";");
         }
     }
-    my_serial.write("s 0;");
+    my_serial.write("v 0;");
 }

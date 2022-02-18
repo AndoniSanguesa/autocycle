@@ -30,7 +30,6 @@ def calculate_deltas(data):
     c1 = tck[1][0].tolist()
     c2 = tck[1][1].tolist()
     update_delta_proxy(t, c1, c2, tck[2], full_len)
-    ready_pub.publish()
 
 
 
@@ -49,9 +48,6 @@ def start():
 
     # Creates Subscriber for new paths to generate deltas for
     rospy.Subscriber("cycle/calc_deltas", CalcDeltas, calculate_deltas)
-
-    # Creates Publisher that will notify nav loop when ready for new curve
-    ready_pub = rospy.Publisher('cycle/ready_for_path', Empty, queue_size=1)
 
     # Creates Dummy Service to confirm subscriber is ready to go
     dummy = rospy.Service("calc_deltas", TCK, dummy_fun)
