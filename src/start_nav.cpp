@@ -91,7 +91,7 @@ unordered_set<int> blocked_nodes;                      // Nodes that should be a
 unordered_set<int> center_blocked_nodes;               // The `anchor` blocked nodes, used only in generated the full `blocked_nodes` set
 float padding = 1.5;                                   // Amount of padding to place around objects in meters
 int padding_num = max((int) floor(padding / node_size),1); // Number of nodes around object to block out
-float des_heading = -M_PI/2.0 + (M_PI / 2);                                 // The desired heading relative to global heading
+float des_heading = M_PI/2.0;                                 // The desired heading relative to global heading
 vector<float> start_xs, start_ys;
 tuple<vector<float>, vector<float>> prev_path = {start_xs, start_ys};
 int loaded_graph_size = 50;
@@ -480,7 +480,7 @@ void update_desired_gps_pos(){
 
 tuple<vector<float>, vector<float>> adjust_path_for_interp(tuple<vector<float>, vector<float>> cur_path, float cur_heading){
     vector<float> new_xs, new_ys;
-    float new_x, new_y;
+    float newx, newy;
 
     for(int i = 0; i < get<0>(cur_path).size(); i++){
         new_xs.emplace_back(get<0>(cur_path)[i] - get<0>(cur_path)[0]);
@@ -488,10 +488,10 @@ tuple<vector<float>, vector<float>> adjust_path_for_interp(tuple<vector<float>, 
     }
 
     for(int i = 0; i < get<0>(cur_path).size(); i++){
-        new_x = new_xs[i] * cos(-cur_heading) - new_ys[i] * sin(-cur_heading);
-        new_y = new_xs[i] * sin(-cur_heading) + new_ys[i] * cos(-cur_heading);
+        newx = new_xs[i]*cos(-cur_heading) - new_ys[i]*sin(-cur_heading);
+        newy = new_xs[i]*sin(-cur_heading) + new_ys[i]*cos(-cur_heading);
         new_xs[i] = new_x;
-        new_ys[i] = new_y;
+        new_ys[i] = new_x;
     }
 
     return make_tuple(new_xs, new_ys);
@@ -1252,7 +1252,7 @@ void record_output(){
 void get_data(const autocycle_extras::Data new_data){
     is_new_data = true;
     data = new_data.data;
-    data[7] = -data[7] + 0.5*M_PI;
+    data[7] = data[7] + sync_head_amt;
     if(get<0>(cur_gps) != 0){
         update_bike_pos(cur_gps, make_tuple(data[9], data[10]));
     }
