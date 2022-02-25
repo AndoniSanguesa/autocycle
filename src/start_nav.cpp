@@ -1325,6 +1325,10 @@ int main(int argc, char **argv) {
   // starts second clock used only for updating object positions
   state_start = std::chrono::high_resolution_clock::now();
 
+  tuple<float, float, float, float> fixed_object = make_tuple(1000, -1000, 5000, 5000);
+  fixed_object = get_obj_pos(fixed_object);
+  obj_lst.emplace_back(fixed_object);
+
   // Navigation loop
   while(ros::ok()){
     // Tells ROS to look for any callbacks waiting to run
@@ -1374,7 +1378,7 @@ int main(int argc, char **argv) {
       ros::spinOnce();
 
       // Runs object detection on the new data
-      object_detection();
+      //object_detection();
     }
 
     //ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
