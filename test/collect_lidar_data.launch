@@ -1,7 +1,7 @@
 <launch>
     <node 
         pkg="autocycle"
-        type="start_nav"
+        type="collect_lidar_data"
         name="navigation_core"
         output="screen"
         required="true"
