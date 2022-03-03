@@ -17,6 +17,7 @@ float dist_trav = 0;
 float velocity = 0;
 float state = 0;
 float time_elapsed = 0;
+float max_delta = 0.523;
 
 void reset_distance(const autocycle_extras::CalcDeltas data){
     dist_trav = 0;
@@ -36,8 +37,8 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;
 
     ros::service::waitForService("due_ready");
-    ros::service::waitForService("get_delta");
     ros::service::waitForService("start_movement");
+    ros::service::waitForService("get_delta");
 
     // Creates service proxy that will grab new deltas
     ros::ServiceClient get_delta = nh.serviceClient<autocycle_extras::GetDelta>("get_delta");
@@ -69,7 +70,7 @@ int main(int argc, char **argv) {
     // Rates the delta querying speed
     // ros::Rate loop_rate(10);
 
-    my_serial.write("t1,10000;");
+    my_serial.write("t2,15000;");
 
     while(ros::ok()){
 	// loop_rate.sleep();
@@ -87,12 +88,18 @@ int main(int argc, char **argv) {
         req.x = dist_trav;
         req.vel = velocity;
         get_delta.call(req, resp);
+	
+        usleep(50000);
 
-        usleep(100000);
 
-        if(resp.delta < 0.25 && resp.delta > -0.25){
-            my_serial.write("d" + to_string(resp.delta) + ";");
+        if(resp.delta > max_delta){
+	    resp.delta = max_delta;
+        } else if(resp.delta < -max_delta){
+            resp.delta = -max_delta;
         }
+
+        ROS_INFO_STREAM("PARAMS: " << to_string(dist_trav) << ", " << to_string(velocity) << "DELTA SENT: " << to_string(resp.delta));    
+	    my_serial.write("d" + to_string(resp.delta) + ";");
     }
     my_serial.write("v 0;");
 }

@@ -9,12 +9,12 @@
 #include <math.h>
 #include <vector>
 #include <autocycle_extras/CalcDeltas.h>
+#include <autocycle_extras/SRVCalcDeltas.h>
 #include <autocycle_extras/GPS.h>
 #include <autocycle_extras/DesiredGPS.h>
 #include <autocycle_extras/Data.h>
 #include <cmath>
 #include <set>
-#include <vector>
 #include <functional>
 #include <deque>
 #include <unordered_map>
@@ -50,13 +50,14 @@ tuple<float, float> desired_gps_pos;                   // Position describing th
 bool desired_gps_set = false;                          // Whether or not a desired GPS position has been set
 
 // ROS varibale initialization
-ros::Publisher calc_deltas;                   // ROS publisher that publishes new paths for delta calculation
-autocycle_extras::CalcDeltas calc_deltas_pub; // ROS message object that will be published by `calc_deltas`
+ros::ServiceClient calc_deltas;
+autocycle_extras::SRVCalcDeltas::Request req;
+autocycle_extras::SRVCalcDeltas::Response resp;
 autocycle_extras::DesiredGPS desired_gps_obj; // ROS object that contains the data provided to and from the corresponding client
 ros::ServiceClient desired_gps_cli;           // ROS Service Client that will request next desired (long, lat)
 
 // Sensor data variables
-vector<float> data;                           // Contains latest data
+vector<double> data;                           // Contains latest data
 tuple<float, float> cur_gps;                  // Latest longitude and latitude
 tuple<float, float> prev_gps;                 // Previous longitude and latitude
 tuple<float, float> r_hat = {0, 0};           // vector from back wheel ground patch to the lidar
@@ -314,7 +315,7 @@ tuple<int, int> get_end_node(tuple<float ,float> bike_pos, float desired_heading
 }
 
 tuple<int, int> get_start_node(tuple<float, float> bike_pos, float cur_heading){
-    float new_point_dist = 2 * node_size;
+    float new_point_dist = node_size;
 
     float x = cos(cur_heading)*new_point_dist + get<0>(bike_pos);
     float y = sin(cur_heading)*new_point_dist + get<1>(bike_pos);
@@ -465,6 +466,7 @@ tuple<vector<float>, vector<float>> bfs_path(unordered_set<int> blocked_nodes, t
     }
     if(euc_dist(make_tuple(get<0>(best_path).back(), get<1>(best_path).back()), bike_pos) < max_distance){
         cout << "BIKE MUST BE STOPPED" << endl;
+        my_serial.write("v 0;");
         exit(1);
     }
     return best_path;
@@ -497,30 +499,21 @@ tuple<vector<float>, vector<float>> adjust_path_for_interp(tuple<vector<float>, 
     return make_tuple(new_xs, new_ys);
 }
 
-int binary_search(const vector<float>& values, float target){
-    int low = 0;
-    int high = (int) values.size() - 1;
-    int mid;
-
-    while(low <= high){
-        mid = (low + high) / 2;
-        if(values[mid] == target){
-            return mid;
-        } else if(values[mid] < target){
-            low = mid + 1;
-        } else{
-            high = mid - 1;
+int find_closest_point(const vector<float>& xs, const vector<float>& ys, tuple<float, float> target){
+    for(int i = 0; i < xs.size(); i++){
+        float dist = euc_dist(make_tuple(xs[i], ys[i]), target);
+        if(dist < max_distance){
+            return dist;
         }
     }
-    return low;
+    return max_distance + 1;
 }
 
 
 float calculate_distance_from_path(tuple<float, float> bike_pos){
     vector<float> xs, ys;
     tie(xs, ys) = prev_path;
-    int ind = binary_search(xs, get<0>(bike_pos));
-    return euc_dist(make_tuple(xs[ind], ys[ind]), bike_pos);
+    return find_closest_point(xs, ys, bike_pos);
 }
 
 float calculate_distance_from_end_node(tuple<float, float> bike_pos){
@@ -555,6 +548,7 @@ bool should_new_path_be_generated(tuple<float, float> bike_pos){
     }
 
     if(calculate_distance_from_end_node(bike_pos) < max_distance){
+        my_serial.write("v 0;");
         return true;
     }
 
@@ -587,7 +581,6 @@ tuple<vector<float>, vector<float>> get_direct_heading_path(tuple<float, float> 
 
 // Creates the curve around objects
 void create_path(){
-
     for(tuple<float, float, float, float> obj : obj_lst){
         obj = make_tuple(get<0>(obj) / 1000, get<1>(obj) / 1000, get<2>(obj) / 1000, get<3>(obj) / 1000);
         get_blocked_nodes(obj);
@@ -600,7 +593,7 @@ void create_path(){
 
     tuple<vector<float>, vector<float>> path = get_direct_heading_path(bike_pos, (float) data[7], used_desired_heading);
     bool use_direct_path = !check_for_objects_in_path(path);
-
+    use_direct_path = false;
     if(should_new_path_be_generated(bike_pos) || use_direct_path) {
         //cout << "Generating New Path" << endl;
         vector<float> xs, ys;
@@ -610,9 +603,9 @@ void create_path(){
             current_end_node = get_node_from_point(make_tuple(xs.back(), ys.back()));
         } else {
             start_node = get_start_node(bike_pos, data[7]);
-            current_end_node = get_end_node(bike_pos, used_desired_heading);
-
-            cout << "END_NODE: (" << to_string(get<0>(current_end_node)) << ", " << to_string(get<1>(current_end_node)) << ")" << endl;
+            //current_end_node = get_end_node(bike_pos, used_desired_heading);
+	    current_end_node = make_tuple(0, -15);
+            //cout << "END_NODE: (" << to_string(get<0>(current_end_node)) << ", " << to_string(get<1>(current_end_node)) << ")" << endl;
 
             path = bfs_path(blocked_nodes, start_node, current_end_node, bike_pos);
 
@@ -628,14 +621,16 @@ void create_path(){
         }
         prev_path = make_tuple(xs, ys);
 
-        tuple<vector<float>, vector<float>> interp_path = adjust_path_for_interp(
-                make_tuple(xs, ys), data[7]);
+        //tuple<vector<float>, vector<float>> interp_path = adjust_path_for_interp(
+                //make_tuple(xs, ys), data[7]);
         
-        calc_deltas_pub.path_x = get<0>(interp_path);
-        calc_deltas_pub.path_y = get<1>(interp_path);
+        req.path_x = xs;
+        req.path_y = ys;
 
-        calc_deltas.publish(calc_deltas_pub);
+        calc_deltas.call(req, resp);
+        ROS_INFO_STREAM("I CALLED THE SERVICE");
     }
+    
     // auto end = chrono::high_resolution_clock::now();
     // auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     // ROS_INFO_STREAM("PATH PLANNING IS TAKING: " << (float) duration.count() / 1000.0 << " SECONDS");
@@ -1251,6 +1246,7 @@ void record_output(){
 
 void get_data(const autocycle_extras::Data new_data){
     is_new_data = true;
+    ROS_INFO_STREAM("LAT: " << to_string(new_data.data[9]) << ", LNG: " << to_string(new_data.data[10]));
     data = new_data.data;
     data[7] = data[7] + sync_head_amt;
     if(get<0>(cur_gps) != 0){
@@ -1302,7 +1298,9 @@ int main(int argc, char **argv) {
   ros::service::waitForService("start_data");
   // ros::service::waitForService("get_desired_gps");
   // Creates publisher for calculating new deltas
-  calc_deltas = nh.advertise<autocycle_extras::CalcDeltas>("cycle/calc_deltas", 1);
+  calc_deltas = nh.serviceClient<autocycle_extras::SRVCalcDeltas>("calc_deltas");
+
+  bool has_slept = false;
 
   // Creates server client for getting subsequent desired GPS positions
   // desired_gps_cli = nh.serviceClient<autocycle_extras::DesiredGPS>("get_desired_gps");
@@ -1316,6 +1314,9 @@ int main(int argc, char **argv) {
     ros::spinOnce();
   }
 
+  tuple<float, float, float, float> sing_obj = get_obj_pos(make_tuple(2000, -2000, 5000, 5000));
+  obj_lst.emplace_back(sing_obj);
+
   // Reserves the requisite space for the vectors in use
   lvx_points.reserve(15000);
 
@@ -1324,6 +1325,8 @@ int main(int argc, char **argv) {
 
   // starts second clock used only for updating object positions
   state_start = std::chrono::high_resolution_clock::now();
+
+
 
   // Navigation loop
   while(ros::ok()){
@@ -1374,7 +1377,7 @@ int main(int argc, char **argv) {
       ros::spinOnce();
 
       // Runs object detection on the new data
-      object_detection();
+     // object_detection();
     }
 
     //ROS_INFO_STREAM("Sending LiDAR data to Object Detection");
@@ -1383,7 +1386,6 @@ int main(int argc, char **argv) {
 
     // Generates a new path
     create_path();
-
   }
 
   // Clears the lvx file and shuts down. Mission Complete

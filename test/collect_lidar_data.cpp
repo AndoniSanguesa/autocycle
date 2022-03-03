@@ -124,10 +124,10 @@ int main(int argc, char **argv) {
   ros::Subscriber ready_sub = nh.subscribe("cycle/frame_ready", 1, &update_ready);
 
   while(ros::ok()){
-    if(ready){
-        parse_lvx();
-        break;
-    }
+    sleep(10);
+    ROS_INFO_STREAM("PARSING");
+    parse_lvx();
+    break;
   }
   output_file.close();
 }

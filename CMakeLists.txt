@@ -32,7 +32,6 @@ catkin_install_python(PROGRAMS bin/start_all_systems bin/start_data bin/start_mo
 
 # TESTING FILES
 add_executable(test_pi_to_ard test/test_pi_to_ard.cpp)
-add_executable(test_obj_to_ard test/test_obj_to_ard.cpp)
 add_executable(test_serial_read test/test_serial_read.cpp)
 add_executable(test_sim_sensors test/test_sim_sensors.cpp)
 add_executable(test_serial_write test/test_serial_write.cpp)
@@ -43,7 +42,6 @@ add_executable(test_nav_predefined_curve test/test_nav_predefined_curve.cpp)
 add_executable(collect_lidar_data test/collect_lidar_data.cpp)
 
 target_link_libraries(test_pi_to_ard ${catkin_LIBRARIES})
-target_link_libraries(test_obj_to_ard ${catkin_LIBRARIES})
 target_link_libraries(test_serial_read ${catkin_LIBRARIES})
 target_link_libraries(test_sim_sensors ${catkin_LIBRARIES})
 target_link_libraries(test_serial_write ${catkin_LIBRARIES})

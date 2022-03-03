@@ -18,6 +18,7 @@ def get_dervs(x, acc=0.000001):
              (next_val[1] - 2 * this_val[1] + prev_val[1]) / (acc ** 2)),
             ((this_val[0] - next_val[0]) / acc,
              (this_val[1] - next_val[1]) / acc))
+    
 
 
 def get_delta(i, vel):
@@ -26,10 +27,12 @@ def get_delta(i, vel):
     ## Calls the data getter to give us the latest roll
     dervs = get_dervs(i)
 
-    wheel_base = 1
+    print(dervs)
+
+    wheel_base = 1.18
     radius_of_turn = ((dervs[1][0] ** 2 + dervs[1][1] ** 2) ** (3 / 2)) / (
             (dervs[1][0] * dervs[0][1]) - (dervs[1][1] * dervs[0][0]))
-    g = 32.2
+    g = 9.8
     load_front_ax = 1
     load_rear_ax = 1
     corn_stiff_front = 1
@@ -39,6 +42,7 @@ def get_delta(i, vel):
 
 
 def delta(data):
+    print(f"RECV DELTA PARAMS: {data.x} {data.vel} DELTA CALCULATED: {get_delta(data.x, data.vel)}")
     return get_delta(data.x, data.vel) if tck else -1
 
 

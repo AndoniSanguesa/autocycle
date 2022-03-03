@@ -49,13 +49,20 @@ int main(int argc, char **argv){
   }
 
   ros::ServiceServer dummy_serv = nh.advertiseService("due_ready", dummy);
-
   while(ros::ok()){
     temp.append(my_serial.read());
     back_char = (char) temp.back();
+    if(back_char == 'W'){
+	temp.append(my_serial.read());
+	while((char) temp.back() != '\n'){
+            temp.append(my_serial.read());
+	}
+	ROS_INFO_STREAM("I found W!!! ");
+	temp = "";
+    }
     if(back_char == '\t' || back_char == '\n'){
       temp.pop_back();
-      to_pub.data.push_back(stof(temp));
+      to_pub.data.push_back(stod(temp));
       temp.clear();
       if (back_char == '\n'){
         data_pub.publish(to_pub);
