@@ -7,42 +7,28 @@ full_len = 0
 
 def get_dervs(x, acc=0.000001):
     """Calculates the derivatives of the curve"""
-    if not full_len:
-        return 0
-    u = x/full_len
+    k = x / full_len
     subs = lambda x: interp.splev(x, tck)
-    this_val = subs(u)
-    next_val = subs(u + acc)
-    prev_val = subs(u - acc)
-    return (((next_val[0] - 2 * this_val[0] + prev_val[0]) / (acc ** 2),
-             (next_val[1] - 2 * this_val[1] + prev_val[1]) / (acc ** 2)),
-            ((this_val[0] - next_val[0]) / acc,
-             (this_val[1] - next_val[1]) / acc))
+    this_val = subs(k)
+    next_val = subs(k + acc)
+    return ((this_val[0] - next_val[0]) / acc,
+            (this_val[1] - next_val[1]) / acc)
     
 
 
-def get_delta(i, vel):
+def get_delta(i):
     """Calculates steering angle"""
     global step
     ## Calls the data getter to give us the latest roll
     dervs = get_dervs(i)
 
-    print(dervs)
+    return np.arctan2(dervs[1], dervs[0])
 
-    wheel_base = 1.18
-    radius_of_turn = ((dervs[1][0] ** 2 + dervs[1][1] ** 2) ** (3 / 2)) / (
-            (dervs[1][0] * dervs[0][1]) - (dervs[1][1] * dervs[0][0]))
-    g = 9.8
-    load_front_ax = 1
-    load_rear_ax = 1
-    corn_stiff_front = 1
-    corn_stiff_rear = 1
-
-    return wheel_base/radius_of_turn + ((load_front_ax/corn_stiff_front)-(load_rear_ax/corn_stiff_rear))*((vel**2)/(g*radius_of_turn))
+    
 
 
 def delta(data):
-    print(f"RECV DELTA PARAMS: {data.x} {data.vel} DELTA CALCULATED: {get_delta(data.x, data.vel)}")
+    print(f"RECV DELTA PARAMS: {data.x} DELTA CALCULATED: {get_delta(data.x)}")
     return get_delta(data.x, data.vel) if tck else -1
 
 

@@ -17,7 +17,6 @@ float dist_trav = 0;
 float velocity = 0;
 float state = 0;
 float time_elapsed = 0;
-float max_delta = 0.523;
 
 void reset_distance(const autocycle_extras::CalcDeltas data){
     dist_trav = 0;
@@ -90,16 +89,9 @@ int main(int argc, char **argv) {
         get_delta.call(req, resp);
 	
         usleep(50000);
-
-
-        if(resp.delta > max_delta){
-	    resp.delta = max_delta;
-        } else if(resp.delta < -max_delta){
-            resp.delta = -max_delta;
-        }
-
+        
         ROS_INFO_STREAM("PARAMS: " << to_string(dist_trav) << ", " << to_string(velocity) << "DELTA SENT: " << to_string(resp.delta));    
-	    my_serial.write("d" + to_string(resp.delta) + ";");
+	    my_serial.write("h" + to_string(resp.delta) + ";");
     }
     my_serial.write("v 0;");
 }

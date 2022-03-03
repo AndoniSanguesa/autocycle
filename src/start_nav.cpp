@@ -655,7 +655,7 @@ float get_obj_len(tuple<float, float, float, float> obj){
 tuple<float, float, float, float> get_obj_pos(tuple<float, float, float, float> obj){
     float x1, x2, y1, y2, tx1, tx2, ty1, ty2;
     tie(x1, x2, y1, y2) = obj;
-    float rot_ang = 0.5 * M_PI - data[7];
+    float rot_ang = data[7];
     tx1 = cos(rot_ang) * x1 - sin(rot_ang) * y1 + get<0>(bike_pos);
     tx2 = cos(rot_ang) * x2 - sin(rot_ang) * y2 + get<0>(bike_pos);
     ty1 = sin(rot_ang) * x1 + cos(rot_ang) * y1 + get<1>(bike_pos);
