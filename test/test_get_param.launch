@@ -1,0 +1,16 @@
+<launch>
+  <node
+    pkg="autocycle"
+    type="bezier_visualization"
+    name="bezier_visualization"
+    output="screen"
+    required="true"
+  />
+  <node
+    pkg="autocycle"
+    type="test_gen_param"
+    name="test_gen_param"
+    output="screen"
+    required="true"
+  />
+</launch>

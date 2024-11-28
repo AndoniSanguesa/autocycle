@@ -1,0 +1,36 @@
+<launch>
+    <node
+        pkg="autocycle"
+        type="test_nav_predefined_curve"
+        name="test_nav_predefined_curve"
+        output="screen"
+    />
+    <node
+        pkg="autocycle"
+        type="test_send_only_ang"
+        name="test_send_only_ang"
+        output="screen"
+        required="true"
+    />
+    <node
+        pkg="autocycle"
+        type="read_serial"
+        name="read_serial"
+        output="screen"
+        respawn="true"
+    />
+    <node
+        pkg="autocycle"
+        type="get_deltas"
+        name="get_deltas"
+        output="screen"
+        required="true"
+    />
+    <node
+        pkg="autocycle"
+        type="calculate_deltas"
+        name="calculate_deltas"
+        output="screen"
+        required="true"
+    />
+</launch>
